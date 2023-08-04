@@ -1,25 +1,38 @@
 ---
-title: Colored Rings
-description: Add simple colored status rings to any character
-author: Owlbear Rodeo
-image: https://raw.githubusercontent.com/owlbear-rodeo/colored-rings/main/docs/header.jpg
-icon: https://colored-rings.owlbear.rodeo/logo.png
+title: Bubble Tracker
+description: Track hit points, temporary hit points, and armor class with Roll20 style bubbles
+author: Seamus Finlayson
+image: https://owlbear-rodeo-bubbles-extension.onrender.com/colored-rings/docs/header.jpg
+icon: https://owlbear-rodeo-bubbles-extension.onrender.com/logo.png
 tags:
-  - built-by-owlbear
   - tool
   - combat
 manifest: https://colored-rings.owlbear.rodeo/manifest.json
-learn-more: https://owlbear.app
+learn-more: https://github.com/SeamusFinlayson/Bubbles-for-Owkbear-Rodeo
 ---
 
-# Colored Rings
+# Bubble Tracker
 
-This extension can add simple colored rings to any Character image.
+This extension tracks hit points, temporary hit points, and armor class with Roll20 style bubbles.
 
-**How to use**
+## How to use
 
-Select your character token and then click the colored rings icon that appears on the context menu. You can choose what color you would like your ring. Select another color to add another ring.
+### Basic
+
+This extension is deigned to be keyboard friendly.
+
+1. Click on a token and use the shortcut Shift + S to see and edit a token's trackers.
+2. Press Tab to cycle through the bubbles.
+3. When you're done press Escape or Enter and the menu will close.
+
+This extension works with tokens on the Prop, Mount, and Character layers.
+
+### For GMs
+
+Keep your secrets by removing the player permissions on the prop layer. Now, put your monsters on the prop layer and your players won't be able to see their stats. 
+
+![Alt text](image-2.png)
 
 **Support**
 
-If you need support for this extension you can email <support@owlbear.rodeo>
+If you need support for this extension you can open an issue on [GitHub](https://github.com/SeamusFinlayson/Bubbles-for-Owkbear-Rodeo)
