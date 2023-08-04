@@ -1,0 +1,10 @@
+{
+  "name": "Bubbles    ",
+  "version": "1.0.0",
+  "manifest_version": 1,
+  "author": "Seamus",
+  "homepage_url": "https://owlbear.app",
+  "icon": "/logo.png",
+  "background_url": "/background.html",
+  "description": "Add simple colored status rings to any character"
+}

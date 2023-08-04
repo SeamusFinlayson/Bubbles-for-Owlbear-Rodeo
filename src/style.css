@@ -1,0 +1,61 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: white;
+}
+
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+}
+
+.number-box {
+  width: 30px;
+  height: 30px;
+  border-radius: 100%;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgb(224, 28, 28);
+  background-color: rgb(0, 0, 0);
+  text-align: center;
+  color: white;
+  font-size: medium;
+}
+
+.color {
+  width: 24px;
+  height: 24px;
+  /* Create a circle with a clip path to allow transition from full to hollow */
+  clip-path: path(
+    "M 12 0 A 12 12 0 0 1 12 24 A 12 12 0 0 1 12 0 M 12 12 A 0 0 0 0 0 12 12 A 0 0 0 0 0 12 12"
+  );
+  transition: all 100ms ease 0s;
+}
+
+/* Hollow out the circle when selected */
+.selected .color {
+  clip-path: path(
+    "M 12 0 A 12 12 1 1 1 12 24 A 12 12 1 1 1 12 0 M 12 3 A 9 9 0 0 0 12 21 A 9 9 0 0 0 12 3"
+  );
+}
+
+.color-button:hover .color {
+  transform: scale(1.2);
+}
+
+/* hide number input arrows */
+input[type='number'] {
+  -moz-appearance:textfield;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
