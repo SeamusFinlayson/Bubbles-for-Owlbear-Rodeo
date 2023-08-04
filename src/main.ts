@@ -47,12 +47,12 @@ OBR.onReady(async () => {
   // try to fill input fields with previous data
   for (const bubble of bubbles) {
     try {
-      document.getElementById(bubble).value = retrievedMetadata[bubble]; //errors handled by try catch
+      (document.getElementById(bubble) as HTMLInputElement).value = retrievedMetadata[bubble];
     } catch (error) {}
   }
 
   //select health field by default
-  document.getElementById(bubbles[0])?.select() //element is type input which has select method
+  (document.getElementById(bubbles[0]) as HTMLInputElement)?.select() //element is type input which has select method
 
   // Attach on input listeners
   bubbles.forEach(
@@ -80,7 +80,7 @@ OBR.onReady(async () => {
 async function handleBubbleValueUpdate(id: string) {
 
   //set value of new metadata
-  var value = document.getElementById(id).value; //may show error, is fine, correct type is HTMLElementInput which has .value
+  var value = (document.getElementById(id) as HTMLInputElement).value; //may show error, is fine, correct type is HTMLElementInput which has .value
   const newMetadata = {[id]: value}
   //console.log("Updating... " + id + ": " + value); //log incoming metadata modification
 
@@ -90,7 +90,7 @@ async function handleBubbleValueUpdate(id: string) {
 
   //get existing metadata from token, if it exists
   //max one object selected
-  var retrievedMetadata, combinedMetadata;
+  var retrievedMetadata, combinedMetadata: any;
   for (const item of items) {
     const metadata = item.metadata[getPluginId("metadata/")];
 

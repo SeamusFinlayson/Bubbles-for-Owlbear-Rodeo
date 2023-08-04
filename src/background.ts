@@ -34,7 +34,7 @@ OBR.onReady(() => {
         height: 60,
         width: 310,
         anchorElementId: elementId,
-        hidePaper: false,
+        //hidePaper: false,
         //anchorOrigin: {vertical: "BOTTOM", horizontal: "LEFT"}
         //transformOrigin: {vertical: "TOP", horizontal: "RIGHT"}
       });
