@@ -2,7 +2,7 @@
 title: Bubble Tracker
 description: Track hit points, temporary hit points, and armor class with Roll20 style bubbles
 author: Seamus Finlayson
-image: https://owlbear-rodeo-bubbles-extension.onrender.com/colored-rings/docs/header.jpg
+image: https://raw.githubusercontent.com/SeamusFinlayson/Bubbles-for-Owkbear-Rodeo/master/docs/header.png
 icon: https://owlbear-rodeo-bubbles-extension.onrender.com/logo.png
 tags:
   - tool
