@@ -52,7 +52,7 @@ OBR.onReady(async () => {
   }
 
   //select health field by default
-  (document.getElementById(bubbles[0]) as HTMLInputElement)?.select() //element is type input which has select method
+  (document.getElementById(bubbles[0]) as HTMLInputElement)?.select()
 
   // Attach on input listeners
   bubbles.forEach(
@@ -80,7 +80,7 @@ OBR.onReady(async () => {
 async function handleBubbleValueUpdate(id: string) {
 
   //set value of new metadata
-  var value = (document.getElementById(id) as HTMLInputElement).value; //may show error, is fine, correct type is HTMLElementInput which has .value
+  var value = (document.getElementById(id) as HTMLInputElement).value;
   const newMetadata = {[id]: value}
   //console.log("Updating... " + id + ": " + value); //log incoming metadata modification
 
