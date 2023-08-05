@@ -20,7 +20,7 @@ OBR.onReady(() => {
             { key: "type", value: "IMAGE" },
             { key: "layer", value: "CHARACTER", coordinator: "||" },
             { key: "layer", value: "MOUNT", coordinator: "||" },
-            { key: "layer", value: "PROP", coordinator: "||" },
+            { key: "layer", value: "PROP" },
           ],
           permissions: ["UPDATE"],
           max: 1,

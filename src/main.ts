@@ -14,17 +14,17 @@ OBR.onReady(async () => {
   <div class="center">
 
     <label>HP</label>
-    <input class="number-box" type="number" id="health" name="health">
+    <input class="number-box" type="text" id="health" name="health">
 
     <label>/</label>
-    <input class="number-box" type="number" id="max health" name="max health">
+    <input class="number-box" type="text" id="max health" name="max health">
 
     <label>Temp</label>
-    <input class="number-box" type="number" id="temporary health" name="temporary health"
+    <input class="number-box" type="text" id="temporary health" name="temporary health"
     style="border-color: lightgreen;">
 
     <label>AC</label>
-    <input class="number-box" type="number" id="armor class" 
+    <input class="number-box" type="text" id="armor class" 
       name="armor class" style="border-color: lightblue;">
 
     <label>Hide Bar</label>
@@ -69,7 +69,7 @@ OBR.onReady(async () => {
     (id) => {
       // Attach on input listeners
       // note consider switching to 
-      document.getElementById(id)?.addEventListener("input", function(){handleBubbleValueUpdate(id)});
+      document.getElementById(id)?.addEventListener("change", function(){handleBubbleValueUpdate(id)});
     }
   );
 
@@ -100,9 +100,8 @@ async function handleBubbleValueUpdate(id: string) {
     value = (document.getElementById(id) as HTMLInputElement).value;
   }
   
-  //console.log("Updating... " + id + ": " + value); //log incoming metadata modification
-  //console.log("Updating... " + id + ": " + checked); //log incoming metadata modification
-  const newMetadata = {[id]: value}
+  console.log("Updating... " + id + ": " + value); //log incoming metadata modification
+  var newMetadata = {[id]: value}
 
   //find selected token
   const selection = await OBR.player.getSelection();
@@ -116,9 +115,35 @@ async function handleBubbleValueUpdate(id: string) {
 
     //set new metadata value
     if (metadata) {
-      //console.log("stringified: " + JSON.stringify(metadata)) //this is retrieved metadata
+
       retrievedMetadata = JSON.parse(JSON.stringify(metadata));
-      combinedMetadata = {...retrievedMetadata, ...newMetadata} //modify only the new metadata item
+
+      //try to add new value to previous value
+      if (id != "hide") {
+        if ((value.startsWith("+") || value.startsWith("-")) && !isNaN(parseFloat(retrievedMetadata[id]))) {
+          try {
+            const newValue = parseFloat(retrievedMetadata[id]) + parseFloat(value);
+            newMetadata = {[id]: newValue };
+            (document.getElementById(id) as HTMLInputElement).value = String(newValue);
+          } catch (error) {
+            newMetadata = {[id]: value};
+            (document.getElementById(id) as HTMLInputElement).value = String(value);
+          }
+        } else { //try to extract float from number
+          try {
+            const newValue = parseFloat(value);
+            if (!isNaN(newValue)) {
+              newMetadata = {[id]: newValue };
+              (document.getElementById(id) as HTMLInputElement).value = String(newValue);
+            }
+          } catch (error) {
+            newMetadata = {[id]: value};
+            (document.getElementById(id) as HTMLInputElement).value = String(value);
+          }
+        }
+      }
+
+      combinedMetadata = {...retrievedMetadata, ...newMetadata} //overwrite only the updated item
     }
     else {
       combinedMetadata = newMetadata
@@ -142,7 +167,7 @@ async function handleBubbleValueUpdate(id: string) {
   for (const item of items) {
     const shapes = await createShapes(item, combinedMetadata, visible);
     if (shapes) {
-      console.log("Drawing shape")
+      //console.log("Drawing shape")
       await OBR.scene.items.addItems(shapes);
     }
   }
@@ -195,13 +220,13 @@ const createShapes = async (item: Image, metadata: any, visible: boolean): Promi
     } else if (health >= maxHealth){
       percentage = 1;
     } else {
-      console.log("Error: failed to give percentage value");
+      //console.log("Error: failed to give percentage value");
     }
 
-    console.log(
-      "Percentage: " + percentage + 
-      ", Health: " + metadata["health"] + 
-      ", Max Health: " + metadata["max health"]);
+    // console.log(
+    //   "Percentage: " + percentage + 
+    //   ", Health: " + metadata["health"] + 
+    //   ", Max Health: " + metadata["max health"]);
 
     const hpShape = buildShape()
     .width(percentage === 0 ? 0 : (bounds.width - 4) * percentage)

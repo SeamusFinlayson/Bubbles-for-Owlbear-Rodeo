@@ -7,7 +7,7 @@ icon: https://owlbear-rodeo-bubbles-extension.onrender.com/logo.png
 tags:
   - tool
   - combat
-manifest: https://colored-rings.owlbear.rodeo/manifest.json
+manifest: https://owlbear-rodeo-bubbles-extension.onrender.com/manifest.json
 learn-more: https://github.com/SeamusFinlayson/Bubbles-for-Owkbear-Rodeo
 ---
 
@@ -33,6 +33,6 @@ Keep your secrets by removing the player permissions on the prop layer. Now, put
 
 ![Alt text](image-2.png)
 
-**Support**
+### Support
 
 If you need support for this extension you can open an issue on [GitHub](https://github.com/SeamusFinlayson/Bubbles-for-Owkbear-Rodeo)
