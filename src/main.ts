@@ -1,4 +1,4 @@
-import OBR, { Image, } from "@owlbear-rodeo/sdk";
+import OBR, { Image, buildShape } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 import "./style.css";
 
@@ -27,10 +27,16 @@ OBR.onReady(async () => {
     <input class="number-box" type="number" id="armor class" 
       name="armor class" style="border-color: lightblue;">
 
+    <label>Hide Bar</label>
+    <label class="switch">
+      <input type="checkbox" id="hide">
+      <span class="slider round"></span>
+    </label>
+
   </div>`;
 
   //list of input element ids in document
-  var bubbles:string[] = ["health", "max health", "temporary health", "armor class"]; 
+  var bubbles:string[] = ["health", "max health", "temporary health", "armor class", "hide"];
 
   //get existing metadata from token
   const selection = await OBR.player.getSelection();
@@ -51,6 +57,10 @@ OBR.onReady(async () => {
     } catch (error) {}
   }
 
+  try {
+    (document.getElementById(bubbles[4]) as HTMLInputElement).checked = retrievedMetadata[bubbles[4]];
+  } catch (error) {}
+
   //select health field by default
   (document.getElementById(bubbles[0]) as HTMLInputElement)?.select()
 
@@ -69,20 +79,30 @@ OBR.onReady(async () => {
     // var code = event.code;
     //console.log(`Key pressed ${name} \r\n Key code value: ${code}`); // log keypressed
 
-    if (event.key == "Escape" || event.key == "Enter") {
+    if (event.key == "Escape") { // || event.key == "Enter"
       //console.log("Closing")
       OBR.popover.close(getPluginId("number-bubbles"));
     }
   }, false);
+
+  console.log(items);
 });
 
 //save changes to bubble values in meta data
 async function handleBubbleValueUpdate(id: string) {
 
+  var value: any;
+
   //set value of new metadata
-  var value = (document.getElementById(id) as HTMLInputElement).value;
-  const newMetadata = {[id]: value}
+  if (id == "hide") {
+    value = (document.getElementById(id) as HTMLInputElement).checked;
+  } else {
+    value = (document.getElementById(id) as HTMLInputElement).value;
+  }
+  
   //console.log("Updating... " + id + ": " + value); //log incoming metadata modification
+  //console.log("Updating... " + id + ": " + checked); //log incoming metadata modification
+  const newMetadata = {[id]: value}
 
   //find selected token
   const selection = await OBR.player.getSelection();
@@ -112,4 +132,134 @@ async function handleBubbleValueUpdate(id: string) {
       item.metadata[getPluginId("metadata/")] = combinedMetadata
     }
   });
+
+  var visible = true;
+  if (combinedMetadata["hide"] == true) {
+    visible = false;
+  }
+  
+  //draw shape
+  for (const item of items) {
+    const shapes = await createShapes(item, combinedMetadata, visible);
+    if (shapes) {
+      console.log("Drawing shape")
+      await OBR.scene.items.addItems(shapes);
+    }
+  }
 }
+
+const createShapes = async (item: Image, metadata: any, visible: boolean): Promise<any> => {
+
+  const height = 20;
+  // const bounds = await OBR.scene.items.getItemBounds([item.id]);
+  const dpi = await OBR.scene.grid.getDpi();
+  const bounds = getImageBounds(item, dpi);
+  const offsetFactor = bounds.height / 150;
+  let offset = 130 * offsetFactor;
+  const position = {
+      x: item.position.x - bounds.width / 2,
+      y: item.position.y + bounds.height / 2 - height - offset,
+  };
+  var color = "darkgray"
+  if (!visible) {
+    color = "black"
+  }
+
+  if (parseFloat(metadata["max health"]) > 0) {
+
+    const backgroundShape = buildShape()
+    .width(bounds.width)
+    .height(height)
+    .shapeType("RECTANGLE")
+    .fillColor(color)
+    .fillOpacity(0.5)
+    .strokeColor(color)
+    .strokeOpacity(0.5)
+    .position({x: position.x, y: position.y})
+    .attachedTo(item.id)
+    .layer("ATTACHMENT")
+    .locked(true)
+    .id(item.id + "health-background")
+    .visible(visible)
+    .build();
+    
+    var percentage = 0;
+
+    const health = parseFloat(metadata["health"]);
+    const maxHealth = parseFloat(metadata["max health"]);
+
+    if (health <= 0) {
+      percentage = 0;
+    } else if (health < maxHealth) {
+      percentage = health / maxHealth;
+    } else if (health >= maxHealth){
+      percentage = 1;
+    } else {
+      console.log("Error: failed to give percentage value");
+    }
+
+    console.log(
+      "Percentage: " + percentage + 
+      ", Health: " + metadata["health"] + 
+      ", Max Health: " + metadata["max health"]);
+
+    const hpShape = buildShape()
+    .width(percentage === 0 ? 0 : (bounds.width - 4) * percentage)
+    .height(height - 4)
+    .shapeType("RECTANGLE")
+    .fillColor("red")
+    .fillOpacity(0.5)
+    .strokeWidth(0)
+    .strokeOpacity(0)
+    .position({ x: position.x + 2, y: position.y + 2 })
+    .attachedTo(item.id)
+    .layer("ATTACHMENT")
+    .locked(true)
+    .id(item.id + "health")
+    .visible(visible)
+    .build();
+
+    return[backgroundShape, hpShape];
+  } else {
+
+    const backgroundShape = buildShape()
+    .width(0)
+    .height(0)
+    .shapeType("RECTANGLE")
+    .fillColor("black")
+    .fillOpacity(0.5)
+    .strokeColor("black")
+    .strokeOpacity(0.5)
+    .position({x: position.x, y: position.y})
+    .attachedTo(item.id)
+    .layer("ATTACHMENT")
+    .locked(true)
+    .id(item.id + "health-background")
+    .visible(visible)
+    .build();
+
+    const hpShape = buildShape()
+    .width(0)
+    .height(0)
+    .shapeType("RECTANGLE")
+    .fillColor("red")
+    .fillOpacity(0.5)
+    .strokeWidth(0)
+    .strokeOpacity(0)
+    .position({ x: position.x + 2, y: position.y + 2 })
+    .attachedTo(item.id)
+    .layer("ATTACHMENT")
+    .locked(true)
+    .id(item.id + "health")
+    .build();
+
+    return[backgroundShape, hpShape];
+  }
+}
+
+const getImageBounds = (item: Image, dpi: number) => {
+  const dpiScale = dpi / item.grid.dpi;
+  const width = item.image.width * dpiScale * item.scale.x;
+  const height = item.image.height * dpiScale * item.scale.y;
+  return { width, height };
+};

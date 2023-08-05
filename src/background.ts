@@ -32,7 +32,7 @@ OBR.onReady(() => {
         id: getPluginId("number-bubbles"),
         url: "/",
         height: 60,
-        width: 310,
+        width: 430,
         anchorElementId: elementId,
         //hidePaper: false,
         //anchorOrigin: {vertical: "BOTTOM", horizontal: "LEFT"}
