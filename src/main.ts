@@ -53,7 +53,9 @@ OBR.onReady(async () => {
   // try to fill input fields with previous data
   for (const bubble of bubbles) {
     try {
-      (document.getElementById(bubble) as HTMLInputElement).value = retrievedMetadata[bubble];
+      if (!(retrievedMetadata[bubble] === undefined)) {
+        (document.getElementById(bubble) as HTMLInputElement).value = retrievedMetadata[bubble];
+      }
     } catch (error) {}
   }
 
@@ -100,7 +102,7 @@ async function handleBubbleValueUpdate(id: string) {
     value = (document.getElementById(id) as HTMLInputElement).value;
   }
   
-  console.log("Updating... " + id + ": " + value); //log incoming metadata modification
+  //console.log("Updating... " + id + ": " + value); //log incoming metadata modification
   var newMetadata = {[id]: value}
 
   //find selected token
@@ -119,7 +121,7 @@ async function handleBubbleValueUpdate(id: string) {
       retrievedMetadata = JSON.parse(JSON.stringify(metadata));
 
       //try to add new value to previous value
-      if (id != "hide") {
+      if (id != "hide" && !isNaN(parseFloat(value))) {
         if ((value.startsWith("+") || value.startsWith("-")) && !isNaN(parseFloat(retrievedMetadata[id]))) {
           try {
             const newValue = parseFloat(retrievedMetadata[id]) + parseFloat(value);
