@@ -1,18 +1,8 @@
 # Bubbles
 
-
+Track hit points, temporary hit points, and armor class with Roll20 style bubbles.
 
 ## Installing
-
-The extension can be installed from the [store page]().
-
-## How it Works
-
-rewrite this...
-
-This project is a simple Typescript app.
-
-The background script `background.ts` communicates with Owlbear Rodeo to create a context menu item. When that item is clicked a popup is shown with the `main.ts` site rendered.
 
 ## Building
 
@@ -37,4 +27,7 @@ GNU GPLv3
 ## Contributing
 
 Copyright (C) 2023 Owlbear Rodeo
+
 Copyright (C) 2023 Seamus Finlayson
+
+I may accept feature requests, feel free to fork this but if you post it to the store please do not use my extension name or logo.
