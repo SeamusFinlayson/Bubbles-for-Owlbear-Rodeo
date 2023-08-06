@@ -27,6 +27,13 @@ body {
   text-align: center;
   color: white;
   font-size: medium;
+  -webkit-transition: .2s;
+  transition: .2s;
+}
+
+input:focus {
+  box-shadow: 0 0 5px #ffffff, 0 0 5px #ffffff;
+  outline: none;
 }
 
 .color {
@@ -74,9 +81,9 @@ body {
   right: 0;
   bottom: 0;
   transform: translate(5%, -5%);
-  background-color: #ccc;
-  -webkit-transition: .4s;
-  transition: .4s;
+  background-color: darkgrey;
+  -webkit-transition: .2s;
+  transition: .2s;
 }
 
 .slider:before {
@@ -87,16 +94,18 @@ body {
   left: 3px;
   bottom: 3px;
   background-color: white;
-  -webkit-transition: .1s;
-  transition: .1s;
+  -webkit-transition: .2s;
+  transition: .2s;
 }
 
 input:checked + .slider {
   background-color: #000000;
+
 }
 
 input:focus + .slider {
-  box-shadow: 0 0 3px #ffffff;
+  box-shadow: 0 0 10px #ffffff, 0 0 5px #ffffff;
+
 }
 
 input:checked + .slider:before {
