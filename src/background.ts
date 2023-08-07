@@ -1,14 +1,19 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
-
 import icon from "./status.svg";
+import { updateHealthBars } from "./helpers";
 
 /**
  * This file represents the background script run when the plugin loads.
  * It creates the context menu item for the status ring.
  */
 
-OBR.onReady(() => {
+OBR.onReady( async () => {
+
+  fetch("./manifest.json")
+    .then((response) => response.json())
+    .then((json) => console.log(json["name"] + " - version: " + json["version"]));
+
   OBR.contextMenu.create({
     id: getPluginId("menu"),
     icons: [
@@ -41,4 +46,11 @@ OBR.onReady(() => {
     },
     shortcut: "Shift + S"
   });
+
+    //render all health bars locally 
+    OBR.scene.onReadyChange( (ready) => {
+      if (ready) {
+        updateHealthBars();
+      }
+    });
 });
