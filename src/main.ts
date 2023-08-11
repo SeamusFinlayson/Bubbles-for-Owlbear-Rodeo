@@ -27,7 +27,7 @@ OBR.onReady(async () => {
     <input class="number-box" type="text" id="armor class" 
       name="armor class" style="border-color: lightblue;">
 
-    <label for="hide">Hide Bar</label>
+    <label for="hide">Hide</label>
     <label class="switch">
       <input type="checkbox" id="hide">
       <span class="slider round"></span>
@@ -43,7 +43,7 @@ OBR.onReady(async () => {
   const items = await OBR.scene.items.getItems<Image>(selection);
   var retrievedMetadata, metadata;
   for (const item of items) {
-    metadata = item.metadata[getPluginId("metadata/")];
+    metadata = item.metadata[getPluginId("metadata")];
     //console.log("stringified: " + JSON.stringify(metadata)) //this is retrieved metadata
     if (metadata) {
       retrievedMetadata = JSON.parse(JSON.stringify(metadata));
@@ -115,7 +115,9 @@ async function handleBubbleValueUpdate(id: string) {
   //max one object selected
   var retrievedMetadata, combinedMetadata: any;
   for (const item of items) {
-    const metadata = item.metadata[getPluginId("metadata/")];
+    console.log(item);
+
+    const metadata = item.metadata[getPluginId("metadata")];
 
     //set new metadata value
     if (metadata) {
@@ -158,7 +160,7 @@ async function handleBubbleValueUpdate(id: string) {
   //write value from number input into scene item's metadata
   OBR.scene.items.updateItems(items, (items) => {
     for (let item of items) {
-      item.metadata[getPluginId("metadata/")] = combinedMetadata;
+      item.metadata[getPluginId("metadata")] = combinedMetadata;
     }
   });
 

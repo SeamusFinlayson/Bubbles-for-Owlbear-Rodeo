@@ -26,8 +26,24 @@ OBR.onReady( async () => {
             { key: "layer", value: "CHARACTER", coordinator: "||" },
             { key: "layer", value: "MOUNT", coordinator: "||" },
             { key: "layer", value: "PROP" },
+            { key: ["metadata", "com.owlbear-rodeo-bubbles-extension/metadata", "hide"], value: true, operator: "!="},
           ],
           permissions: ["UPDATE"],
+          roles: ["PLAYER"],
+          max: 1,
+        },
+      },
+      {
+        icon,
+        label: "Trackers",
+        filter: {
+          every: [
+            { key: "type", value: "IMAGE" },
+            { key: "layer", value: "CHARACTER", coordinator: "||" },
+            { key: "layer", value: "MOUNT", coordinator: "||" },
+            { key: "layer", value: "PROP" },
+          ],
+          roles: ["GM"],
           max: 1,
         },
       },
@@ -37,7 +53,7 @@ OBR.onReady( async () => {
         id: getPluginId("number-bubbles"),
         url: "/",
         height: 60,
-        width: 430,
+        width: 400,
         anchorElementId: elementId,
         //hidePaper: false,
         //anchorOrigin: {vertical: "BOTTOM", horizontal: "LEFT"}

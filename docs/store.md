@@ -24,16 +24,22 @@ This extension is deigned to be keyboard friendly.
 
 1. Click on a token and use the shortcut Shift + S to see and edit a token's trackers.
 2. Press Tab to cycle through the bubbles.
-3. Press the space key to toggle the switch.
+3. Press the Space key to toggle the switch.
 4. When you're done press Escape and the menu will close.
 
 This extension works with tokens on the Prop, Mount, and Character layers.
 
+The health bar is created automatically if a number greater than 0 is in the max health (second) bubble.
+
 ### For GMs
 
-Keep your secrets by removing the player update permission on the mount layer. Now, put your monsters on the mount layer and your players won't be able to see their stats. Using the mount layer allows compatibility with the official Owlbear Rodeo initiative tracker.
+Use the hide switch to hide the monster stats from your players. 
 
-![Alt text](permissions.png)
+The hide switch:
+
+* Hides the health bar from players.
+* Removes the context menu icon for the players.
+* Turns the health bar background black to indicate that it is hidden.
 
 ### Support
 
