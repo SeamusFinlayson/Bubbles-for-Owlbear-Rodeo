@@ -13,21 +13,21 @@ OBR.onReady(async () => {
   document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div class="center">
 
-    <label>HP</label>
+    <label for="health">HP</label>
     <input class="number-box" type="text" id="health" name="health">
 
-    <label>/</label>
+    <label for="max health">/</label>
     <input class="number-box" type="text" id="max health" name="max health">
 
     <label>Temp</label>
     <input class="number-box" type="text" id="temporary health" name="temporary health"
     style="border-color: lightgreen;">
 
-    <label>AC</label>
+    <label for="temporary health">AC</label>
     <input class="number-box" type="text" id="armor class" 
       name="armor class" style="border-color: lightblue;">
 
-    <label>Hide Bar</label>
+    <label for="hide">Hide Bar</label>
     <label class="switch">
       <input type="checkbox" id="hide">
       <span class="slider round"></span>
