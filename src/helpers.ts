@@ -1,7 +1,7 @@
 import OBR, { Image, buildShape, isImage } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 
-
+var tokenIds: String[] = [];
 
 export async function updateHealthBars() {
 
@@ -15,16 +15,19 @@ export async function updateHealthBars() {
         await drawHealthBar(item);
     }
 
-    //delete health bars that don't get deleted when their parent token is deleted
+    //update global item id list for orphaned health bar monitoring
     var itemIds: String[] = [];
     for(const item of items) {
         itemIds.push(item.id);
     }
-    deleteOrphanHealthBars(itemIds);
+    tokenIds = itemIds;
 
     //update health bars on change
     OBR.scene.items.onChange( async () => {
-        console.log("Item change detected")
+        //console.log("Item change detected")
+
+        //get rid of health bars that no longer attach to anything
+        deleteOrphanHealthBars();
 
         //get shapes from scene
         const items: Image[] = await OBR.scene.items.getItems(
@@ -37,10 +40,10 @@ export async function updateHealthBars() {
         }
     });
 
-    //changes in meta data - I have never seen this execute
-    OBR.scene.onMetadataChange( async () => {
-        console.log("Metadata change detected")
-    });
+    //changes in meta data - This doesn't update in a useful way
+    // OBR.scene.onMetadataChange( async () => {
+    //     console.log("Metadata change detected")
+    // });
 };
 
 export const drawHealthBar = async (item: Image) => {
@@ -177,12 +180,11 @@ export async function initializeHealthBars(flag: boolean) {
     }
 }
 
-export async function deleteOrphanHealthBars(oldItemIds: String[]) {
+export async function deleteOrphanHealthBars() {
 
-    //initialize item list -- should be done at call time
-    console.log("clearing old ids")
+    //console.log("clearing orphaned health bars")
 
-    //get new items
+    //get ids of all items on map that could have health bars
     const newItems: Image[] = await OBR.scene.items.getItems(
         (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
     );
@@ -191,21 +193,18 @@ export async function deleteOrphanHealthBars(oldItemIds: String[]) {
         newItemIds.push(item.id);
     }
 
-    //check for old health bars
-    for(const oldId of oldItemIds) {
+    //check for orphaned health bars
+    for(const oldId of tokenIds) {
         if(!newItemIds.includes(oldId)) {
 
-            // delete  old health bar
+            // delete orphaned health bar
             await OBR.scene.local.deleteItems([oldId + "health-background", oldId + "health"]);
-
-
         }
     }
 
-    //remove deleted ids from list
-    //console.log(newItemIds);
+    // update item list with current values
+    tokenIds = newItemIds;
 
-    //use timeout to repeat call with updated item list
-    setTimeout(function() {deleteOrphanHealthBars(newItemIds);}, 500);
+    //use timeout to repeat call
+    //setTimeout(function() {deleteOrphanHealthBars();}, 500);
 }
-
