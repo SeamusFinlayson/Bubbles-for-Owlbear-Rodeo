@@ -1,9 +1,9 @@
 {
   "name": "Bubble Tracker",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "manifest_version": 1,
   "author": "Seamus Finlayson",
   "icon": "/logo.png",
   "background_url": "/background.html",
-  "description": "Add Roll20 style bubbles to track hit points, temporary hit points, and armor class."
+  "description": "Add Roll20 style bubbles to track hit points and armor class."
 }
