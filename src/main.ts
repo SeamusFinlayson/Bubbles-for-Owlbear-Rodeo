@@ -79,7 +79,7 @@ OBR.onReady(async () => {
   document.addEventListener('keydown', (event) => {
     // var name = event.key;
     // var code = event.code;
-    //console.log(`Key pressed ${name} \r\n Key code value: ${code}`); // log keypressed
+    //console.log(`Key pressed ${name} \r\n Key code value: ${code}`); // log key pressed
 
     if (event.key == "Escape") { // || event.key == "Enter"
       //console.log("Closing")
