@@ -3,7 +3,7 @@ import { getPluginId } from "./getPluginId";
 
 var tokenIds: String[] = [];
 
-export async function updateHealthBars() {
+async function updateHealthBars() {
 
     //get shapes from scene
     const items: Image[] = await OBR.scene.items.getItems(
@@ -39,14 +39,9 @@ export async function updateHealthBars() {
             drawHealthBar(item);
         }
     });
-
-    //changes in meta data - This doesn't update in a useful way
-    // OBR.scene.onMetadataChange( async () => {
-    //     console.log("Metadata change detected")
-    // });
 };
 
-export const drawHealthBar = async (item: Image) => {
+const drawHealthBar = async (item: Image) => {
 
     const height = 20;
     // const bounds = await OBR.scene.items.getItemBounds([item.id]);
@@ -56,7 +51,7 @@ export const drawHealthBar = async (item: Image) => {
     let offset = 130 * offsetFactor;
     const position = {
         x: item.position.x - bounds.width / 2,
-        y: item.position.y + bounds.height / 2 - height - offset,
+        y: item.position.y - bounds.height / 2 - height,
     };
 
     const metadata: any = item.metadata[getPluginId("metadata")];
@@ -144,11 +139,10 @@ export const drawHealthBar = async (item: Image) => {
             await OBR.scene.local.addItems([backgroundShape, hpShape]);
         }
     
-    } else { // delete items
+    } else { // delete health bar
 
-        await OBR.scene.items.deleteItems([item.id + "health-background", item.id + "health"]);
         await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health"]);
-    
+        await OBR.scene.items.deleteItems([item.id + "health-background", item.id + "health"]); //this line can probably go
     }
 
     return[];
@@ -161,28 +155,30 @@ const getImageBounds = (item: Image, dpi: number) => {
     return { width, height };
 };
 
-export async function initializeHealthBars(flag: boolean) {
+export async function startHealthBars(flag: boolean) {
+
+    //detect when scene API is ready
     if(flag === false) {
         console.log("Not ready")
-       window.setTimeout(initializeHealthBars, 100); /* this checks the flag every 100 milliseconds*/
+        window.setTimeout(startHealthBars, 100); /* this checks the flag every 100 milliseconds*/
     } else {
         console.log("Ready")
         try {
             await OBR.scene.items.getItems(
                 (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
-              );
+            );
+
+            //start health bar management
             updateHealthBars()
         } catch (error) {
             console.log("It lied")
             console.log(error)
-            window.setTimeout(initializeHealthBars, 100);
+            window.setTimeout(startHealthBars, 100);
         }
     }
 }
 
-export async function deleteOrphanHealthBars() {
-
-    //console.log("clearing orphaned health bars")
+async function deleteOrphanHealthBars() {
 
     //get ids of all items on map that could have health bars
     const newItems: Image[] = await OBR.scene.items.getItems(
@@ -204,7 +200,4 @@ export async function deleteOrphanHealthBars() {
 
     // update item list with current values
     tokenIds = newItemIds;
-
-    //use timeout to repeat call
-    //setTimeout(function() {deleteOrphanHealthBars();}, 500);
 }

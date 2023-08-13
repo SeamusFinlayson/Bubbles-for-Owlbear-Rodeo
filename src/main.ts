@@ -115,7 +115,7 @@ async function handleBubbleValueUpdate(id: string) {
   //max one object selected
   var retrievedMetadata, combinedMetadata: any;
   for (const item of items) {
-    console.log(item);
+    //console.log(item);
 
     const metadata = item.metadata[getPluginId("metadata")];
 
