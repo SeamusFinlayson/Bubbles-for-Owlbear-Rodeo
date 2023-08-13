@@ -11,8 +11,8 @@ async function updateHealthBars() {
         (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
     );
 
+    //store array of all items currently on the board
     itemsLast = items;
-
 
     //draw health bars
     for (const item of items) {
@@ -40,35 +40,29 @@ async function updateHealthBars() {
 
         //console.log("Changed items length: " + items.length)
 
-
         //create list of modified items
         var changedItems: Image[] = [];
         for (let i = 0; i < items.length; i++) {
 
-            if(i > itemsLast.length - 1) {
+            if(i > itemsLast.length - 1) { //check for extra items at the end of the list 
                 changedItems.push(items[i]);
             }
-            else if(
+            else if( //check for notable changes in item values
                 (itemsLast[i].position.x == items[i].position.x) &&
                 (itemsLast[i].position.y == items[i].position.y) &&
                 (itemsLast[i].scale.x == items[i].scale.x) &&
                 (itemsLast[i].scale.y == items[i].scale.y) &&
                 (itemsLast[i].rotation == items[i].rotation) &&
                 (itemsLast[i].visible == items[i].visible) &&
-                (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(items[i].metadata[getPluginId("metadata")]))) {
-                // changedItems.splice(i);
-                //console.log("same " + items[i].name);
-            }
-            else {
-                //console.log("Changed: " + items[i].name);
+                (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(items[i].metadata[getPluginId("metadata")]))
+            ) {} //do nothing
+            else { //add changed items to change list
                 changedItems.push(items[i]);
             }
         }
-        //console.log(changedItems);
+
+        //update array of all items currently on the board
         itemsLast = items;
-
-
-        //maybe only find different objects then render those, im seeing some lag
 
         //draw health bars
         for (const item of changedItems) {
@@ -124,8 +118,6 @@ const drawHealthBar = async (item: Image) => {
         if (!visible) {
             color = "black";
         }
-
-        console.log("visible: " + item.visible)
 
         const backgroundShape = buildShape()
         .width(bounds.width)
@@ -269,6 +261,6 @@ async function deleteOrphanHealthBars() {
     // update current items list
     if(orphanFound) {
         itemsLast = newItems;
-        console.log("orphan: " + orphanFound)
+        //console.log("orphan found: " + orphanFound)
     }
 }
