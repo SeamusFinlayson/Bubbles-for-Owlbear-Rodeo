@@ -124,7 +124,7 @@ const drawHealthBar = async (item: Image) => {
         .height(height)
         .shapeType("RECTANGLE")
         .fillColor(color)
-        .fillOpacity(0.5)
+        .fillOpacity(0.7)
         .strokeColor(color)
         .strokeOpacity(0.5)
         .strokeWidth(0)
