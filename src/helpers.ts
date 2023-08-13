@@ -31,7 +31,7 @@ async function updateHealthBars() {
         //console.log("Item change detected")
 
         //get rid of health bars that no longer attach to anything
-        deleteOrphanHealthBars();
+        await deleteOrphanHealthBars();
 
         //get shapes from scene
         const items: Image[] = await OBR.scene.items.getItems(
@@ -43,14 +43,18 @@ async function updateHealthBars() {
 
         //create list of modified items
         var changedItems: Image[] = [];
-        for (let i = 0; (i < itemsLast.length) && (i < items.length); i++) {
+        for (let i = 0; i < items.length; i++) {
 
-            if(
+            if(i > itemsLast.length - 1) {
+                changedItems.push(items[i]);
+            }
+            else if(
                 (itemsLast[i].position.x == items[i].position.x) &&
                 (itemsLast[i].position.y == items[i].position.y) &&
                 (itemsLast[i].scale.x == items[i].scale.x) &&
                 (itemsLast[i].scale.y == items[i].scale.y) &&
                 (itemsLast[i].rotation == items[i].rotation) &&
+                (itemsLast[i].visible == items[i].visible) &&
                 (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(items[i].metadata[getPluginId("metadata")]))) {
                 // changedItems.splice(i);
                 //console.log("same " + items[i].name);
@@ -60,12 +64,7 @@ async function updateHealthBars() {
                 changedItems.push(items[i]);
             }
         }
-
-        //console.log("Changed items length: " + changedItems.length)
-
-        // for (const item of changedItems) {
-        //     console.log(item);
-        // }
+        //console.log(changedItems);
         itemsLast = items;
 
 
@@ -80,31 +79,7 @@ async function updateHealthBars() {
 
 const drawHealthBar = async (item: Image) => {
 
-    const height = 20;
-    // const bounds = await OBR.scene.items.getItemBounds([item.id]);
-    const dpi = await OBR.scene.grid.getDpi();
-    const bounds = getImageBounds(item, dpi);
-    // const offsetFactor = bounds.height / 150;
-    // let offset = 130 * offsetFactor;
-    const position = {
-        x: item.position.x - bounds.width / 2,
-        y: item.position.y - bounds.height / 2 - height,
-    };
-
     const metadata: any = item.metadata[getPluginId("metadata")];
-
-    //try to extract visibility from metadata
-    var visible: boolean;
-    try {
-        visible = !metadata["hide"];
-    } catch (error) {
-        visible = true;
-    }
-
-    var color = "darkgray";
-    if (!visible) {
-        color = "black";
-    }
 
     //try to extract health from metadata
     var health: number;
@@ -122,8 +97,35 @@ const drawHealthBar = async (item: Image) => {
     if(isNaN(maxHealth)) {
         maxHealth = 0;
     }
+
+    //try to extract visibility from metadata
+    var visible: boolean;
+    try {
+        visible = !metadata["hide"];
+    } catch (error) {
+        visible = true;
+    }
+
+    const roll = await OBR.player.getRole();
     
-    if (maxHealth > 0) { //draw bar if it has max health
+    if ((maxHealth > 0) && !(roll === "PLAYER" && !visible)) { //draw bar if it has max health
+
+        //get physical token properties
+        const height = 26;
+        const dpi = await OBR.scene.grid.getDpi();
+        const bounds = getImageBounds(item, dpi);
+        const position = {
+            x: item.position.x - bounds.width / 2,
+            y: item.position.y - bounds.height / 2 - height,
+        };
+    
+        //set color based on visibility
+        var color = "darkgrey";
+        if (!visible) {
+            color = "black";
+        }
+
+        console.log("visible: " + item.visible)
 
         const backgroundShape = buildShape()
         .width(bounds.width)
@@ -133,12 +135,13 @@ const drawHealthBar = async (item: Image) => {
         .fillOpacity(0.5)
         .strokeColor(color)
         .strokeOpacity(0.5)
+        .strokeWidth(0)
         .position({x: position.x, y: position.y})
         .attachedTo(item.id)
         .layer("ATTACHMENT")
         .locked(true)
         .id(item.id + "health-background")
-        //.visible(visible)
+        .visible(item.visible)
         .build();
         
         var percentage = 0;
@@ -153,67 +156,50 @@ const drawHealthBar = async (item: Image) => {
         }
     
         const hpShape = buildShape()
-        .width(percentage === 0 ? 0 : (bounds.width - 4) * percentage)
-        .height(height - 4)
+        .width(percentage === 0 ? 0 : (bounds.width) * percentage)
+        .height(height)
         .shapeType("RECTANGLE")
         .fillColor("red")
         .fillOpacity(0.5)
         .strokeWidth(0)
         .strokeOpacity(0)
-        .position({ x: position.x + 2, y: position.y + 2 })
+        .position({ x: position.x, y: position.y})
         .attachedTo(item.id)
         .layer("ATTACHMENT")
         .locked(true)
         .id(item.id + "health")
-        //.visible(visible)
+        .visible(item.visible)
         .build();
 
         const healthLabel = buildText()
         .position({x: position.x, y: position.y + 2})
-        //.plainText("" + health + "/" + maxHealth)
-        .text({
-            type: "PLAIN",
-            plainText: "" + health + "/" + maxHealth,
-            height: height,
-            width: bounds.width,
-            style: {
-                fillColor: "#ffffff",
-                fillOpacity: 1,
-                strokeColor: "#000000",
-                strokeOpacity: 0,
-                strokeWidth: 0,
-                textAlign: "CENTER",
-                textAlignVertical: "MIDDLE",
-                fontFamily: "Ariel, sans-serif",
-                fontSize: height,
-                fontWeight: 20,
-                lineHeight: 1.2,
-                padding: 0,
-            },
-            richText: [],
-        })
+        .plainText("" + health + "/" + maxHealth)
+        .textAlign("CENTER")
+        .textAlignVertical("MIDDLE")
+        .fontSize(height + 0)
+        .fontFamily("Lucidia Console, sans-serif")
+        .textType("PLAIN")
+        .height(height + 0)
+        .width(bounds.width)
+        .fontWeight(400)
+        .visible(item.visible)
+        //.strokeColor("black")
+        //.strokeWidth(0)
         .attachedTo(item.id)
         .layer("TEXT")
         .locked(true)
         .id(item.id + "health-label")
         .build();
 
-        const roll = await OBR.player.getRole();
-
-        //hide old shape from player
-        if ((roll === "PLAYER" && !visible)) {
-            await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]);
-        }
-
         //only show player visible shapes
         if (roll === "PLAYER" && visible) {
-            await OBR.scene.local.deleteItems([item.id + "health-label"]);
-            await OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
+            //await OBR.scene.local.deleteItems([item.id + "health-label"]);
+            OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
         } else if (roll === "GM" ) { //show gm all shapes
-            await OBR.scene.local.deleteItems([item.id + "health-label"]);
-            await OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
-        }
-    
+            //await OBR.scene.local.deleteItems([item.id + "health-label"]);
+            OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
+        }   
+        
     } else { // delete health bar
 
         await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]);
@@ -263,6 +249,8 @@ async function deleteOrphanHealthBars() {
     for(const item of newItems) {
         newItemIds.push(item.id);
     }
+    
+    var orphanFound = false; 
 
     //check for orphaned health bars
     for(const oldId of tokenIds) {
@@ -270,9 +258,17 @@ async function deleteOrphanHealthBars() {
 
             // delete orphaned health bar
             await OBR.scene.local.deleteItems([oldId + "health-background", oldId + "health", oldId + "health-label"]);
+
+            orphanFound = true;
         }
     }
 
     // update item list with current values
     tokenIds = newItemIds;
+
+    // update current items list
+    if(orphanFound) {
+        itemsLast = newItems;
+        console.log("orphan: " + orphanFound)
+    }
 }
