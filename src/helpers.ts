@@ -1,7 +1,8 @@
-import OBR, { Image, buildShape, isImage } from "@owlbear-rodeo/sdk";
+import OBR, { Image, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 
 var tokenIds: String[] = [];
+var itemsLast: Image[] = [];
 
 async function updateHealthBars() {
 
@@ -9,6 +10,9 @@ async function updateHealthBars() {
     const items: Image[] = await OBR.scene.items.getItems(
         (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
     );
+
+    itemsLast = items;
+
 
     //draw health bars
     for (const item of items) {
@@ -34,8 +38,41 @@ async function updateHealthBars() {
             (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
         );
 
+        //console.log("Changed items length: " + items.length)
+
+
+        //create list of modified items
+        var changedItems: Image[] = [];
+        for (let i = 0; (i < itemsLast.length) && (i < items.length); i++) {
+
+            if(
+                (itemsLast[i].position.x == items[i].position.x) &&
+                (itemsLast[i].position.y == items[i].position.y) &&
+                (itemsLast[i].scale.x == items[i].scale.x) &&
+                (itemsLast[i].scale.y == items[i].scale.y) &&
+                (itemsLast[i].rotation == items[i].rotation) &&
+                (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(items[i].metadata[getPluginId("metadata")]))) {
+                // changedItems.splice(i);
+                //console.log("same " + items[i].name);
+            }
+            else {
+                //console.log("Changed: " + items[i].name);
+                changedItems.push(items[i]);
+            }
+        }
+
+        //console.log("Changed items length: " + changedItems.length)
+
+        // for (const item of changedItems) {
+        //     console.log(item);
+        // }
+        itemsLast = items;
+
+
+        //maybe only find different objects then render those, im seeing some lag
+
         //draw health bars
-        for (const item of items) {
+        for (const item of changedItems) {
             drawHealthBar(item);
         }
     });
@@ -47,8 +84,8 @@ const drawHealthBar = async (item: Image) => {
     // const bounds = await OBR.scene.items.getItemBounds([item.id]);
     const dpi = await OBR.scene.grid.getDpi();
     const bounds = getImageBounds(item, dpi);
-    const offsetFactor = bounds.height / 150;
-    let offset = 130 * offsetFactor;
+    // const offsetFactor = bounds.height / 150;
+    // let offset = 130 * offsetFactor;
     const position = {
         x: item.position.x - bounds.width / 2,
         y: item.position.y - bounds.height / 2 - height,
@@ -77,6 +114,12 @@ const drawHealthBar = async (item: Image) => {
         maxHealth = parseFloat(metadata["max health"]);
     } catch (error) {
         health = 0;
+        maxHealth = 0;
+    }
+    if(isNaN(health)) {
+        health = 0;
+    }
+    if(isNaN(maxHealth)) {
         maxHealth = 0;
     }
     
@@ -125,24 +168,54 @@ const drawHealthBar = async (item: Image) => {
         //.visible(visible)
         .build();
 
+        const healthLabel = buildText()
+        .position({x: position.x, y: position.y + 2})
+        //.plainText("" + health + "/" + maxHealth)
+        .text({
+            type: "PLAIN",
+            plainText: "" + health + "/" + maxHealth,
+            height: height,
+            width: bounds.width,
+            style: {
+                fillColor: "#ffffff",
+                fillOpacity: 1,
+                strokeColor: "#000000",
+                strokeOpacity: 0,
+                strokeWidth: 0,
+                textAlign: "CENTER",
+                textAlignVertical: "MIDDLE",
+                fontFamily: "Ariel, sans-serif",
+                fontSize: height,
+                fontWeight: 20,
+                lineHeight: 1.2,
+                padding: 0,
+            },
+            richText: [],
+        })
+        .attachedTo(item.id)
+        .layer("TEXT")
+        .locked(true)
+        .id(item.id + "health-label")
+        .build();
+
         const roll = await OBR.player.getRole();
 
         //hide old shape from player
         if ((roll === "PLAYER" && !visible)) {
-            await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health"]);
+            await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]);
         }
 
         //only show player visible shapes
         if (roll === "PLAYER" && visible) {
-            await OBR.scene.local.addItems([backgroundShape, hpShape]);
+            await OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
         } else if (roll === "GM" ) { //show gm all shapes
-            await OBR.scene.local.addItems([backgroundShape, hpShape]);
+            await OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
         }
     
     } else { // delete health bar
 
-        await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health"]);
-        await OBR.scene.items.deleteItems([item.id + "health-background", item.id + "health"]); //this line can probably go
+        await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]);
+        //await OBR.scene.items.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]); //this line can probably go
     }
 
     return[];
@@ -194,7 +267,7 @@ async function deleteOrphanHealthBars() {
         if(!newItemIds.includes(oldId)) {
 
             // delete orphaned health bar
-            await OBR.scene.local.deleteItems([oldId + "health-background", oldId + "health"]);
+            await OBR.scene.local.deleteItems([oldId + "health-background", oldId + "health", oldId + "health-label"]);
         }
     }
 
