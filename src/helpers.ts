@@ -207,8 +207,10 @@ const drawHealthBar = async (item: Image) => {
 
         //only show player visible shapes
         if (roll === "PLAYER" && visible) {
+            await OBR.scene.local.deleteItems([item.id + "health-label"]);
             await OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
         } else if (roll === "GM" ) { //show gm all shapes
+            await OBR.scene.local.deleteItems([item.id + "health-label"]);
             await OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
         }
     
