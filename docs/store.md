@@ -19,6 +19,7 @@ Add Roll20 style bubbles to track hit points, temporary hit points, and armor cl
 ### Basic
 
 **This extension does math for you!** 
+
 To add 6 to your HP type +6 and press Enter. To subtract 6 from your HP type -6 and press Enter. This works for every bubble.
 
 **Deigned to be keyboard friendly.**
