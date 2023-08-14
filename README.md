@@ -2,7 +2,7 @@
 
 Track hit points and armor class with Roll20 style bubbles using this [Owlbear Rodeo](https://www.owlbear.rodeo/) extension.
 
-![header](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/01f93d81-9fa8-4400-897f-9ad3b0663c0b)
+![image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/842822f4-b5e5-43e4-a079-41a2ed877af7)
 
 ## Installing
 
