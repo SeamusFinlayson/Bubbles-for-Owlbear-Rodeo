@@ -1,9 +1,10 @@
 {
-  "name": "Bubble Tracker",
+  "name": "Stat Bubbles",
   "version": "1.2.0",
   "manifest_version": 1,
   "author": "Seamus Finlayson",
+  "homepage_url": "https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo",
   "icon": "/logo.png",
   "background_url": "/background.html",
-  "description": "Add Roll20 style bubbles to track hit points and armor class."
+  "description": "Add Roll20 style stat bubbles to track HP and AC."
 }
