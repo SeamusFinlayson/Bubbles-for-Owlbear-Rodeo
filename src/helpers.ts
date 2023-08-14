@@ -1,14 +1,18 @@
-import OBR, { Image, buildShape, isImage } from "@owlbear-rodeo/sdk";
+import OBR, { Image, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 
 var tokenIds: String[] = [];
+var itemsLast: Image[] = [];
 
-export async function updateHealthBars() {
+async function updateHealthBars() {
 
     //get shapes from scene
     const items: Image[] = await OBR.scene.items.getItems(
         (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
     );
+
+    //store array of all items currently on the board
+    itemsLast = items;
 
     //draw health bars
     for (const item of items) {
@@ -27,52 +31,49 @@ export async function updateHealthBars() {
         //console.log("Item change detected")
 
         //get rid of health bars that no longer attach to anything
-        deleteOrphanHealthBars();
+        await deleteOrphanHealthBars();
 
         //get shapes from scene
         const items: Image[] = await OBR.scene.items.getItems(
             (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
         );
 
+        //console.log("Changed items length: " + items.length)
+
+        //create list of modified items
+        var changedItems: Image[] = [];
+        for (let i = 0; i < items.length; i++) {
+
+            if(i > itemsLast.length - 1) { //check for extra items at the end of the list 
+                changedItems.push(items[i]);
+            }
+            else if( //check for notable changes in item values
+                (itemsLast[i].position.x == items[i].position.x) &&
+                (itemsLast[i].position.y == items[i].position.y) &&
+                (itemsLast[i].scale.x == items[i].scale.x) &&
+                (itemsLast[i].scale.y == items[i].scale.y) &&
+                (itemsLast[i].rotation == items[i].rotation) &&
+                (itemsLast[i].visible == items[i].visible) &&
+                (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(items[i].metadata[getPluginId("metadata")]))
+            ) {} //do nothing
+            else { //add changed items to change list
+                changedItems.push(items[i]);
+            }
+        }
+
+        //update array of all items currently on the board
+        itemsLast = items;
+
         //draw health bars
-        for (const item of items) {
+        for (const item of changedItems) {
             drawHealthBar(item);
         }
     });
-
-    //changes in meta data - This doesn't update in a useful way
-    // OBR.scene.onMetadataChange( async () => {
-    //     console.log("Metadata change detected")
-    // });
 };
 
-export const drawHealthBar = async (item: Image) => {
-
-    const height = 20;
-    // const bounds = await OBR.scene.items.getItemBounds([item.id]);
-    const dpi = await OBR.scene.grid.getDpi();
-    const bounds = getImageBounds(item, dpi);
-    const offsetFactor = bounds.height / 150;
-    let offset = 130 * offsetFactor;
-    const position = {
-        x: item.position.x - bounds.width / 2,
-        y: item.position.y + bounds.height / 2 - height - offset,
-    };
+const drawHealthBar = async (item: Image) => {
 
     const metadata: any = item.metadata[getPluginId("metadata")];
-
-    //try to extract visibility from metadata
-    var visible: boolean;
-    try {
-        visible = !metadata["hide"];
-    } catch (error) {
-        visible = true;
-    }
-
-    var color = "darkgray";
-    if (!visible) {
-        color = "black";
-    }
 
     //try to extract health from metadata
     var health: number;
@@ -84,23 +85,55 @@ export const drawHealthBar = async (item: Image) => {
         health = 0;
         maxHealth = 0;
     }
+    if(isNaN(health)) {
+        health = 0;
+    }
+    if(isNaN(maxHealth)) {
+        maxHealth = 0;
+    }
+
+    //try to extract visibility from metadata
+    var visible: boolean;
+    try {
+        visible = !metadata["hide"];
+    } catch (error) {
+        visible = true;
+    }
+
+    const roll = await OBR.player.getRole();
     
-    if (maxHealth > 0) { //draw bar if it has max health
+    if ((maxHealth > 0) && !(roll === "PLAYER" && !visible)) { //draw bar if it has max health
+
+        //get physical token properties
+        const height = 26;
+        const dpi = await OBR.scene.grid.getDpi();
+        const bounds = getImageBounds(item, dpi);
+        const position = {
+            x: item.position.x - bounds.width / 2,
+            y: item.position.y - bounds.height / 2 - height,
+        };
+    
+        //set color based on visibility
+        var color = "darkgrey";
+        if (!visible) {
+            color = "black";
+        }
 
         const backgroundShape = buildShape()
         .width(bounds.width)
         .height(height)
         .shapeType("RECTANGLE")
         .fillColor(color)
-        .fillOpacity(0.5)
+        .fillOpacity(0.7)
         .strokeColor(color)
         .strokeOpacity(0.5)
+        .strokeWidth(0)
         .position({x: position.x, y: position.y})
         .attachedTo(item.id)
         .layer("ATTACHMENT")
         .locked(true)
         .id(item.id + "health-background")
-        //.visible(visible)
+        .visible(item.visible)
         .build();
         
         var percentage = 0;
@@ -115,40 +148,54 @@ export const drawHealthBar = async (item: Image) => {
         }
     
         const hpShape = buildShape()
-        .width(percentage === 0 ? 0 : (bounds.width - 4) * percentage)
-        .height(height - 4)
+        .width(percentage === 0 ? 0 : (bounds.width) * percentage)
+        .height(height)
         .shapeType("RECTANGLE")
         .fillColor("red")
         .fillOpacity(0.5)
         .strokeWidth(0)
         .strokeOpacity(0)
-        .position({ x: position.x + 2, y: position.y + 2 })
+        .position({ x: position.x, y: position.y})
         .attachedTo(item.id)
         .layer("ATTACHMENT")
         .locked(true)
         .id(item.id + "health")
-        //.visible(visible)
+        .visible(item.visible)
         .build();
 
-        const roll = await OBR.player.getRole();
-
-        //hide old shape from player
-        if ((roll === "PLAYER" && !visible)) {
-            await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health"]);
-        }
+        const healthLabel = buildText()
+        .position({x: position.x, y: position.y + 2})
+        .plainText("" + health + "/" + maxHealth)
+        .textAlign("CENTER")
+        .textAlignVertical("MIDDLE")
+        .fontSize(height + 0)
+        .fontFamily("Lucidia Console, sans-serif")
+        .textType("PLAIN")
+        .height(height + 0)
+        .width(bounds.width)
+        .fontWeight(400)
+        .visible(item.visible)
+        //.strokeColor("black")
+        //.strokeWidth(0)
+        .attachedTo(item.id)
+        .layer("TEXT")
+        .locked(true)
+        .id(item.id + "health-label")
+        .build();
 
         //only show player visible shapes
         if (roll === "PLAYER" && visible) {
-            await OBR.scene.local.addItems([backgroundShape, hpShape]);
+            //await OBR.scene.local.deleteItems([item.id + "health-label"]);
+            OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
         } else if (roll === "GM" ) { //show gm all shapes
-            await OBR.scene.local.addItems([backgroundShape, hpShape]);
-        }
-    
-    } else { // delete items
+            //await OBR.scene.local.deleteItems([item.id + "health-label"]);
+            OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
+        }   
+        
+    } else { // delete health bar
 
-        await OBR.scene.items.deleteItems([item.id + "health-background", item.id + "health"]);
-        await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health"]);
-    
+        await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]);
+        //await OBR.scene.items.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]); //this line can probably go
     }
 
     return[];
@@ -161,28 +208,30 @@ const getImageBounds = (item: Image, dpi: number) => {
     return { width, height };
 };
 
-export async function initializeHealthBars(flag: boolean) {
+export async function startHealthBars(flag: boolean) {
+
+    //detect when scene API is ready
     if(flag === false) {
         console.log("Not ready")
-       window.setTimeout(initializeHealthBars, 100); /* this checks the flag every 100 milliseconds*/
+        window.setTimeout(startHealthBars, 100); /* this checks the flag every 100 milliseconds*/
     } else {
         console.log("Ready")
         try {
             await OBR.scene.items.getItems(
                 (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
-              );
+            );
+
+            //start health bar management
             updateHealthBars()
         } catch (error) {
             console.log("It lied")
             console.log(error)
-            window.setTimeout(initializeHealthBars, 100);
+            window.setTimeout(startHealthBars, 100);
         }
     }
 }
 
-export async function deleteOrphanHealthBars() {
-
-    //console.log("clearing orphaned health bars")
+async function deleteOrphanHealthBars() {
 
     //get ids of all items on map that could have health bars
     const newItems: Image[] = await OBR.scene.items.getItems(
@@ -192,19 +241,26 @@ export async function deleteOrphanHealthBars() {
     for(const item of newItems) {
         newItemIds.push(item.id);
     }
+    
+    var orphanFound = false; 
 
     //check for orphaned health bars
     for(const oldId of tokenIds) {
         if(!newItemIds.includes(oldId)) {
 
             // delete orphaned health bar
-            await OBR.scene.local.deleteItems([oldId + "health-background", oldId + "health"]);
+            await OBR.scene.local.deleteItems([oldId + "health-background", oldId + "health", oldId + "health-label"]);
+
+            orphanFound = true;
         }
     }
 
     // update item list with current values
     tokenIds = newItemIds;
 
-    //use timeout to repeat call
-    //setTimeout(function() {deleteOrphanHealthBars();}, 500);
+    // update current items list
+    if(orphanFound) {
+        itemsLast = newItems;
+        //console.log("orphan found: " + orphanFound)
+    }
 }

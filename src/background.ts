@@ -1,7 +1,7 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 import icon from "./status.svg";
-import { initializeHealthBars } from "./helpers";
+import { startHealthBars } from "./helpers";
 
 /**
  * This file represents the background script run when the plugin loads.
@@ -63,5 +63,5 @@ OBR.onReady( async () => {
     shortcut: "Shift + S"
   });
 
-  initializeHealthBars(await OBR.scene.isReady());
+  startHealthBars(await OBR.scene.isReady());
 });
