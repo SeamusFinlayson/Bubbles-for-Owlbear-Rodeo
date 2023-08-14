@@ -13,27 +13,55 @@ OBR.onReady(async () => {
   document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div class="center">
 
-    <label for="health">HP</label>
-    <input class="number-box" type="text" id="health" name="health">
+    <label for="health" class="label">HP</label>
+    <input class="number-box dark" type="text" id="health" name="health">
 
-    <label for="max health">/</label>
-    <input class="number-box" type="text" id="max health" name="max health">
+    <label for="max health" class="label">/</label>
+    <input class="number-box dark" type="text" id="max health" name="max health">
 
-    <label>Temp</label>
-    <input class="number-box" type="text" id="temporary health" name="temporary health"
+    <label for="temporary health" class="label">Temp</label>
+    <input class="number-box dark" type="text" id="temporary health" name="temporary health"
     style="border-color: lightgreen;">
 
-    <label for="temporary health">AC</label>
-    <input class="number-box" type="text" id="armor class" 
+    <label for="armor class" class="label">AC</label>
+    <input class="number-box dark" type="text" id="armor class" 
       name="armor class" style="border-color: lightblue;">
 
-    <label for="hide">Hide</label>
+    <label for="hide" class="label">Hide</label>
     <label class="switch">
       <input type="checkbox" id="hide">
-      <span class="slider round"></span>
+      <span class="slider round dark" id="slider span"></span>
     </label>
 
   </div>`;
+
+  //OBR.theme.onChange( (theme) => {
+    const theme = OBR.theme.getTheme()
+    if ((await theme).mode == "LIGHT") {
+
+      //change text color
+      const labels = document.getElementsByClassName("label")
+      //console.log("Theme changed for " + labels.length + " labels") 
+      for (let i = 0; i < labels.length; i++) {
+        (labels[i] as HTMLLabelElement).style.color = (await theme).text.primary;
+      }
+
+      //change bubble focus color
+      const numberBoxes = document.getElementsByClassName("number-box");
+      //console.log("Theme changed for " + numberBoxes.length + " inputs") 
+      for (let i = 0; i < numberBoxes.length; i++) {
+        //console.log("Theme changed for " + numberBoxes[i].id);
+        numberBoxes[i].classList.replace("dark", "light");
+      }
+
+      const checkBoxSlider = document.getElementById("slider span");
+      checkBoxSlider?.classList.replace("dark", "light");
+    } 
+
+    // labels.forEach((label) => {
+    //   label.style.color = theme.text.primary
+    // })
+  //})
 
   //list of input element ids in document
   var bubbles:string[] = ["health", "max health", "temporary health", "armor class", "hide"];
