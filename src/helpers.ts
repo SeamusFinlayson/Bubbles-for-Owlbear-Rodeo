@@ -1,10 +1,10 @@
 import OBR, { Image, Item, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 
-var tokenIds: String[] = [];
-var itemsLast: Image[] = [];
-var addItemsArray: Item[] = [];
-var deleteItemsArray: string[] = [];
+var tokenIds: String[] = []; // for orphan health bar management
+var itemsLast: Image[] = []; // for item change checks
+var addItemsArray: Item[] = []; // for bulk addition or changing of items  
+var deleteItemsArray: string[] = []; // for bulk deletion of scene items
 
 async function updateHealthBars() {
 
@@ -98,7 +98,7 @@ const drawHealthBar = async (item: Image) => {
 
     const roll = await OBR.player.getRole();
     
-    if ((maxHealth > 0) && !(roll === "PLAYER" && !visible)) { //draw bar if it has max health
+    if ((maxHealth > 0) && !(roll === "PLAYER" && !visible)) { //draw bar if it has max health and is visible
 
         //get physical token properties
         const height = 26;
@@ -193,8 +193,6 @@ const drawHealthBar = async (item: Image) => {
         }   
         
     } else { // delete health bar
-
-        //should add these items to an array and delete them in bulk
 
         //await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]);
         deleteItemsArray.push(item.id + "health-background", item.id + "health", item.id + "health-label");
@@ -296,20 +294,15 @@ async function refreshAllHealthBars() {
         (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
     );
 
-    //store array of all items currently on the board
+    //store array of all items currently on the board for change monitoring
     itemsLast = items;
 
     //draw health bars
     for (const item of items) {
         await drawHealthBar(item);
     }
-
-    //bulk add items 
-    OBR.scene.local.addItems(addItemsArray);
-
-    //bulk delete items
-    OBR.scene.local.deleteItems(deleteItemsArray);
-
+    OBR.scene.local.addItems(addItemsArray); //bulk add items 
+    OBR.scene.local.deleteItems(deleteItemsArray); //bulk delete items
     //clear add and delete arrays arrays
     addItemsArray.length = 0;
     deleteItemsArray.length = 0;
