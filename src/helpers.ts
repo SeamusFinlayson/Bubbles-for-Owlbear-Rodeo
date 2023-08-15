@@ -1,8 +1,10 @@
-import OBR, { Image, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
+import OBR, { Image, Item, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 
 var tokenIds: String[] = [];
 var itemsLast: Image[] = [];
+var addItemsArray: Item[] = [];
+var deleteItemsArray: string[] = [];
 
 async function updateHealthBars() {
 
@@ -49,8 +51,19 @@ async function updateHealthBars() {
 
         //draw health bars
         for (const item of changedItems) {
-            drawHealthBar(item);
+            await drawHealthBar(item);
         }
+
+        //bulk add items 
+        OBR.scene.local.addItems(addItemsArray);
+
+        //bulk delete items
+        OBR.scene.local.deleteItems(deleteItemsArray);
+
+        //clear add and delete arrays arrays
+        addItemsArray.length = 0;
+        deleteItemsArray.length = 0;
+
     });
 };
 
@@ -166,19 +179,25 @@ const drawHealthBar = async (item: Image) => {
         .id(item.id + "health-label")
         .build();
 
+        //should add these items to an array and add them in bulk
+
         //only show player visible shapes
         if (roll === "PLAYER" && visible) {
             //await OBR.scene.local.deleteItems([item.id + "health-label"]);
-            OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
+            //OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
+            addItemsArray.push(backgroundShape, hpShape, healthLabel);
         } else if (roll === "GM" ) { //show gm all shapes
             //await OBR.scene.local.deleteItems([item.id + "health-label"]);
-            OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
+            //OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
+            addItemsArray.push(backgroundShape, hpShape, healthLabel);
         }   
         
     } else { // delete health bar
 
-        await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]);
-        //await OBR.scene.items.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]); //this line can probably go
+        //should add these items to an array and delete them in bulk
+
+        //await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]);
+        deleteItemsArray.push(item.id + "health-background", item.id + "health", item.id + "health-label");
     }
 
     return[];
@@ -191,29 +210,44 @@ const getImageBounds = (item: Image, dpi: number) => {
     return { width, height };
 };
 
-export async function startHealthBars(flag: boolean) {
+// export async function startHealthBars(flag: boolean) {
 
-    //detect when scene API is ready
-    if(flag === false) {
-        console.log("Not ready")
-        window.setTimeout(startHealthBars, 100); /* this checks the flag every 100 milliseconds*/
-    } else {
-        console.log("Ready")
-        try {
-            await OBR.scene.items.getItems(
-                (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
-            );
+//     //detect when scene API is ready
+//     if(flag === false) {
+//         console.log("Not ready")
+//         window.setTimeout(async function() {startHealthBars(await OBR.scene.isReady())}, 100); /* this checks the flag every 100 milliseconds*/
+//     } else {
+//         console.log("Ready")
+//         try {
+//             await OBR.scene.items.getItems(
+//                 (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
+//             );
 
-            //start health bar management
-            updateHealthBars();
+//             //start health bar management
+//             updateHealthBars();
 
-            //start scene monitoring
-            monitorSceneStatus();
-        } catch (error) {
-            console.log("It lied");
-            console.log(error);
-            window.setTimeout(startHealthBars, 100);
-        }
+//             //start scene monitoring
+//             monitorSceneStatus();
+//         } catch (error) {
+//             console.log("It lied");
+//             console.log(error);
+//             window.setTimeout(startHealthBars, 100);
+//         }
+//     }
+// }
+
+export async function initScene() {
+    // Handle when the scene is either changed or made ready after extension load
+    OBR.scene.onReadyChange((isReady) => {
+      if (isReady) {
+        updateHealthBars();
+      }
+    });
+  
+    // Check if the scene is already ready once the extension loads
+    const isReady = await OBR.scene.isReady();
+    if (isReady) {
+      updateHealthBars();
     }
 }
 
@@ -235,11 +269,15 @@ async function deleteOrphanHealthBars() {
         if(!newItemIds.includes(oldId)) {
 
             // delete orphaned health bar
-            await OBR.scene.local.deleteItems([oldId + "health-background", oldId + "health", oldId + "health-label"]);
+            //await OBR.scene.local.deleteItems([oldId + "health-background", oldId + "health", oldId + "health-label"]);
+            deleteItemsArray.push(oldId + "health-background", oldId + "health", oldId + "health-label");
 
             orphanFound = true;
         }
     }
+
+    OBR.scene.local.deleteItems(deleteItemsArray);
+    deleteItemsArray.length = 0;
 
     // update item list with current values
     tokenIds = newItemIds;
@@ -263,10 +301,18 @@ async function refreshAllHealthBars() {
 
     //draw health bars
     for (const item of items) {
-        try {
-            await drawHealthBar(item);
-        } catch (error) {/*console.log("Drawing health bars interrupted")*/}
+        await drawHealthBar(item);
     }
+
+    //bulk add items 
+    OBR.scene.local.addItems(addItemsArray);
+
+    //bulk delete items
+    OBR.scene.local.deleteItems(deleteItemsArray);
+
+    //clear add and delete arrays arrays
+    addItemsArray.length = 0;
+    deleteItemsArray.length = 0;
 
     //update global item id list for orphaned health bar monitoring
     var itemIds: String[] = [];
@@ -276,23 +322,25 @@ async function refreshAllHealthBars() {
     tokenIds = itemIds;
 }
 
-async function monitorSceneStatus(sceneReadyLast: boolean = true) {
+//
 
-    //get current scene status
-    const sceneReady = await OBR.scene.isReady();
-    var duration = 1;
+// async function monitorSceneStatus(sceneReadyLast: boolean = true) {
+
+//     //get current scene status
+//     const sceneReady = await OBR.scene.isReady();
+//     var duration = 1;
   
-    if(!sceneReadyLast && sceneReady) { //detected scene reload without OBR.onReady() trigger
+//     if(!sceneReadyLast && sceneReady) { //detected scene reload without OBR.onReady() trigger
 
-      //do refresh
-      refreshAllHealthBars();
-      console.log("Refreshing");
+//       //do refresh
+//       refreshAllHealthBars();
+//       console.log("Refreshing");
       
-      duration = 4;
-    } else if (sceneReady && sceneReadyLast) {
-      duration = 4;
-    }
+//       duration = 4;
+//     } else if (sceneReady && sceneReadyLast) {
+//       duration = 4;
+//     }
   
-    //call again after set period
-    setTimeout(function() {monitorSceneStatus(sceneReady)}, duration);
-}
+//     //call again after set period
+//     setTimeout(function() {monitorSceneStatus(sceneReady)}, duration);
+// }
