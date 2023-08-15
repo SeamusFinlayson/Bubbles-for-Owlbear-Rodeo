@@ -1,7 +1,7 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 import icon from "./status.svg";
-import { initScene, startHealthBars } from "./helpers";
+import { initScene } from "./helpers";
 
 /**
  * This file represents the background script run when the plugin loads.
