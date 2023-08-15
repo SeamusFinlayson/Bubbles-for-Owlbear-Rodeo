@@ -1,8 +1,10 @@
-import OBR, { Image, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
+import OBR, { Image, Item, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 
 var tokenIds: String[] = [];
 var itemsLast: Image[] = [];
+var addItemsArray: Item[] = [];
+var deleteItemsArray: string[] = [];
 
 async function updateHealthBars() {
 
@@ -49,8 +51,19 @@ async function updateHealthBars() {
 
         //draw health bars
         for (const item of changedItems) {
-            drawHealthBar(item);
+            await drawHealthBar(item);
         }
+
+        //bulk add items 
+        OBR.scene.local.addItems(addItemsArray)
+
+        //bulk delete items
+        OBR.scene.local.deleteItems(deleteItemsArray)
+
+        //clear add and delete arrays arrays
+        addItemsArray.length = 0;
+        deleteItemsArray.length = 0;
+
     });
 };
 
@@ -166,19 +179,25 @@ const drawHealthBar = async (item: Image) => {
         .id(item.id + "health-label")
         .build();
 
+        //should add these items to an array and add them in bulk
+
         //only show player visible shapes
         if (roll === "PLAYER" && visible) {
             //await OBR.scene.local.deleteItems([item.id + "health-label"]);
-            OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
+            //OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
+            addItemsArray.push(backgroundShape, hpShape, healthLabel);
         } else if (roll === "GM" ) { //show gm all shapes
             //await OBR.scene.local.deleteItems([item.id + "health-label"]);
-            OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
+            //OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
+            addItemsArray.push(backgroundShape, hpShape, healthLabel);
         }   
         
     } else { // delete health bar
 
-        await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]);
-        //await OBR.scene.items.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]); //this line can probably go
+        //should add these items to an array and delete them in bulk
+
+        //await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]);
+        deleteItemsArray.push(item.id + "health-background", item.id + "health", item.id + "health-label");
     }
 
     return[];
@@ -196,7 +215,7 @@ export async function startHealthBars(flag: boolean) {
     //detect when scene API is ready
     if(flag === false) {
         console.log("Not ready")
-        window.setTimeout(startHealthBars, 100); /* this checks the flag every 100 milliseconds*/
+        window.setTimeout(async function() {startHealthBars(await OBR.scene.isReady())}, 100); /* this checks the flag every 100 milliseconds*/
     } else {
         console.log("Ready")
         try {
@@ -216,6 +235,21 @@ export async function startHealthBars(flag: boolean) {
         }
     }
 }
+
+export async function initScene() {
+    // Handle when the scene is either changed or made ready after extension load
+    OBR.scene.onReadyChange((isReady) => {
+      if (isReady) {
+        updateHealthBars();
+      }
+    });
+  
+    // Check if the scene is already ready once the extension loads
+    const isReady = await OBR.scene.isReady();
+    if (isReady) {
+      updateHealthBars();
+    }
+  }
 
 async function deleteOrphanHealthBars() {
 
@@ -263,10 +297,18 @@ async function refreshAllHealthBars() {
 
     //draw health bars
     for (const item of items) {
-        try {
-            await drawHealthBar(item);
-        } catch (error) {/*console.log("Drawing health bars interrupted")*/}
+        await drawHealthBar(item);
     }
+
+    //bulk add items 
+    OBR.scene.local.addItems(addItemsArray);
+
+    //bulk delete items
+    OBR.scene.local.deleteItems(deleteItemsArray);
+
+    //clear add and delete arrays arrays
+    addItemsArray.length = 0;
+    deleteItemsArray.length = 0;
 
     //update global item id list for orphaned health bar monitoring
     var itemIds: String[] = [];
