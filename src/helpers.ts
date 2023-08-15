@@ -6,25 +6,8 @@ var itemsLast: Image[] = [];
 
 async function updateHealthBars() {
 
-    //get shapes from scene
-    const items: Image[] = await OBR.scene.items.getItems(
-        (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
-    );
-
-    //store array of all items currently on the board
-    itemsLast = items;
-
-    //draw health bars
-    for (const item of items) {
-        await drawHealthBar(item);
-    }
-
-    //update global item id list for orphaned health bar monitoring
-    var itemIds: String[] = [];
-    for(const item of items) {
-        itemIds.push(item.id);
-    }
-    tokenIds = itemIds;
+    // generate all health bars based on scene token metadata
+    refreshAllHealthBars();
 
     //update health bars on change
     OBR.scene.items.onChange( async () => {
@@ -222,10 +205,13 @@ export async function startHealthBars(flag: boolean) {
             );
 
             //start health bar management
-            updateHealthBars()
+            updateHealthBars();
+
+            //start scene monitoring
+            monitorSceneStatus();
         } catch (error) {
-            console.log("It lied")
-            console.log(error)
+            console.log("It lied");
+            console.log(error);
             window.setTimeout(startHealthBars, 100);
         }
     }
@@ -263,4 +249,50 @@ async function deleteOrphanHealthBars() {
         itemsLast = newItems;
         //console.log("orphan found: " + orphanFound)
     }
+}
+
+async function refreshAllHealthBars() {
+
+    //get shapes from scene
+    const items: Image[] = await OBR.scene.items.getItems(
+        (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
+    );
+
+    //store array of all items currently on the board
+    itemsLast = items;
+
+    //draw health bars
+    for (const item of items) {
+        try {
+            await drawHealthBar(item);
+        } catch (error) {/*console.log("Drawing health bars interrupted")*/}
+    }
+
+    //update global item id list for orphaned health bar monitoring
+    var itemIds: String[] = [];
+    for(const item of items) {
+        itemIds.push(item.id);
+    }
+    tokenIds = itemIds;
+}
+
+async function monitorSceneStatus(sceneReadyLast: boolean = true) {
+
+    //get current scene status
+    const sceneReady = await OBR.scene.isReady();
+    var duration = 1;
+  
+    if(!sceneReadyLast && sceneReady) { //detected scene reload without OBR.onReady() trigger
+
+      //do refresh
+      refreshAllHealthBars();
+      console.log("Refreshing");
+      
+      duration = 4;
+    } else if (sceneReady && sceneReadyLast) {
+      duration = 4;
+    }
+  
+    //call again after set period
+    setTimeout(function() {monitorSceneStatus(sceneReady)}, duration);
 }
