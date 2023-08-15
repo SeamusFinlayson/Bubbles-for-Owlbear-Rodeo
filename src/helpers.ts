@@ -55,10 +55,10 @@ async function updateHealthBars() {
         }
 
         //bulk add items 
-        OBR.scene.local.addItems(addItemsArray)
+        OBR.scene.local.addItems(addItemsArray);
 
         //bulk delete items
-        OBR.scene.local.deleteItems(deleteItemsArray)
+        OBR.scene.local.deleteItems(deleteItemsArray);
 
         //clear add and delete arrays arrays
         addItemsArray.length = 0;
@@ -210,31 +210,31 @@ const getImageBounds = (item: Image, dpi: number) => {
     return { width, height };
 };
 
-export async function startHealthBars(flag: boolean) {
+// export async function startHealthBars(flag: boolean) {
 
-    //detect when scene API is ready
-    if(flag === false) {
-        console.log("Not ready")
-        window.setTimeout(async function() {startHealthBars(await OBR.scene.isReady())}, 100); /* this checks the flag every 100 milliseconds*/
-    } else {
-        console.log("Ready")
-        try {
-            await OBR.scene.items.getItems(
-                (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
-            );
+//     //detect when scene API is ready
+//     if(flag === false) {
+//         console.log("Not ready")
+//         window.setTimeout(async function() {startHealthBars(await OBR.scene.isReady())}, 100); /* this checks the flag every 100 milliseconds*/
+//     } else {
+//         console.log("Ready")
+//         try {
+//             await OBR.scene.items.getItems(
+//                 (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
+//             );
 
-            //start health bar management
-            updateHealthBars();
+//             //start health bar management
+//             updateHealthBars();
 
-            //start scene monitoring
-            monitorSceneStatus();
-        } catch (error) {
-            console.log("It lied");
-            console.log(error);
-            window.setTimeout(startHealthBars, 100);
-        }
-    }
-}
+//             //start scene monitoring
+//             monitorSceneStatus();
+//         } catch (error) {
+//             console.log("It lied");
+//             console.log(error);
+//             window.setTimeout(startHealthBars, 100);
+//         }
+//     }
+// }
 
 export async function initScene() {
     // Handle when the scene is either changed or made ready after extension load
@@ -249,7 +249,7 @@ export async function initScene() {
     if (isReady) {
       updateHealthBars();
     }
-  }
+}
 
 async function deleteOrphanHealthBars() {
 
@@ -269,11 +269,15 @@ async function deleteOrphanHealthBars() {
         if(!newItemIds.includes(oldId)) {
 
             // delete orphaned health bar
-            await OBR.scene.local.deleteItems([oldId + "health-background", oldId + "health", oldId + "health-label"]);
+            //await OBR.scene.local.deleteItems([oldId + "health-background", oldId + "health", oldId + "health-label"]);
+            deleteItemsArray.push(oldId + "health-background", oldId + "health", oldId + "health-label");
 
             orphanFound = true;
         }
     }
+
+    OBR.scene.local.deleteItems(deleteItemsArray);
+    deleteItemsArray.length = 0;
 
     // update item list with current values
     tokenIds = newItemIds;
@@ -318,23 +322,25 @@ async function refreshAllHealthBars() {
     tokenIds = itemIds;
 }
 
-async function monitorSceneStatus(sceneReadyLast: boolean = true) {
+//
 
-    //get current scene status
-    const sceneReady = await OBR.scene.isReady();
-    var duration = 1;
+// async function monitorSceneStatus(sceneReadyLast: boolean = true) {
+
+//     //get current scene status
+//     const sceneReady = await OBR.scene.isReady();
+//     var duration = 1;
   
-    if(!sceneReadyLast && sceneReady) { //detected scene reload without OBR.onReady() trigger
+//     if(!sceneReadyLast && sceneReady) { //detected scene reload without OBR.onReady() trigger
 
-      //do refresh
-      refreshAllHealthBars();
-      console.log("Refreshing");
+//       //do refresh
+//       refreshAllHealthBars();
+//       console.log("Refreshing");
       
-      duration = 4;
-    } else if (sceneReady && sceneReadyLast) {
-      duration = 4;
-    }
+//       duration = 4;
+//     } else if (sceneReady && sceneReadyLast) {
+//       duration = 4;
+//     }
   
-    //call again after set period
-    setTimeout(function() {monitorSceneStatus(sceneReady)}, duration);
-}
+//     //call again after set period
+//     setTimeout(function() {monitorSceneStatus(sceneReady)}, duration);
+// }
