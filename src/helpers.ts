@@ -5,66 +5,72 @@ var tokenIds: String[] = []; // for orphan health bar management
 var itemsLast: Image[] = []; // for item change checks
 var addItemsArray: Item[] = []; // for bulk addition or changing of items  
 var deleteItemsArray: string[] = []; // for bulk deletion of scene items
+var initDone: boolean = false; // check if on change listener has been attached yet
 
-async function updateHealthBars() {
+async function startHealthBarUpdates() {
 
     // generate all health bars based on scene token metadata
-    refreshAllHealthBars();
+    //refreshAllHealthBars();
 
-    //update health bars on change
-    OBR.scene.items.onChange( async () => {
-        //console.log("Item change detected")
+    //only execute this code once
+    if (!initDone) {
+        initDone = true;
 
-        //get rid of health bars that no longer attach to anything
-        await deleteOrphanHealthBars();
-
-        //get shapes from scene
-        const items: Image[] = await OBR.scene.items.getItems(
-            (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
-        );
-
-        //console.log("Changed items length: " + items.length)
-
-        //create list of modified items
-        var changedItems: Image[] = [];
-        for (let i = 0; i < items.length; i++) {
-
-            if(i > itemsLast.length - 1) { //check for extra items at the end of the list 
-                changedItems.push(items[i]);
+        //update health bars on change
+        OBR.scene.items.onChange( async (_) => {
+            //console.log("Item change detected")
+    
+            //get rid of health bars that no longer attach to anything
+            await deleteOrphanHealthBars();
+    
+            //get shapes from scene
+            const items: Image[] = await OBR.scene.items.getItems(
+                (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
+            );
+    
+            //console.log("Changed items length: " + items.length)
+    
+            //create list of modified items
+            var changedItems: Image[] = [];
+            for (let i = 0; i < items.length; i++) {
+    
+                if(i > itemsLast.length - 1) { //check for extra items at the end of the list 
+                    changedItems.push(items[i]);
+                }
+                else if( //check for notable changes in item values
+                    (itemsLast[i].position.x == items[i].position.x) &&
+                    (itemsLast[i].position.y == items[i].position.y) &&
+                    (itemsLast[i].scale.x == items[i].scale.x) &&
+                    (itemsLast[i].scale.y == items[i].scale.y) &&
+                    (itemsLast[i].rotation == items[i].rotation) &&
+                    (itemsLast[i].visible == items[i].visible) &&
+                    (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(items[i].metadata[getPluginId("metadata")]))
+                ) {} //do nothing
+                else { //add changed items to change list
+                    changedItems.push(items[i]);
+                }
             }
-            else if( //check for notable changes in item values
-                (itemsLast[i].position.x == items[i].position.x) &&
-                (itemsLast[i].position.y == items[i].position.y) &&
-                (itemsLast[i].scale.x == items[i].scale.x) &&
-                (itemsLast[i].scale.y == items[i].scale.y) &&
-                (itemsLast[i].rotation == items[i].rotation) &&
-                (itemsLast[i].visible == items[i].visible) &&
-                (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(items[i].metadata[getPluginId("metadata")]))
-            ) {} //do nothing
-            else { //add changed items to change list
-                changedItems.push(items[i]);
+    
+            //update array of all items currently on the board
+            itemsLast = items;
+    
+            //draw health bars
+            for (const item of changedItems) {
+                await drawHealthBar(item);
             }
-        }
-
-        //update array of all items currently on the board
-        itemsLast = items;
-
-        //draw health bars
-        for (const item of changedItems) {
-            await drawHealthBar(item);
-        }
-
-        //bulk add items 
-        OBR.scene.local.addItems(addItemsArray);
-
-        //bulk delete items
-        OBR.scene.local.deleteItems(deleteItemsArray);
-
-        //clear add and delete arrays arrays
-        addItemsArray.length = 0;
-        deleteItemsArray.length = 0;
-
-    });
+            //console.log("Detected " + changedItems.length + " changes");
+    
+            //bulk add items 
+            OBR.scene.local.addItems(addItemsArray);
+    
+            //bulk delete items
+            OBR.scene.local.deleteItems(deleteItemsArray);
+    
+            //clear add and delete arrays arrays
+            addItemsArray.length = 0;
+            deleteItemsArray.length = 0;
+        });
+    }
 };
 
 const drawHealthBar = async (item: Image) => {
@@ -208,47 +214,6 @@ const getImageBounds = (item: Image, dpi: number) => {
     return { width, height };
 };
 
-// export async function startHealthBars(flag: boolean) {
-
-//     //detect when scene API is ready
-//     if(flag === false) {
-//         console.log("Not ready")
-//         window.setTimeout(async function() {startHealthBars(await OBR.scene.isReady())}, 100); /* this checks the flag every 100 milliseconds*/
-//     } else {
-//         console.log("Ready")
-//         try {
-//             await OBR.scene.items.getItems(
-//                 (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
-//             );
-
-//             //start health bar management
-//             updateHealthBars();
-
-//             //start scene monitoring
-//             monitorSceneStatus();
-//         } catch (error) {
-//             console.log("It lied");
-//             console.log(error);
-//             window.setTimeout(startHealthBars, 100);
-//         }
-//     }
-// }
-
-export async function initScene() {
-    // Handle when the scene is either changed or made ready after extension load
-    OBR.scene.onReadyChange((isReady) => {
-      if (isReady) {
-        updateHealthBars();
-      }
-    });
-  
-    // Check if the scene is already ready once the extension loads
-    const isReady = await OBR.scene.isReady();
-    if (isReady) {
-      updateHealthBars();
-    }
-}
-
 async function deleteOrphanHealthBars() {
 
     //get ids of all items on map that could have health bars
@@ -315,25 +280,20 @@ async function refreshAllHealthBars() {
     tokenIds = itemIds;
 }
 
-//
+export async function initScene() {
 
-// async function monitorSceneStatus(sceneReadyLast: boolean = true) {
-
-//     //get current scene status
-//     const sceneReady = await OBR.scene.isReady();
-//     var duration = 1;
+    // Handle when the scene is either changed or made ready after extension load
+    OBR.scene.onReadyChange((isReady) => {
+        if (isReady) {
+            refreshAllHealthBars();
+            startHealthBarUpdates();
+        }
+    });
   
-//     if(!sceneReadyLast && sceneReady) { //detected scene reload without OBR.onReady() trigger
-
-//       //do refresh
-//       refreshAllHealthBars();
-//       console.log("Refreshing");
-      
-//       duration = 4;
-//     } else if (sceneReady && sceneReadyLast) {
-//       duration = 4;
-//     }
-  
-//     //call again after set period
-//     setTimeout(function() {monitorSceneStatus(sceneReady)}, duration);
-// }
+    // Check if the scene is already ready once the extension loads
+    const isReady = await OBR.scene.isReady();
+    if (isReady) {
+        refreshAllHealthBars();
+        startHealthBarUpdates();
+    }
+}
