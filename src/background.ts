@@ -53,7 +53,7 @@ OBR.onReady( async () => {
         id: getPluginId("number-bubbles"),
         url: "/",
         height: 60,
-        width: 400,
+        width: 480,
         anchorElementId: elementId,
         //hidePaper: false,
         //anchorOrigin: {vertical: "BOTTOM", horizontal: "LEFT"}

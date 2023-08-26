@@ -10,6 +10,7 @@ body {
 
 .label {
   color: white;
+  vertical-align: -1px;
   /* font-weight: 1000; */
   /* font-family: Arial, Helvetica, sans-serif; */
 }
@@ -28,13 +29,29 @@ body {
   border-radius: 100%;
   border-width: 5px;
   border-style: solid;
-  border-color: rgb(224, 28, 28);
+  border-color: red;
   background-color: rgb(0, 0, 0);
   text-align: center;
   color: white;
   font-size: medium;
   -webkit-transition: .2s;
   transition: .2s;
+  /* margin: 1%; */
+}
+
+.divisor {
+  text-align: center;
+  vertical-align:auto;
+  color: white;
+  font-size: x-large;
+  vertical-align:-2px;
+  /* display: inline-block; */
+  /* height: 60px; */
+}
+
+.stat-input.dark:focus {
+  /* box-shadow: 0 0 5px #ffffff, 0 0 5px #ffffff; */
+  outline: none;
 }
 
 .number-box.dark:focus {
