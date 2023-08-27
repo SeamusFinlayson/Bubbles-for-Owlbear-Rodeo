@@ -218,7 +218,7 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
                     .height(barHeight)
                     .shapeType("RECTANGLE")
                     .fillColor(statBar.color.valueOf())
-                    .fillOpacity(0.5)
+                    .fillOpacity(0.6)
                     .strokeWidth(0)
                     .strokeOpacity(0)
                     .position({ x: barOrigin.x, y: barOrigin.y - statBar.position * barHeight})
@@ -265,7 +265,6 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
         const colors: String[] = ["red", "lightgreen", "lightblue"]; 
         for (const color of colors) {
             deleteItemsArray.push("" + item.id + color, "" + item.id + color + "-label");
-
         }
     }
 
