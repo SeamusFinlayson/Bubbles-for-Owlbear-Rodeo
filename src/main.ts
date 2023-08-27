@@ -35,10 +35,10 @@ OBR.onReady(async () => {
     checkBoxSlider?.classList.replace("dark", "light");
 
     const divisors = document.getElementsByClassName("divisor");
-    console.log("Count " + divisors.length)
+    //console.log("Count " + divisors.length)
     for (let i = 0; i < divisors.length; i++) {
       //console.log("Theme changed for " + divi[i].id);
-      (divisors[i] as HTMLLabelElement).style.color = (await theme).text.primary;
+      divisors[i].classList.replace("dark", "light");
     }
   } 
 
