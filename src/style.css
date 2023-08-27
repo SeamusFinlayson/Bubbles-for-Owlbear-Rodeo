@@ -49,6 +49,14 @@ body {
   /* height: 60px; */
 }
 
+.divisor.dark {
+  color: #ffffff;
+}
+
+.divisor.light {
+  color: dimgray;
+}
+
 .stat-input.dark:focus {
   /* box-shadow: 0 0 5px #ffffff, 0 0 5px #ffffff; */
   outline: none;

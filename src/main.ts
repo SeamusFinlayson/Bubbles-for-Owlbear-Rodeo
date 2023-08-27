@@ -33,6 +33,13 @@ OBR.onReady(async () => {
 
     const checkBoxSlider = document.getElementById("slider span");
     checkBoxSlider?.classList.replace("dark", "light");
+
+    const divisors = document.getElementsByClassName("divisor");
+    console.log("Count " + divisors.length)
+    for (let i = 0; i < divisors.length; i++) {
+      //console.log("Theme changed for " + divi[i].id);
+      (divisors[i] as HTMLLabelElement).style.color = (await theme).text.primary;
+    }
   } 
 
   //list of input element ids in document, warning: hide is accessed by hard coding
