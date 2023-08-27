@@ -35,8 +35,9 @@ OBR.onReady(async () => {
     checkBoxSlider?.classList.replace("dark", "light");
   } 
 
-  //list of input element ids in document
-  var bubbles:string[] = ["stat-1", "max-stat-1", "stat-2", "max-stat-2", "stat-3", "max-stat-3"];
+  //list of input element ids in document, warning: hide is accessed by hard coding
+  const hideIndex = 0;
+  var bubbles:string[] = ["hide", "stat-1", "max-stat-1", "stat-2", "max-stat-2", "stat-3", "max-stat-3"];
 
   //get existing metadata from token
   const selection = await OBR.player.getSelection();
@@ -60,7 +61,7 @@ OBR.onReady(async () => {
   }
 
   try {
-    (document.getElementById(bubbles[4]) as HTMLInputElement).checked = retrievedMetadata[bubbles[4]];
+    (document.getElementById(bubbles[hideIndex]) as HTMLInputElement).checked = retrievedMetadata[bubbles[hideIndex]];
   } catch (error) {}
 
   //select health field by default

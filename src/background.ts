@@ -26,7 +26,7 @@ OBR.onReady( async () => {
             { key: "layer", value: "CHARACTER", coordinator: "||" },
             { key: "layer", value: "MOUNT", coordinator: "||" },
             { key: "layer", value: "PROP" },
-            { key: ["metadata", "com.owlbear-rodeo-bubbles-extension/metadata", "hide"], value: true, operator: "!="},
+            { key: ["metadata", "com.owlbear-rodeo-bubbles-extension-agnostic/metadata", "hide"], value: true, operator: "!="},
           ],
           permissions: ["UPDATE"],
           roles: ["PLAYER"],
