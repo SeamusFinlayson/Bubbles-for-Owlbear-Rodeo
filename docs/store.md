@@ -1,18 +1,18 @@
 ---
-title: Stat Bubbles
-description: Add Roll20 style stat bubbles to track HP and AC.
+title: Stat Bubbles - System Agnostic
+description: Stat bubbles and bars to track TTRPG stats.
 author: Seamus Finlayson
-image: https://owlbear-rodeo-bubbles-extension.onrender.com/header.png
-icon: https://owlbear-rodeo-bubbles-extension.onrender.com/logo.png
+image: https://bubbles-extension-system-agnostic.onrender.com/header.png
+icon: https://bubbles-extension-system-agnostic.onrender.com/logo.png
 tags:
   - combat
-manifest: https://owlbear-rodeo-bubbles-extension.onrender.com/manifest.json
-learn-more: https://github.com/SeamusFinlayson/Bubbles-for-Owkbear-Rodeo
+manifest: https://bubbles-extension-system-agnostic.onrender.com/manifest.json
+learn-more: https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/tree/system-agnostic-version
 ---
 
 # Stat Bubbles
 
-Add Roll20 style bubbles to track hit points, temporary hit points, and armor class.
+Add bars and bubbles to track TTRPG stats.
 
 ## How to use
 
@@ -20,29 +20,29 @@ Add Roll20 style bubbles to track hit points, temporary hit points, and armor cl
 
 **This extension does math for you!** 
 
-To add 6 to your HP type +6 and press Enter. To subtract 6 from your HP type -6 and press Enter. This works for every bubble.
+To add 12 to your stat type +12 and press Enter. To subtract 12 from your stat type -12 and press Enter. This works for every bubble.
 
 **Deigned to be keyboard friendly.**
 
-1. Click on a token and use the shortcut Shift + S to see and edit a token's trackers.
+1. Click on a token and use the shortcut Shift + A to see and edit a token's stats.
 2. Press Tab to cycle through the bubbles.
 3. Press the Space key to toggle the switch.
 4. When you're done press Escape and the menu will close.
 
 Works with tokens on the **Prop**, **Mount**, and **Character** layers.
 
-The **health bar is created automatically** if a number greater than 0 is in the max health (second) bubble.
+**Stat bars are created automatically** if a number greater than 0 is in the max stat (second of the color) bubble.
 
 ### For GMs
 
-Use the **hide switch** to hide the monster stats from your players. 
+Use the **hide switch** to hide enemy stats from your players. 
 
 The hide switch:
 
-* Hides the health bar from players.
+* Hides stat bars from players.
 * Removes the context menu icon for the players.
-* Turns the health bar background black to indicate that it is hidden.
+* Turns stat bar backgrounds black to indicate that they are hidden.
 
 ## Support
 
-If you need support for this extension you can open an issue on [GitHub](https://github.com/SeamusFinlayson/Bubbles-for-Owkbear-Rodeo)
+If you need support for this extension you can open an issue on [GitHub](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/tree/system-agnostic-version)

@@ -60,7 +60,7 @@ OBR.onReady( async () => {
         //transformOrigin: {vertical: "TOP", horizontal: "RIGHT"}
       });
     },
-    shortcut: "Shift + S"
+    shortcut: "Shift + A"
   });
 
   //startHealthBars(await OBR.scene.isReady());

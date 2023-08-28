@@ -3,7 +3,7 @@
   "version": "1.0.4",
   "manifest_version": 1,
   "author": "Seamus Finlayson",
-  "homepage_url": "https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo",
+  "homepage_url": "https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/tree/system-agnostic-version",
   "icon": "/logo.png",
   "background_url": "/background.html",
   "description": "Stat bubbles and bars to track TTRPG stats."
