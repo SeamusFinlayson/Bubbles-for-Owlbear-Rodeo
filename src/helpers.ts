@@ -36,7 +36,7 @@ async function startHealthBarUpdates() {
     if (!initDone) {
         initDone = true;
 
-        //update health bars on change
+        //set listener to manage token changes
         OBR.scene.items.onChange(async (_) => {
             //console.log("Item change detected")
 
@@ -62,7 +62,7 @@ async function startHealthBarUpdates() {
                     (itemsLast[i].position.y == items[i].position.y) &&
                     (itemsLast[i].scale.x == items[i].scale.x) &&
                     (itemsLast[i].scale.y == items[i].scale.y) &&
-                    (itemsLast[i].rotation == items[i].rotation) &&
+                    //(itemsLast[i].rotation == items[i].rotation) &&
                     (itemsLast[i].visible == items[i].visible) &&
                     (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(items[i].metadata[getPluginId("metadata")]))
                 ) { } //do nothing
@@ -106,16 +106,16 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
         visible = true;
     }
 
+    const colors: String[] = ["red", "#22dd51", "#76bdd5"]; //red, green, blue
+
     //const roll = await OBR.player.getRole(); //this could be done outside the function and passed in to improve efficiency
     if (!(roll === "PLAYER" && !visible)) { //draw stats if visible
 
         //extract bar values from token metadata
         let statBars: statBar[] = [];
         let barCount: number = 0;
-        const colors: String[] = ["red", "lightgreen", "lightblue"]; 
 
         for (let i = 1; i < 4; i++) {   //for 1 to 3
-
 
             //check for max value
             let maxValue: number;
@@ -140,7 +140,6 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
                 //add bar to build list
                 statBars.push(new statBar(colors[i - 1], value, maxValue, barCount++));
 
-
             } else {
 
                 //add bar to delete list
@@ -149,8 +148,6 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
         }
 
         if (statBars.length > 0) {
-
-            //console.log(statBars);
 
             //get physical token properties
             const barHeight = 16;
@@ -163,7 +160,7 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
             };
 
             //set color based on visibility
-            var color = "darkgrey";
+            var color = "#969696"; //grey
             if (!visible) {
                 color = "black";
             }
@@ -251,18 +248,15 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
                     .id(item.id + statBar.color + "-label")
                     .build();
 
-                addItemsArray.push(backgroundShape, fillShape, statLabel);
-                
+                addItemsArray.push(backgroundShape, fillShape, statLabel);       
             }
-        } else { // delete health bar
+        } else { // no health bars
 
             deleteItemsArray.push(item.id + "-background");
         }
-        
-        
-    } else {
+    } else { //do not display for user
+
         deleteItemsArray.push(item.id + "-background");
-        const colors: String[] = ["red", "lightgreen", "lightblue"]; 
         for (const color of colors) {
             deleteItemsArray.push("" + item.id + color, "" + item.id + color + "-label");
         }
@@ -270,10 +264,6 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
 
     return [];
 }
-
-// async function buildHealthBar(value: number, maxValue: number, statNumber: number, verticalOffset: number,) {
-//     addItemsArray.push(stat, maxStat, text);
-// }
 
 const getImageBounds = (item: Image, dpi: number) => {
     const dpiScale = dpi / item.grid.dpi;
