@@ -1,6 +1,7 @@
 import OBR, { Image } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 import "./style.css";
+import popoverHTML from './popover.html?raw';
 
 /**
  * This file represents the HTML of the popover that is shown once
@@ -10,30 +11,7 @@ import "./style.css";
 OBR.onReady(async () => {
 
   // Setup the document
-  document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-  <div class="center">
-
-    <label for="health" class="label">HP</label>
-    <input class="number-box dark" type="text" id="health" name="health">
-
-    <label for="max health" class="label">/</label>
-    <input class="number-box dark" type="text" id="max health" name="max health">
-
-    <label for="temporary health" class="label">Temp</label>
-    <input class="number-box dark" type="text" id="temporary health" name="temporary health"
-    style="border-color: lightgreen;">
-
-    <label for="armor class" class="label">AC</label>
-    <input class="number-box dark" type="text" id="armor class" 
-      name="armor class" style="border-color: lightblue;">
-
-    <label for="hide" class="label">Hide</label>
-    <label class="switch">
-      <input type="checkbox" id="hide">
-      <span class="slider round dark" id="slider span"></span>
-    </label>
-
-  </div>`;
+  document.querySelector<HTMLDivElement>("#app")!.innerHTML = popoverHTML;
 
   //OBR.theme.onChange( (theme) => {
     const theme = OBR.theme.getTheme()
