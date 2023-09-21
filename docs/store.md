@@ -1,6 +1,6 @@
 ---
-title: Stat Bubbles
-description: Add Roll20 style stat bubbles to track HP and AC.
+title: Stat Bubbles for D&D
+description: Add health bars and armor class to your Owlbear Rodeo tokens
 author: Seamus Finlayson
 image: https://owlbear-rodeo-bubbles-extension.onrender.com/header.png
 icon: https://owlbear-rodeo-bubbles-extension.onrender.com/logo.png
@@ -12,7 +12,7 @@ learn-more: https://github.com/SeamusFinlayson/Bubbles-for-Owkbear-Rodeo
 
 # Stat Bubbles
 
-Add Roll20 style bubbles to track hit points, temporary hit points, and armor class.
+Add health bars and armor class to your Owlbear Rodeo tokens.
 
 ## How to use
 
