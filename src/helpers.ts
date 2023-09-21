@@ -99,12 +99,19 @@ const drawHealthBar = async (item: Image) => {
     try {
         visible = !metadata["hide"];
     } catch (error) {
-        visible = true;
+        if (!(error instanceof TypeError)) {
+            //console.log("type error")
+            throw {
+                error
+            }
+        } else {
+            visible = true;
+        }
     }
 
     const roll = await OBR.player.getRole();
     
-    if ((maxHealth > 0) && !(roll === "PLAYER" && !visible)) { //draw bar if it has max health and is visible
+    if ((maxHealth > 0) && !((roll === "PLAYER") && !visible)) { //draw bar if it has max health and is visible
 
         //get physical token properties
         const height = 26;
@@ -185,22 +192,11 @@ const drawHealthBar = async (item: Image) => {
         .id(item.id + "health-label")
         .build();
 
-        //should add these items to an array and add them in bulk
-
-        //only show player visible shapes
-        if (roll === "PLAYER" && visible) {
-            //await OBR.scene.local.deleteItems([item.id + "health-label"]);
-            //OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
-            addItemsArray.push(backgroundShape, hpShape, healthLabel);
-        } else if (roll === "GM" ) { //show gm all shapes
-            //await OBR.scene.local.deleteItems([item.id + "health-label"]);
-            //OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
-            addItemsArray.push(backgroundShape, hpShape, healthLabel);
-        }   
+        //add health bar to add array
+        addItemsArray.push(backgroundShape, hpShape, healthLabel);
         
     } else { // delete health bar
 
-        //await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]);
         deleteItemsArray.push(item.id + "health-background", item.id + "health", item.id + "health-label");
     }
 
