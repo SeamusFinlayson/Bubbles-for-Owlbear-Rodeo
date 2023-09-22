@@ -36,17 +36,19 @@ async function startHealthBarUpdates() {
     
                 if(i > itemsLast.length - 1) { //check for extra items at the end of the list 
                     changedItems.push(items[i]);
-                }
-                else if( //check for notable changes in item values
-                    (itemsLast[i].position.x == items[i].position.x) &&
+                } else if( //check for scaling changes
+                    !((itemsLast[i].scale.x == items[i].scale.x) &&
+                    (itemsLast[i].scale.y == items[i].scale.y))
+                ) {
+                    deleteItemsArray.push(items[i].id + "health-label");
+                    changedItems.push(items[i]);
+                } else if( //check position and visibility changes
+                    !((itemsLast[i].position.x == items[i].position.x) &&
                     (itemsLast[i].position.y == items[i].position.y) &&
-                    (itemsLast[i].scale.x == items[i].scale.x) &&
-                    (itemsLast[i].scale.y == items[i].scale.y) &&
-                    (itemsLast[i].rotation == items[i].rotation) &&
+                    // (itemsLast[i].rotation == items[i].rotation) && //shouldn't need this check anymore because attachment rotation is disabled
                     (itemsLast[i].visible == items[i].visible) &&
-                    (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(items[i].metadata[getPluginId("metadata")]))
-                ) {} //do nothing
-                else { //add changed items to change list
+                    (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(items[i].metadata[getPluginId("metadata")])))
+                ) { //update items
                     changedItems.push(items[i]);
                 }
             }
@@ -59,12 +61,12 @@ async function startHealthBarUpdates() {
                 await drawHealthBar(item);
             }
             //console.log("Detected " + changedItems.length + " changes");
-    
-            //bulk add items 
-            OBR.scene.local.addItems(addItemsArray);
-    
+
             //bulk delete items
             OBR.scene.local.deleteItems(deleteItemsArray);
+
+            //bulk add items 
+            OBR.scene.local.addItems(addItemsArray);
     
             //clear add and delete arrays arrays
             addItemsArray.length = 0;
@@ -207,7 +209,7 @@ const drawHealthBar = async (item: Image) => {
         
     } else { // delete health bar
 
-        deleteItemsArray.push(item.id + "health-background", item.id + "health", item.id + "health-label");
+        await addItemAttachmentsToDeleteList(item);
     }
 
     return[];
@@ -302,4 +304,8 @@ export async function initScene() {
         refreshAllHealthBars();
         startHealthBarUpdates();
     }
+}
+
+async function addItemAttachmentsToDeleteList(item: Image) {
+    deleteItemsArray.push(item.id + "health-background", item.id + "health", item.id + "health-label");
 }
