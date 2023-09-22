@@ -15,11 +15,15 @@ body {
 }
 
 .center {
-  position: absolute;
-  top: 50%;
+  position:absolute;
+  /* top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%); */
+  top: 5px;
+  left: 10px;
+  /* padding: 10px; */
   white-space: nowrap;
+  /* overflow: scroll; */
 }
 
 .number-box {

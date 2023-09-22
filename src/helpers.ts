@@ -124,8 +124,10 @@ const drawHealthBar = async (item: Image) => {
     
         //set color based on visibility
         var color = "darkgrey";
+        let setVisibilityProperty = item.visible;
         if (!visible) {
             color = "black";
+            setVisibilityProperty = false;
         }
 
         const backgroundShape = buildShape()
@@ -142,7 +144,8 @@ const drawHealthBar = async (item: Image) => {
         .layer("ATTACHMENT")
         .locked(true)
         .id(item.id + "health-background")
-        .visible(item.visible)
+        .visible(setVisibilityProperty)
+        .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
         .build();
         
         var percentage = 0;
@@ -169,7 +172,8 @@ const drawHealthBar = async (item: Image) => {
         .layer("ATTACHMENT")
         .locked(true)
         .id(item.id + "health")
-        .visible(item.visible)
+        .visible(setVisibilityProperty)
+        .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
         .build();
 
         const healthLabel = buildText()
@@ -183,13 +187,14 @@ const drawHealthBar = async (item: Image) => {
         .height(height + 0)
         .width(bounds.width)
         .fontWeight(400)
-        .visible(item.visible)
         //.strokeColor("black")
         //.strokeWidth(0)
         .attachedTo(item.id)
         .layer("TEXT")
         .locked(true)
         .id(item.id + "health-label")
+        .visible(setVisibilityProperty)
+        .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
         .build();
 
         //add health bar to add array
