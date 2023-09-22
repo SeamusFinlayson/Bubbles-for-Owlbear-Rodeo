@@ -125,9 +125,13 @@ const drawHealthBar = async (item: Image) => {
         //set color based on visibility
         var color = "darkgrey";
         let setVisibilityProperty = item.visible;
+        let backgroundOpacity = 0.7;
+        let healthOpacity = 0.5;
         if (!visible) {
             color = "black";
             setVisibilityProperty = false;
+            backgroundOpacity = 1;
+            healthOpacity = 0.8;
         }
 
         const backgroundShape = buildShape()
@@ -135,9 +139,9 @@ const drawHealthBar = async (item: Image) => {
         .height(height)
         .shapeType("RECTANGLE")
         .fillColor(color)
-        .fillOpacity(0.7)
+        .fillOpacity(backgroundOpacity)
         .strokeColor(color)
-        .strokeOpacity(0.5)
+        .strokeOpacity(0)
         .strokeWidth(0)
         .position({x: position.x, y: position.y})
         .attachedTo(item.id)
@@ -164,7 +168,7 @@ const drawHealthBar = async (item: Image) => {
         .height(height)
         .shapeType("RECTANGLE")
         .fillColor("red")
-        .fillOpacity(0.5)
+        .fillOpacity(healthOpacity)
         .strokeWidth(0)
         .strokeOpacity(0)
         .position({ x: position.x, y: position.y})
@@ -190,6 +194,7 @@ const drawHealthBar = async (item: Image) => {
         //.strokeColor("black")
         //.strokeWidth(0)
         .attachedTo(item.id)
+        .fillOpacity(1)
         .layer("TEXT")
         .locked(true)
         .id(item.id + "health-label")
