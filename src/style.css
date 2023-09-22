@@ -21,6 +21,7 @@ body {
   transform: translate(-50%, -50%); */
   top: 5px;
   left: 10px;
+  right: 10px;
   /* padding: 10px; */
   white-space: nowrap;
   /* overflow: scroll; */
