@@ -36,17 +36,19 @@ async function startHealthBarUpdates() {
     
                 if(i > itemsLast.length - 1) { //check for extra items at the end of the list 
                     changedItems.push(items[i]);
-                }
-                else if( //check for notable changes in item values
-                    (itemsLast[i].position.x == items[i].position.x) &&
+                } else if( //check for scaling changes
+                    !((itemsLast[i].scale.x == items[i].scale.x) &&
+                    (itemsLast[i].scale.y == items[i].scale.y))
+                ) {
+                    deleteItemsArray.push(items[i].id + "health-label");
+                    changedItems.push(items[i]);
+                } else if( //check position and visibility changes
+                    !((itemsLast[i].position.x == items[i].position.x) &&
                     (itemsLast[i].position.y == items[i].position.y) &&
-                    (itemsLast[i].scale.x == items[i].scale.x) &&
-                    (itemsLast[i].scale.y == items[i].scale.y) &&
-                    (itemsLast[i].rotation == items[i].rotation) &&
+                    // (itemsLast[i].rotation == items[i].rotation) && //shouldn't need this check anymore because attachment rotation is disabled
                     (itemsLast[i].visible == items[i].visible) &&
-                    (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(items[i].metadata[getPluginId("metadata")]))
-                ) {} //do nothing
-                else { //add changed items to change list
+                    (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(items[i].metadata[getPluginId("metadata")])))
+                ) { //update items
                     changedItems.push(items[i]);
                 }
             }
@@ -59,12 +61,12 @@ async function startHealthBarUpdates() {
                 await drawHealthBar(item);
             }
             //console.log("Detected " + changedItems.length + " changes");
-    
-            //bulk add items 
-            OBR.scene.local.addItems(addItemsArray);
-    
+
             //bulk delete items
             OBR.scene.local.deleteItems(deleteItemsArray);
+
+            //bulk add items 
+            OBR.scene.local.addItems(addItemsArray);
     
             //clear add and delete arrays arrays
             addItemsArray.length = 0;
@@ -99,12 +101,19 @@ const drawHealthBar = async (item: Image) => {
     try {
         visible = !metadata["hide"];
     } catch (error) {
-        visible = true;
+        if (!(error instanceof TypeError)) {
+            //console.log("type error")
+            throw {
+                error
+            }
+        } else {
+            visible = true;
+        }
     }
 
     const roll = await OBR.player.getRole();
     
-    if ((maxHealth > 0) && !(roll === "PLAYER" && !visible)) { //draw bar if it has max health and is visible
+    if ((maxHealth > 0) && !((roll === "PLAYER") && !visible)) { //draw bar if it has max health and is visible
 
         //get physical token properties
         const height = 26;
@@ -117,8 +126,14 @@ const drawHealthBar = async (item: Image) => {
     
         //set color based on visibility
         var color = "darkgrey";
+        let setVisibilityProperty = item.visible;
+        let backgroundOpacity = 0.7;
+        let healthOpacity = 0.5;
         if (!visible) {
             color = "black";
+            setVisibilityProperty = false;
+            backgroundOpacity = 1;
+            healthOpacity = 0.8;
         }
 
         const backgroundShape = buildShape()
@@ -126,16 +141,17 @@ const drawHealthBar = async (item: Image) => {
         .height(height)
         .shapeType("RECTANGLE")
         .fillColor(color)
-        .fillOpacity(0.7)
+        .fillOpacity(backgroundOpacity)
         .strokeColor(color)
-        .strokeOpacity(0.5)
+        .strokeOpacity(0)
         .strokeWidth(0)
         .position({x: position.x, y: position.y})
         .attachedTo(item.id)
         .layer("ATTACHMENT")
         .locked(true)
         .id(item.id + "health-background")
-        .visible(item.visible)
+        .visible(setVisibilityProperty)
+        .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
         .build();
         
         var percentage = 0;
@@ -154,7 +170,7 @@ const drawHealthBar = async (item: Image) => {
         .height(height)
         .shapeType("RECTANGLE")
         .fillColor("red")
-        .fillOpacity(0.5)
+        .fillOpacity(healthOpacity)
         .strokeWidth(0)
         .strokeOpacity(0)
         .position({ x: position.x, y: position.y})
@@ -162,7 +178,8 @@ const drawHealthBar = async (item: Image) => {
         .layer("ATTACHMENT")
         .locked(true)
         .id(item.id + "health")
-        .visible(item.visible)
+        .visible(setVisibilityProperty)
+        .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
         .build();
 
         const healthLabel = buildText()
@@ -176,32 +193,23 @@ const drawHealthBar = async (item: Image) => {
         .height(height + 0)
         .width(bounds.width)
         .fontWeight(400)
-        .visible(item.visible)
         //.strokeColor("black")
         //.strokeWidth(0)
         .attachedTo(item.id)
+        .fillOpacity(1)
         .layer("TEXT")
         .locked(true)
         .id(item.id + "health-label")
+        .visible(setVisibilityProperty)
+        .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
         .build();
 
-        //should add these items to an array and add them in bulk
-
-        //only show player visible shapes
-        if (roll === "PLAYER" && visible) {
-            //await OBR.scene.local.deleteItems([item.id + "health-label"]);
-            //OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
-            addItemsArray.push(backgroundShape, hpShape, healthLabel);
-        } else if (roll === "GM" ) { //show gm all shapes
-            //await OBR.scene.local.deleteItems([item.id + "health-label"]);
-            //OBR.scene.local.addItems([backgroundShape, hpShape, healthLabel]);
-            addItemsArray.push(backgroundShape, hpShape, healthLabel);
-        }   
+        //add health bar to add array
+        addItemsArray.push(backgroundShape, hpShape, healthLabel);
         
     } else { // delete health bar
 
-        //await OBR.scene.local.deleteItems([item.id + "health-background", item.id + "health", item.id + "health-label"]);
-        deleteItemsArray.push(item.id + "health-background", item.id + "health", item.id + "health-label");
+        await addItemAttachmentsToDeleteList(item);
     }
 
     return[];
@@ -296,4 +304,8 @@ export async function initScene() {
         refreshAllHealthBars();
         startHealthBarUpdates();
     }
+}
+
+async function addItemAttachmentsToDeleteList(item: Image) {
+    deleteItemsArray.push(item.id + "health-background", item.id + "health", item.id + "health-label");
 }
