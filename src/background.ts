@@ -52,7 +52,7 @@ OBR.onReady( async () => {
       OBR.popover.open({
         id: getPluginId("number-bubbles"),
         url: "/",
-        height: 50,
+        height: 54,
         width: 400,
         anchorElementId: elementId,
         //hidePaper: false,

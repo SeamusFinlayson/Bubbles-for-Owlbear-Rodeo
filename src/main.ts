@@ -70,7 +70,7 @@ OBR.onReady(async () => {
   } catch (error) {}
 
   //select health field by default
-  (document.getElementById(bubbles[0]) as HTMLInputElement)?.select()
+  (document.getElementById(bubbles[0]) as HTMLInputElement)?.select();
 
   // Attach on input listeners
   bubbles.forEach(
