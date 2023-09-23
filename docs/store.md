@@ -1,6 +1,6 @@
 ---
 title: Stat Bubbles for D&D
-description: Add health bars and armor class to your Owlbear Rodeo tokens
+description: Health Bars and Armor Class for your D&D adventures!
 author: Seamus Finlayson
 image: https://owlbear-rodeo-bubbles-extension.onrender.com/header.png
 icon: https://owlbear-rodeo-bubbles-extension.onrender.com/logo.png
@@ -12,7 +12,7 @@ learn-more: https://github.com/SeamusFinlayson/Bubbles-for-Owkbear-Rodeo
 
 # Stat Bubbles
 
-Add health bars and armor class to your Owlbear Rodeo tokens.
+Health Bars and Armor Class for your D&D adventures!
 
 ## How to use
 
