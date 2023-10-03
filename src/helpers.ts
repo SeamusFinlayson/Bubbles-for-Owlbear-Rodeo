@@ -119,6 +119,8 @@ const drawHealthBar = async (item: Image) => {
         const height = 26;
         const dpi = await OBR.scene.grid.getDpi();
         const bounds = getImageBounds(item, dpi);
+        bounds.width = Math.abs(bounds.width);
+        bounds.height = Math.abs(bounds.height);
         const position = {
             x: item.position.x - bounds.width / 2,
             y: item.position.y - bounds.height / 2 - height,
