@@ -57,8 +57,9 @@ async function startHealthBarUpdates() {
             itemsLast = items;
     
             //draw health bars
+            const roll = await OBR.player.getRole();
             for (const item of changedItems) {
-                await drawHealthBar(item);
+                await drawHealthBar(item, roll);
             }
             //console.log("Detected " + changedItems.length + " changes");
 
@@ -75,7 +76,7 @@ async function startHealthBarUpdates() {
     }
 };
 
-const drawHealthBar = async (item: Image) => {
+const drawHealthBar = async (item: Image, roll: String) => {
 
     const metadata: any = item.metadata[getPluginId("metadata")];
 
@@ -110,8 +111,6 @@ const drawHealthBar = async (item: Image) => {
             visible = true;
         }
     }
-
-    const roll = await OBR.player.getRole();
     
     if ((maxHealth > 0) && !((roll === "PLAYER") && !visible)) { //draw bar if it has max health and is visible
 
@@ -273,8 +272,9 @@ async function refreshAllHealthBars() {
     itemsLast = items;
 
     //draw health bars
+    const roll = await OBR.player.getRole();
     for (const item of items) {
-        await drawHealthBar(item);
+        await drawHealthBar(item, roll);
     }
     OBR.scene.local.addItems(addItemsArray); //bulk add items 
     OBR.scene.local.deleteItems(deleteItemsArray); //bulk delete items
