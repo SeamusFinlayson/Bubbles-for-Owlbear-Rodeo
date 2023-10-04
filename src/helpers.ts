@@ -160,9 +160,15 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
             };
 
             //set color based on visibility
-            var color = "#969696"; //grey
+            let color = "#969696"; //grey
+            let setVisibilityProperty = item.visible;
+            let backgroundOpacity = 0.7;
+            let statOpacity = 0.5;
             if (!visible) {
                 color = "black";
+                setVisibilityProperty = false;
+                backgroundOpacity = 1;
+                statOpacity = 0.8;
             }
 
             let backgroundOffset: number;
@@ -183,17 +189,17 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
                 .height(barHeight * statBars.length)
                 .shapeType("RECTANGLE")
                 .fillColor(color)
-                .fillOpacity(0.7)
+                .fillOpacity(backgroundOpacity)
                 .strokeColor(color)
                 .strokeOpacity(0.5)
                 .strokeWidth(0)
                 .position({ x: barOrigin.x, y: barOrigin.y - backgroundOffset})
-                .disableAttachmentBehavior(["ROTATION"])
+                .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
                 .attachedTo(item.id)
                 .layer("ATTACHMENT")
                 .locked(true)
                 .id(item.id + "-background")
-                .visible(item.visible)
+                .visible(setVisibilityProperty)
                 .build();
 
             for (const statBar of statBars) {
@@ -215,21 +221,21 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
                     .height(barHeight)
                     .shapeType("RECTANGLE")
                     .fillColor(statBar.color.valueOf())
-                    .fillOpacity(0.6)
+                    .fillOpacity(statOpacity)
                     .strokeWidth(0)
                     .strokeOpacity(0)
                     .position({ x: barOrigin.x, y: barOrigin.y - statBar.position * barHeight})
-                    .disableAttachmentBehavior(["ROTATION"])
+                    .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
                     .attachedTo(item.id)
                     .layer("ATTACHMENT")
                     .locked(true)
                     .id(item.id + statBar.color)
-                    .visible(item.visible)
+                    .visible(setVisibilityProperty)
                     .build();
 
                 const statLabel = buildText()
                     .position({ x: barOrigin.x, y: barOrigin.y + 1.5 - statBar.position * barHeight})
-                    .disableAttachmentBehavior(["ROTATION"])
+                    .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
                     .plainText("" + statBar.value + "/" + statBar.maxValue)
                     .textAlign("CENTER")
                     .textAlignVertical("MIDDLE")
@@ -239,13 +245,13 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
                     .height(barHeight + 0)
                     .width(bounds.width)
                     .fontWeight(400)
-                    .visible(item.visible)
                     //.strokeColor("black")
                     //.strokeWidth(0)
                     .attachedTo(item.id)
                     .layer("TEXT")
                     .locked(true)
                     .id(item.id + statBar.color + "-label")
+                    .visible(setVisibilityProperty)
                     .build();
 
                 addItemsArray.push(backgroundShape, fillShape, statLabel);       
