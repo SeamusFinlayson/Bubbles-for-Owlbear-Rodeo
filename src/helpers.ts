@@ -80,6 +80,28 @@ const drawHealthBar = async (item: Image, roll: String) => {
 
     const metadata: any = item.metadata[getPluginId("metadata")];
 
+    //try to extract armor class metadata
+    let armorClass: number;
+    try {
+        armorClass = parseFloat(metadata["armor class"]);
+    } catch (error) {
+        armorClass = 0;
+    }
+    if(isNaN(armorClass)) {
+        armorClass = 0;
+    }
+
+    //try to extract temporary health metadata
+    let tempHealth: number;
+    try {
+        tempHealth = parseFloat(metadata["temporary health"]);
+    } catch (error) {
+        tempHealth = 0;
+    }
+    if(isNaN(tempHealth)) {
+        tempHealth = 0;
+    }
+
     //try to extract health from metadata
     var health: number;
     var maxHealth: number;
@@ -112,105 +134,239 @@ const drawHealthBar = async (item: Image, roll: String) => {
         }
     }
     
-    if ((maxHealth > 0) && !((roll === "PLAYER") && !visible)) { //draw bar if it has max health and is visible
+    if (!((roll === "PLAYER") && !visible)) { //draw bar if it has max health and is visible
 
         //get physical token properties
-        const height = 26;
+        const barHeight = 26;
         const dpi = await OBR.scene.grid.getDpi();
         const bounds = getImageBounds(item, dpi);
         bounds.width = Math.abs(bounds.width);
         bounds.height = Math.abs(bounds.height);
         const position = {
             x: item.position.x - bounds.width / 2,
-            y: item.position.y - bounds.height / 2 - height,
+            y: item.position.y - bounds.height / 2 - barHeight,
         };
-    
+
         //set color based on visibility
-        var color = "darkgrey";
+        var healthBackgroundColor = "darkgrey";
         let setVisibilityProperty = item.visible;
         let backgroundOpacity = 0.7;
         let healthOpacity = 0.5;
+        let bubbleOpacity = 0.5;
         if (!visible) {
-            color = "black";
+            healthBackgroundColor = "black";
             setVisibilityProperty = false;
             backgroundOpacity = 1;
             healthOpacity = 0.8;
+            bubbleOpacity = 1;
         }
 
-        const backgroundShape = buildShape()
-        .width(bounds.width)
-        .height(height)
-        .shapeType("RECTANGLE")
-        .fillColor(color)
-        .fillOpacity(backgroundOpacity)
-        .strokeColor(color)
-        .strokeOpacity(0)
-        .strokeWidth(0)
-        .position({x: position.x, y: position.y})
-        .attachedTo(item.id)
-        .layer("ATTACHMENT")
-        .locked(true)
-        .id(item.id + "health-background")
-        .visible(setVisibilityProperty)
-        .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
-        .build();
-        
-        var percentage = 0;
-        if (health <= 0) {
-            percentage = 0;
-        } else if (health < maxHealth) {
-            percentage = health / maxHealth;
-        } else if (health >= maxHealth){
-            percentage = 1;
+        //set stat circle properties
+        const diameter = 30;
+
+        let drewArmorClass = false;
+        if (armorClass > 0) {
+            drewArmorClass = true;
+            
+            let armorPosition;
+            armorPosition = {
+                x: item.position.x + bounds.width / 2 - diameter / 2 - 2,
+                y: item.position.y + bounds.height / 2 - diameter / 2 - 2,
+            }
+
+            const color = "cornflowerblue" //"#5c8fdb"
+
+            const backgroundShape = buildShape()
+            .width(bounds.width)
+            .height(diameter)
+            .shapeType("CIRCLE")
+            .fillColor(color)
+            .fillOpacity(bubbleOpacity)
+            .strokeColor(color)
+            .strokeOpacity(0.5)
+            .strokeWidth(0)
+            .position({x: armorPosition.x, y: armorPosition.y})
+            .attachedTo(item.id)
+            .layer("ATTACHMENT")
+            .locked(true)
+            .id(item.id + "ac-background")
+            .visible(setVisibilityProperty)
+            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .build();
+
+            const armorText = buildText()
+            .position({x: armorPosition.x - diameter / 2 - 0, y: armorPosition.y - diameter / 2 - 1.2})
+            .plainText("" + armorClass)
+            .textAlign("CENTER")
+            .textAlignVertical("TOP")
+            .fontSize(diameter - 6)
+            .fontFamily("monospace, monospace")
+            .textType("PLAIN")
+            .height(diameter -10)
+            .width(diameter)
+            .fontWeight(400)
+            //.strokeColor("black")
+            //.strokeWidth(0)
+            .attachedTo(item.id)
+            .layer("TEXT")
+            .locked(true)
+            .id(item.id + "ac-label")
+            .visible(setVisibilityProperty)
+            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .build();
+
+            addItemsArray.push(backgroundShape, armorText);
         } else {
-            percentage = 0;
+            addArmorItemAttachmentsToDeleteList(item.id);
         }
-    
-        const hpShape = buildShape()
-        .width(percentage === 0 ? 0 : (bounds.width) * percentage)
-        .height(height)
-        .shapeType("RECTANGLE")
-        .fillColor("red")
-        .fillOpacity(healthOpacity)
-        .strokeWidth(0)
-        .strokeOpacity(0)
-        .position({ x: position.x, y: position.y})
-        .attachedTo(item.id)
-        .layer("ATTACHMENT")
-        .locked(true)
-        .id(item.id + "health")
-        .visible(setVisibilityProperty)
-        .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
-        .build();
 
-        const healthLabel = buildText()
-        .position({x: position.x, y: position.y + 2})
-        .plainText("" + health + "/" + maxHealth)
-        .textAlign("CENTER")
-        .textAlignVertical("MIDDLE")
-        .fontSize(height + 0)
-        .fontFamily("Lucidia Console, sans-serif")
-        .textType("PLAIN")
-        .height(height + 0)
-        .width(bounds.width)
-        .fontWeight(400)
-        //.strokeColor("black")
-        //.strokeWidth(0)
-        .attachedTo(item.id)
-        .fillOpacity(1)
-        .layer("TEXT")
-        .locked(true)
-        .id(item.id + "health-label")
-        .visible(setVisibilityProperty)
-        .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
-        .build();
+        let drewTempHealth = false
+        if (tempHealth > 0) {
+            drewTempHealth = true;
 
-        //add health bar to add array
-        addItemsArray.push(backgroundShape, hpShape, healthLabel);
+            const color = "olivedrab"
+
+            let tempHealthPosition;
+            if (drewArmorClass) {
+                tempHealthPosition = {
+                    x: item.position.x + bounds.width / 2 - diameter * 3 / 2 - 4,
+                    y: item.position.y + bounds.height / 2 - diameter / 2 - 2,
+                }
+            } else {
+                tempHealthPosition = {
+                    x: item.position.x + bounds.width / 2 - diameter / 2 - 2,
+                    y: item.position.y + bounds.height / 2 - diameter / 2 - 2,
+                }
+            }
+
+            const tempHealthBackgroundShape = buildShape()
+            .width(bounds.width)
+            .height(diameter)
+            .shapeType("CIRCLE")
+            .fillColor(color)
+            .fillOpacity(bubbleOpacity)
+            .strokeColor(color)
+            .strokeOpacity(0.5)
+            .strokeWidth(0)
+            .position({x: tempHealthPosition.x, y: tempHealthPosition.y})
+            .attachedTo(item.id)
+            .layer("ATTACHMENT")
+            .locked(true)
+            .id(item.id + "temp-hp-background")
+            .visible(setVisibilityProperty)
+            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .build();
+
+            const tempHealthText = buildText()
+            .position({x: tempHealthPosition.x - diameter / 2 - 0, y: tempHealthPosition.y - diameter / 2 - 1.2})
+            .plainText("" + tempHealth)
+            .textAlign("CENTER")
+            .textAlignVertical("TOP")
+            .fontSize(diameter - 6)
+            .fontFamily("monospace, monospace")
+            .textType("PLAIN")
+            .height(diameter -10)
+            .width(diameter)
+            .fontWeight(400)
+            //.strokeColor("black")
+            //.strokeWidth(0)
+            .attachedTo(item.id)
+            .layer("TEXT")
+            .locked(true)
+            .id(item.id + "temp-hp-label")
+            .visible(setVisibilityProperty)
+            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .build();
+
+            addItemsArray.push(tempHealthBackgroundShape, tempHealthText);
+        } else {
+            addTempHealthItemAttachmentsToDeleteList(item.id);
+        }
+
+        if (maxHealth > 0) {
+
+            const backgroundShape = buildShape()
+            .width(bounds.width)
+            .height(barHeight)
+            .shapeType("RECTANGLE")
+            .fillColor(healthBackgroundColor)
+            .fillOpacity(backgroundOpacity)
+            .strokeColor(healthBackgroundColor)
+            .strokeOpacity(0)
+            .strokeWidth(0)
+            .position({x: position.x, y: position.y})
+            .attachedTo(item.id)
+            .layer("ATTACHMENT")
+            .locked(true)
+            .id(item.id + "health-background")
+            .visible(setVisibilityProperty)
+            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .build();
+            
+            var healthPercentage = 0;
+            if (health <= 0) {
+                healthPercentage = 0;
+            } else if (health < maxHealth) {
+                healthPercentage = health / maxHealth;
+            } else if (health >= maxHealth){
+                healthPercentage = 1;
+            } else {
+                healthPercentage = 0;
+            }
+        
+            const healthShape = buildShape()
+            .width(healthPercentage === 0 ? 0 : (bounds.width) * healthPercentage)
+            .height(barHeight)
+            .shapeType("RECTANGLE")
+            .fillColor("red")
+            .fillOpacity(healthOpacity)
+            .strokeWidth(0)
+            .strokeOpacity(0)
+            .position({ x: position.x, y: position.y})
+            .attachedTo(item.id)
+            .layer("ATTACHMENT")
+            .locked(true)
+            .id(item.id + "health")
+            .visible(setVisibilityProperty)
+            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .build();
+
+            const healthText = buildText()
+            .position({x: position.x, y: position.y + 2})
+            .plainText("" + health + "/" + maxHealth)
+            .textAlign("CENTER")
+            .textAlignVertical("MIDDLE")
+            .fontSize(barHeight + 0)
+            .fontFamily("Lucidia Console, sans-serif")
+            .textType("PLAIN")
+            .height(barHeight + 0)
+            .width(bounds.width)
+            .fontWeight(400)
+            //.strokeColor("black")
+            //.strokeWidth(0)
+            .attachedTo(item.id)
+            .fillOpacity(1)
+            .layer("TEXT")
+            .locked(true)
+            .id(item.id + "health-label")
+            .visible(setVisibilityProperty)
+            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .build();
+
+            //add health bar to add array
+            addItemsArray.push(backgroundShape, healthShape, healthText);
+        }
+        else { // delete health bar
+
+            await addHealthItemAttachmentsToDeleteList(item.id);
+
+        }
+        
         
     } else { // delete health bar
 
-        await addItemAttachmentsToDeleteList(item);
+        await addAllItemAttachmentsToDeleteList(item.id);
+
     }
 
     return[];
@@ -241,8 +397,7 @@ async function deleteOrphanHealthBars() {
         if(!newItemIds.includes(oldId)) {
 
             // delete orphaned health bar
-            //await OBR.scene.local.deleteItems([oldId + "health-background", oldId + "health", oldId + "health-label"]);
-            deleteItemsArray.push(oldId + "health-background", oldId + "health", oldId + "health-label");
+            addAllItemAttachmentsToDeleteList(oldId);
 
             orphanFound = true;
         }
@@ -308,6 +463,40 @@ export async function initScene() {
     }
 }
 
-async function addItemAttachmentsToDeleteList(item: Image) {
-    deleteItemsArray.push(item.id + "health-background", item.id + "health", item.id + "health-label");
+// OBR.player.onChange((player) => {
+    
+// })
+
+async function addAllItemAttachmentsToDeleteList(itemId: String) {
+    deleteItemsArray.push(
+        itemId + "health-background", 
+        itemId + "health", 
+        itemId + "health-label",
+        itemId + "ac-background",
+        itemId + "ac-label",
+        itemId + "temp-hp-background",
+        itemId + "temp-hp-label"
+    );
+}
+
+async function addHealthItemAttachmentsToDeleteList(itemId: String) {
+    deleteItemsArray.push(
+        itemId + "health-background", 
+        itemId + "health", 
+        itemId + "health-label",
+    );
+}
+
+async function addArmorItemAttachmentsToDeleteList(itemId: String) {
+    deleteItemsArray.push(
+        itemId + "ac-background",
+        itemId + "ac-label"
+    );
+}
+
+async function addTempHealthItemAttachmentsToDeleteList(itemId: String) {
+    deleteItemsArray.push(
+        itemId + "temp-hp-background",
+        itemId + "temp-hp-label"
+    );
 }
