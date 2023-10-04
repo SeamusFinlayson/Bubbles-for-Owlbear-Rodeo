@@ -153,6 +153,8 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
             const barHeight = 16;
             const dpi = await OBR.scene.grid.getDpi();
             const bounds = getImageBounds(item, dpi);
+            bounds.width = Math.abs(bounds.width);
+            bounds.height = Math.abs(bounds.height);
 
             const barOrigin = {
                 x: item.position.x - bounds.width / 2,
