@@ -137,22 +137,17 @@ const drawHealthBar = async (item: Image, roll: String) => {
     if (!((roll === "PLAYER") && !visible)) { //draw bar if it has max health and is visible
 
         //get physical token properties
-        const barHeight = 26;
         const dpi = await OBR.scene.grid.getDpi();
         const bounds = getImageBounds(item, dpi);
         bounds.width = Math.abs(bounds.width);
         bounds.height = Math.abs(bounds.height);
-        const position = {
-            x: item.position.x - bounds.width / 2,
-            y: item.position.y - bounds.height / 2 - barHeight,
-        };
 
         //set color based on visibility
         var healthBackgroundColor = "darkgrey";
         let setVisibilityProperty = item.visible;
-        let backgroundOpacity = 0.7;
+        let backgroundOpacity = 0.6;
         let healthOpacity = 0.5;
-        let bubbleOpacity = 0.5;
+        let bubbleOpacity = 0.6;
         if (!visible) {
             healthBackgroundColor = "black";
             setVisibilityProperty = false;
@@ -161,8 +156,18 @@ const drawHealthBar = async (item: Image, roll: String) => {
             bubbleOpacity = 1;
         }
 
-        //set stat circle properties
+        //attachment properties
         const diameter = 30;
+        const font = "Lucida Console, monospace"
+        const circleFontSize = diameter - 8;
+        const circleTextHeight = diameter + 0;
+        const textVerticalOffset = 1.5;
+        const barHeight = 20;
+
+        let offsetBubbles = 0;
+        if (maxHealth > 0) {
+            offsetBubbles = 1;
+        }
 
         let drewArmorClass = false;
         if (armorClass > 0) {
@@ -171,7 +176,7 @@ const drawHealthBar = async (item: Image, roll: String) => {
             let armorPosition;
             armorPosition = {
                 x: item.position.x + bounds.width / 2 - diameter / 2 - 2,
-                y: item.position.y + bounds.height / 2 - diameter / 2 - 2,
+                y: item.position.y + bounds.height / 2 - diameter / 2 - 4 - barHeight * offsetBubbles,
             }
 
             const color = "cornflowerblue" //"#5c8fdb"
@@ -195,14 +200,14 @@ const drawHealthBar = async (item: Image, roll: String) => {
             .build();
 
             const armorText = buildText()
-            .position({x: armorPosition.x - diameter / 2 - 0, y: armorPosition.y - diameter / 2 - 1.2})
+            .position({x: armorPosition.x - diameter / 2 - 0, y: armorPosition.y - diameter / 2 + textVerticalOffset})
             .plainText("" + armorClass)
             .textAlign("CENTER")
-            .textAlignVertical("TOP")
-            .fontSize(diameter - 6)
-            .fontFamily("monospace, monospace")
+            .textAlignVertical("MIDDLE")
+            .fontSize(circleFontSize)
+            .fontFamily(font)
             .textType("PLAIN")
-            .height(diameter -10)
+            .height(circleTextHeight)
             .width(diameter)
             .fontWeight(400)
             //.strokeColor("black")
@@ -230,12 +235,12 @@ const drawHealthBar = async (item: Image, roll: String) => {
             if (drewArmorClass) {
                 tempHealthPosition = {
                     x: item.position.x + bounds.width / 2 - diameter * 3 / 2 - 4,
-                    y: item.position.y + bounds.height / 2 - diameter / 2 - 2,
+                    y: item.position.y + bounds.height / 2 - diameter / 2 - 4 - barHeight * offsetBubbles,
                 }
             } else {
                 tempHealthPosition = {
                     x: item.position.x + bounds.width / 2 - diameter / 2 - 2,
-                    y: item.position.y + bounds.height / 2 - diameter / 2 - 2,
+                    y: item.position.y + bounds.height / 2 - diameter / 2 - 4 - barHeight * offsetBubbles,
                 }
             }
 
@@ -258,14 +263,14 @@ const drawHealthBar = async (item: Image, roll: String) => {
             .build();
 
             const tempHealthText = buildText()
-            .position({x: tempHealthPosition.x - diameter / 2 - 0, y: tempHealthPosition.y - diameter / 2 - 1.2})
+            .position({x: tempHealthPosition.x - diameter / 2 - 0, y: tempHealthPosition.y - diameter / 2 + textVerticalOffset})
             .plainText("" + tempHealth)
             .textAlign("CENTER")
-            .textAlignVertical("TOP")
-            .fontSize(diameter - 6)
-            .fontFamily("monospace, monospace")
+            .textAlignVertical("MIDDLE")
+            .fontSize(circleFontSize)
+            .fontFamily(font)
             .textType("PLAIN")
-            .height(diameter -10)
+            .height(circleTextHeight)
             .width(diameter)
             .fontWeight(400)
             //.strokeColor("black")
@@ -285,14 +290,28 @@ const drawHealthBar = async (item: Image, roll: String) => {
 
         if (maxHealth > 0) {
 
+            const barPadding = 2;
+            let spaceForCircles = 0;
+            // if (drewArmorClass && drewTempHealth) {
+            //     spaceForCircles = 4 + diameter * 2;
+            // } else if (drewArmorClass || drewTempHealth) {
+            //     spaceForCircles = 2 + diameter;
+            // }
+            const position = {
+                x: item.position.x - bounds.width / 2 + barPadding,
+                y: item.position.y + bounds.height / 2 - barHeight - 2,
+            };
+            const barWidth = bounds.width - barPadding * 2 - spaceForCircles;
+
+            const barFontSize = circleFontSize;
+            const barTextHeight = barHeight + 0;
+
             const backgroundShape = buildShape()
-            .width(bounds.width)
+            .width(barWidth)
             .height(barHeight)
             .shapeType("RECTANGLE")
             .fillColor(healthBackgroundColor)
             .fillOpacity(backgroundOpacity)
-            .strokeColor(healthBackgroundColor)
-            .strokeOpacity(0)
             .strokeWidth(0)
             .position({x: position.x, y: position.y})
             .attachedTo(item.id)
@@ -315,7 +334,7 @@ const drawHealthBar = async (item: Image, roll: String) => {
             }
         
             const healthShape = buildShape()
-            .width(healthPercentage === 0 ? 0 : (bounds.width) * healthPercentage)
+            .width(healthPercentage === 0 ? 0 : (barWidth) * healthPercentage)
             .height(barHeight)
             .shapeType("RECTANGLE")
             .fillColor("red")
@@ -332,15 +351,15 @@ const drawHealthBar = async (item: Image, roll: String) => {
             .build();
 
             const healthText = buildText()
-            .position({x: position.x, y: position.y + 2})
-            .plainText("" + health + "/" + maxHealth)
+            .position({x: position.x, y: position.y + textVerticalOffset})
+            .plainText("" + health + String.fromCharCode(0x2215) + maxHealth)
             .textAlign("CENTER")
             .textAlignVertical("MIDDLE")
-            .fontSize(barHeight + 0)
-            .fontFamily("Lucidia Console, sans-serif")
+            .fontSize(barFontSize)
+            .fontFamily(font)
             .textType("PLAIN")
-            .height(barHeight + 0)
-            .width(bounds.width)
+            .height(barTextHeight)
+            .width(barWidth)
             .fontWeight(400)
             //.strokeColor("black")
             //.strokeWidth(0)
@@ -355,18 +374,12 @@ const drawHealthBar = async (item: Image, roll: String) => {
 
             //add health bar to add array
             addItemsArray.push(backgroundShape, healthShape, healthText);
-        }
-        else { // delete health bar
-
+        } else { // delete health bar
             await addHealthItemAttachmentsToDeleteList(item.id);
-
         }
-        
         
     } else { // delete health bar
-
         await addAllItemAttachmentsToDeleteList(item.id);
-
     }
 
     return[];
@@ -463,6 +476,7 @@ export async function initScene() {
     }
 }
 
+//refresh all health bars on player roll change
 // OBR.player.onChange((player) => {
     
 // })
@@ -500,3 +514,4 @@ async function addTempHealthItemAttachmentsToDeleteList(itemId: String) {
         itemId + "temp-hp-label"
     );
 }
+
