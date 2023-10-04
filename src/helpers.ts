@@ -225,9 +225,9 @@ const drawHealthBar = async (item: Image, roll: String) => {
             addArmorItemAttachmentsToDeleteList(item.id);
         }
 
-        let drewTempHealth = false
+        //let drewTempHealth = false
         if (tempHealth > 0) {
-            drewTempHealth = true;
+            //drewTempHealth = true;
 
             const color = "olivedrab"
 
