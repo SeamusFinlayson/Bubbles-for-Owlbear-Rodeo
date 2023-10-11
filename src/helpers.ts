@@ -125,7 +125,7 @@ const drawHealthBar = async (item: Image) => {
             x: item.position.x - bounds.width / 2,
             y: item.position.y - bounds.height / 2 - height,
         };
-        let disableAttachmentBehavior:AttachmentBehavior[] = ["ROTATION", "VISIBLE", "COPY"];
+        let disableAttachmentBehavior: AttachmentBehavior[] = ["ROTATION", "VISIBLE", "COPY", "SCALE"];
     
         //set color based on visibility
         var color = "darkgrey";
