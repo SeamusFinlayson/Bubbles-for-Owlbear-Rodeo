@@ -1,4 +1,4 @@
-import OBR, { Image, Item, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
+import OBR, { AttachmentBehavior, Image, Item, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 
 var tokenIds: String[] = []; // for orphan health bar management
@@ -125,6 +125,7 @@ const drawHealthBar = async (item: Image) => {
             x: item.position.x - bounds.width / 2,
             y: item.position.y - bounds.height / 2 - height,
         };
+        let disableAttachmentBehavior: AttachmentBehavior[] = ["ROTATION", "VISIBLE", "COPY", "SCALE"];
     
         //set color based on visibility
         var color = "darkgrey";
@@ -133,9 +134,9 @@ const drawHealthBar = async (item: Image) => {
         let healthOpacity = 0.5;
         if (!visible) {
             color = "black";
-            setVisibilityProperty = false;
-            backgroundOpacity = 1;
-            healthOpacity = 0.8;
+            setVisibilityProperty = true;
+            // backgroundOpacity = 0.7;
+            // healthOpacity = 0.5;
         }
 
         const backgroundShape = buildShape()
@@ -153,7 +154,7 @@ const drawHealthBar = async (item: Image) => {
         .locked(true)
         .id(item.id + "health-background")
         .visible(setVisibilityProperty)
-        .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+        .disableAttachmentBehavior(disableAttachmentBehavior)
         .build();
         
         var percentage = 0;
@@ -181,7 +182,7 @@ const drawHealthBar = async (item: Image) => {
         .locked(true)
         .id(item.id + "health")
         .visible(setVisibilityProperty)
-        .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+        .disableAttachmentBehavior(disableAttachmentBehavior)
         .build();
 
         const healthLabel = buildText()
@@ -203,7 +204,7 @@ const drawHealthBar = async (item: Image) => {
         .locked(true)
         .id(item.id + "health-label")
         .visible(setVisibilityProperty)
-        .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+        .disableAttachmentBehavior(disableAttachmentBehavior)
         .build();
 
         //add health bar to add array
