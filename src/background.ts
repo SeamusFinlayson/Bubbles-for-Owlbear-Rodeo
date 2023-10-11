@@ -51,7 +51,7 @@ OBR.onReady( async () => {
     onClick(_context, elementId) {
       OBR.popover.open({
         id: getPluginId("number-bubbles"),
-        url: "/",
+        url: "/src/popover.html",
         height: 54,
         width: 400,
         anchorElementId: elementId,

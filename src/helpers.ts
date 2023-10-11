@@ -1,11 +1,16 @@
 import OBR, { Image, Item, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
+import { offsetMetadataId, barAtTopMetadataId, nameTagsMetadataId } from "./sceneMetadataObjects";
 
 var tokenIds: String[] = []; // for orphan health bar management
 var itemsLast: Image[] = []; // for item change checks
 var addItemsArray: Item[] = []; // for bulk addition or changing of items  
 var deleteItemsArray: string[] = []; // for bulk deletion of scene items
 var initDone: boolean = false; // check if on change listener has been attached yet
+var verticalOffset: any = 0;
+var barAtTop: boolean = false;
+var nameTags: boolean = false;
+
 
 async function startHealthBarUpdates() {
 
@@ -15,6 +20,7 @@ async function startHealthBarUpdates() {
     //only execute this code once
     if (!initDone) {
         initDone = true;
+        //console.log("Starting health bars")
 
         //update health bars on change
         OBR.scene.items.onChange( async (_) => {
@@ -38,14 +44,15 @@ async function startHealthBarUpdates() {
                     changedItems.push(items[i]);
                 } else if( //check for scaling changes
                     !((itemsLast[i].scale.x == items[i].scale.x) &&
-                    (itemsLast[i].scale.y == items[i].scale.y))
+                    (itemsLast[i].scale.y == items[i].scale.y) &&
+                    ((itemsLast[i].name == items[i].name) || !nameTags))
                 ) {
                     deleteItemsArray.push(items[i].id + "health-label");
+                    deleteItemsArray.push(items[i].id + "name-tag-text");
                     changedItems.push(items[i]);
                 } else if( //check position and visibility changes
                     !((itemsLast[i].position.x == items[i].position.x) &&
                     (itemsLast[i].position.y == items[i].position.y) &&
-                    // (itemsLast[i].rotation == items[i].rotation) && //shouldn't need this check anymore because attachment rotation is disabled
                     (itemsLast[i].visible == items[i].visible) &&
                     (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(items[i].metadata[getPluginId("metadata")])))
                 ) { //update items
@@ -73,6 +80,40 @@ async function startHealthBarUpdates() {
             addItemsArray.length = 0;
             deleteItemsArray.length = 0;
         });
+
+        OBR.scene.onMetadataChange((metadata) => {
+
+            //get metadata 
+            //console.log(metadata)
+            const retrievedMetadata = JSON.parse(JSON.stringify(metadata));
+            let verticalOffsetNew: number = 0;
+            try {
+                verticalOffsetNew = retrievedMetadata[getPluginId("metadata")][offsetMetadataId];
+            } catch (error) {
+                verticalOffsetNew = 0;
+            }
+            let barAtTopNew: any = null;
+            try {
+                barAtTopNew = retrievedMetadata[getPluginId("metadata")][barAtTopMetadataId];
+            } catch (error) {
+                barAtTopNew = false;
+            }
+            let nameTagsNew: any = null;
+            try {
+                nameTagsNew = retrievedMetadata[getPluginId("metadata")][nameTagsMetadataId];
+            } catch (error) {
+                nameTagsNew = false;
+            }
+
+            if ( // ignore changes from other extensions
+                verticalOffsetNew !== verticalOffset || 
+                barAtTopNew !== barAtTop ||
+                nameTagsNew !== nameTags
+                ) { 
+                refreshAllHealthBars(metadata);
+            }
+            
+        })
     }
 };
 
@@ -169,14 +210,23 @@ const drawHealthBar = async (item: Image, roll: String) => {
             offsetBubbles = 1;
         }
 
+        let bottomMultiplier: number = 1;
+        if (barAtTop) {
+            bottomMultiplier = -1;
+        }
+        let origin = {
+            x: item.position.x,
+            y: item.position.y + bottomMultiplier * bounds.height / 2 - verticalOffset,
+        }
+
         let drewArmorClass = false;
         if (armorClass > 0) {
             drewArmorClass = true;
             
             let armorPosition;
             armorPosition = {
-                x: item.position.x + bounds.width / 2 - diameter / 2 - 2,
-                y: item.position.y + bounds.height / 2 - diameter / 2 - 4 - barHeight * offsetBubbles,
+                x: origin.x + bounds.width / 2 - diameter / 2 - 2,
+                y: origin.y - diameter / 2 - 4 - barHeight * offsetBubbles,
             }
 
             const color = "cornflowerblue" //"#5c8fdb"
@@ -234,13 +284,13 @@ const drawHealthBar = async (item: Image, roll: String) => {
             let tempHealthPosition;
             if (drewArmorClass) {
                 tempHealthPosition = {
-                    x: item.position.x + bounds.width / 2 - diameter * 3 / 2 - 4,
-                    y: item.position.y + bounds.height / 2 - diameter / 2 - 4 - barHeight * offsetBubbles,
+                    x: origin.x + bounds.width / 2 - diameter * 3 / 2 - 4,
+                    y: origin.y - diameter / 2 - 4 - barHeight * offsetBubbles,
                 }
             } else {
                 tempHealthPosition = {
-                    x: item.position.x + bounds.width / 2 - diameter / 2 - 2,
-                    y: item.position.y + bounds.height / 2 - diameter / 2 - 4 - barHeight * offsetBubbles,
+                    x: origin.x + bounds.width / 2 - diameter / 2 - 2,
+                    y: origin.y  - diameter / 2 - 4 - barHeight * offsetBubbles,
                 }
             }
 
@@ -291,17 +341,16 @@ const drawHealthBar = async (item: Image, roll: String) => {
         if (maxHealth > 0) {
 
             const barPadding = 2;
-            let spaceForCircles = 0;
             // if (drewArmorClass && drewTempHealth) {
             //     spaceForCircles = 4 + diameter * 2;
             // } else if (drewArmorClass || drewTempHealth) {
             //     spaceForCircles = 2 + diameter;
             // }
             const position = {
-                x: item.position.x - bounds.width / 2 + barPadding,
-                y: item.position.y + bounds.height / 2 - barHeight - 2,
+                x: origin.x - bounds.width / 2 + barPadding,
+                y: origin.y - barHeight - 2,
             };
-            const barWidth = bounds.width - barPadding * 2 - spaceForCircles;
+            const barWidth = bounds.width - barPadding * 2;
 
             const barFontSize = circleFontSize;
             const barTextHeight = barHeight + 0;
@@ -377,6 +426,80 @@ const drawHealthBar = async (item: Image, roll: String) => {
         } else { // delete health bar
             await addHealthItemAttachmentsToDeleteList(item.id);
         }
+
+        if (nameTags) {
+
+            const letterWidth = 16;
+            const nameTagHeight = diameter
+            let nameTagWidth = letterWidth * item.name.length;
+            // if (nameTagWidth > bounds.width - (diameter * 2 + 6)) {
+            //     nameTagWidth = bounds.width - (diameter * 2 + 6);
+            // }
+
+            const position = {
+                x: origin.x - nameTagWidth / 2,
+                y: origin.y,
+            };
+
+            const nameTagFontSize = circleFontSize;
+            const nameTagTextHeight = nameTagHeight + 0;
+
+            const nameTagBackground = buildShape()
+            .width(nameTagWidth)
+            .height(nameTagHeight)
+            .shapeType("RECTANGLE")
+            .fillColor(healthBackgroundColor)
+            .fillOpacity(backgroundOpacity)
+            .strokeWidth(0)
+            .position({x: position.x, y: position.y})
+            .attachedTo(item.id)
+            .layer("ATTACHMENT")
+            .locked(true)
+            .id(item.id + "name-tag-background")
+            .visible(setVisibilityProperty)
+            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .build();
+
+            const nameTagText = buildText()
+            .position({x: position.x, y: position.y + textVerticalOffset})
+            .plainText(item.name)
+            .textAlign("CENTER")
+            .textAlignVertical("MIDDLE")
+            .fontSize(nameTagFontSize)
+            .fontFamily(font)
+            .textType("PLAIN")
+            .height(nameTagTextHeight)
+            .width(nameTagWidth)
+            .fontWeight(400)
+            //.strokeColor("black")
+            //.strokeWidth(0)
+            .attachedTo(item.id)
+            .fillOpacity(1)
+            .layer("TEXT")
+            .locked(true)
+            .id(item.id + "name-tag-text")
+            .visible(setVisibilityProperty)
+            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .build();
+
+            addItemsArray.push(nameTagBackground, nameTagText);
+
+        } else {
+            addNameTagItemAttachmentsToDeleteList(item.id);
+        }
+
+        // const position = {
+        //     x: item.position.x,
+        //     y: item.position.y + bounds.height / 2 + barHeight - 2,
+        // };
+
+        // const label = buildLabel()
+        // .plainText("test")
+        // .attachedTo(item.id)
+        // .position(position)
+        // .build();
+
+        //addItemsArray.push(label);
         
     } else { // delete health bar
         await addAllItemAttachmentsToDeleteList(item.id);
@@ -429,12 +552,31 @@ async function deleteOrphanHealthBars() {
     }
 }
 
-async function refreshAllHealthBars() {
+async function refreshAllHealthBars(sceneMetadata?: any) {
 
     //get shapes from scene
     const items: Image[] = await OBR.scene.items.getItems(
         (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
     );
+
+    // load settings from scene metadata
+    if (typeof sceneMetadata === 'undefined') {
+        sceneMetadata = await OBR.scene.getMetadata();
+    }
+    const sceneMetadataObject = JSON.parse(JSON.stringify(sceneMetadata));
+    try {
+        const verticalOffsetNew = sceneMetadataObject[getPluginId("metadata")]["offset"];
+        verticalOffset = verticalOffsetNew;
+    } catch (error) {}
+    try {
+        const barAtTopNew = sceneMetadataObject[getPluginId("metadata")][barAtTopMetadataId];
+        barAtTop = barAtTopNew;
+    } catch (error) {}
+    let nameTagsNew: any = null;
+    try {
+        const nameTagsNew = sceneMetadataObject[getPluginId("metadata")][nameTagsMetadataId];
+        nameTags = nameTagsNew;
+    } catch (error) {}
 
     //store array of all items currently on the board for change monitoring
     itemsLast = items;
@@ -489,7 +631,9 @@ async function addAllItemAttachmentsToDeleteList(itemId: String) {
         itemId + "ac-background",
         itemId + "ac-label",
         itemId + "temp-hp-background",
-        itemId + "temp-hp-label"
+        itemId + "temp-hp-label",
+        itemId + "name-tag-background",
+        itemId + "name-tag-text"
     );
 }
 
@@ -515,3 +659,9 @@ async function addTempHealthItemAttachmentsToDeleteList(itemId: String) {
     );
 }
 
+async function addNameTagItemAttachmentsToDeleteList(itemId: String) {
+    deleteItemsArray.push(
+        itemId + "name-tag-background",
+        itemId + "name-tag-text"
+    );
+}
