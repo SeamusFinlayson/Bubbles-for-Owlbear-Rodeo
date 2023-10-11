@@ -1,4 +1,4 @@
-import OBR, { Image, Item, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
+import OBR, { AttachmentBehavior, Image, Item, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 import { offsetMetadataId, barAtTopMetadataId, nameTagsMetadataId } from "./sceneMetadataObjects";
 
@@ -182,6 +182,7 @@ const drawHealthBar = async (item: Image, roll: String) => {
         const bounds = getImageBounds(item, dpi);
         bounds.width = Math.abs(bounds.width);
         bounds.height = Math.abs(bounds.height);
+        let disableAttachmentBehavior: AttachmentBehavior[] = ["ROTATION", "VISIBLE", "COPY", "SCALE"];
 
         //set color based on visibility
         var healthBackgroundColor = "darkgrey";
@@ -190,11 +191,10 @@ const drawHealthBar = async (item: Image, roll: String) => {
         let healthOpacity = 0.5;
         let bubbleOpacity = 0.6;
         if (!visible) {
-            healthBackgroundColor = "black";
-            setVisibilityProperty = false;
-            backgroundOpacity = 1;
-            healthOpacity = 0.8;
-            bubbleOpacity = 1;
+            color = "black";
+            setVisibilityProperty = true;
+            // backgroundOpacity = 0.7;
+            // healthOpacity = 0.5;
         }
 
         //attachment properties
