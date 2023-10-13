@@ -11,7 +11,6 @@ var verticalOffset: any = 0;
 var barAtTop: boolean = false;
 var nameTags: boolean = false;
 
-
 async function startHealthBarUpdates() {
 
     // generate all health bars based on scene token metadata
@@ -191,7 +190,7 @@ const drawHealthBar = async (item: Image, roll: String) => {
         let healthOpacity = 0.5;
         let bubbleOpacity = 0.6;
         if (!visible) {
-            color = "black";
+            healthBackgroundColor = "black";
             setVisibilityProperty = true;
             // backgroundOpacity = 0.7;
             // healthOpacity = 0.5;
@@ -246,7 +245,7 @@ const drawHealthBar = async (item: Image, roll: String) => {
             .locked(true)
             .id(item.id + "ac-background")
             .visible(setVisibilityProperty)
-            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .disableAttachmentBehavior(disableAttachmentBehavior)
             .build();
 
             const armorText = buildText()
@@ -267,7 +266,7 @@ const drawHealthBar = async (item: Image, roll: String) => {
             .locked(true)
             .id(item.id + "ac-label")
             .visible(setVisibilityProperty)
-            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .disableAttachmentBehavior(disableAttachmentBehavior)
             .build();
 
             addItemsArray.push(backgroundShape, armorText);
@@ -309,7 +308,7 @@ const drawHealthBar = async (item: Image, roll: String) => {
             .locked(true)
             .id(item.id + "temp-hp-background")
             .visible(setVisibilityProperty)
-            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .disableAttachmentBehavior(disableAttachmentBehavior)
             .build();
 
             const tempHealthText = buildText()
@@ -330,7 +329,7 @@ const drawHealthBar = async (item: Image, roll: String) => {
             .locked(true)
             .id(item.id + "temp-hp-label")
             .visible(setVisibilityProperty)
-            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .disableAttachmentBehavior(disableAttachmentBehavior)
             .build();
 
             addItemsArray.push(tempHealthBackgroundShape, tempHealthText);
@@ -368,7 +367,7 @@ const drawHealthBar = async (item: Image, roll: String) => {
             .locked(true)
             .id(item.id + "health-background")
             .visible(setVisibilityProperty)
-            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .disableAttachmentBehavior(disableAttachmentBehavior)
             .build();
             
             var healthPercentage = 0;
@@ -396,7 +395,7 @@ const drawHealthBar = async (item: Image, roll: String) => {
             .locked(true)
             .id(item.id + "health")
             .visible(setVisibilityProperty)
-            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .disableAttachmentBehavior(disableAttachmentBehavior)
             .build();
 
             const healthText = buildText()
@@ -418,7 +417,7 @@ const drawHealthBar = async (item: Image, roll: String) => {
             .locked(true)
             .id(item.id + "health-label")
             .visible(setVisibilityProperty)
-            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .disableAttachmentBehavior(disableAttachmentBehavior)
             .build();
 
             //add health bar to add array
@@ -457,7 +456,7 @@ const drawHealthBar = async (item: Image, roll: String) => {
             .locked(true)
             .id(item.id + "name-tag-background")
             .visible(setVisibilityProperty)
-            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .disableAttachmentBehavior(disableAttachmentBehavior)
             .build();
 
             const nameTagText = buildText()
@@ -479,7 +478,7 @@ const drawHealthBar = async (item: Image, roll: String) => {
             .locked(true)
             .id(item.id + "name-tag-text")
             .visible(setVisibilityProperty)
-            .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+            .disableAttachmentBehavior(disableAttachmentBehavior)
             .build();
 
             addItemsArray.push(nameTagBackground, nameTagText);
@@ -572,7 +571,6 @@ async function refreshAllHealthBars(sceneMetadata?: any) {
         const barAtTopNew = sceneMetadataObject[getPluginId("metadata")][barAtTopMetadataId];
         barAtTop = barAtTopNew;
     } catch (error) {}
-    let nameTagsNew: any = null;
     try {
         const nameTagsNew = sceneMetadataObject[getPluginId("metadata")][nameTagsMetadataId];
         nameTags = nameTagsNew;
