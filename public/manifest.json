@@ -11,7 +11,7 @@
     "title": "Stat Bubbles for D&D",
     "icon": "/src/status.svg",
     "popover": "/src/actionPopover.html",
-    "height": 200,
+    "height": 210,
     "width": 250
   }
 }
