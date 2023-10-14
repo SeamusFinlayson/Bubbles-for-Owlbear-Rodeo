@@ -1,7 +1,7 @@
 import OBR, { Theme } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 import { barAtTopMetadataId, nameTagsMetadataId, offsetMetadataId } from "./sceneMetadataObjects";
-import actionPopover from './actionPopover.html?raw';
+import actionPopover from '../actionPopover.html?raw';
 
 
 var initDone: boolean = false; // check if on change listener has been attached yet

@@ -10,7 +10,7 @@
   "action": {
     "title": "Stat Bubbles for D&D",
     "icon": "/src/status.svg",
-    "popover": "/src/actionPopover.html",
+    "popover": "/actionPopover.html",
     "height": 210,
     "width": 250
   }
