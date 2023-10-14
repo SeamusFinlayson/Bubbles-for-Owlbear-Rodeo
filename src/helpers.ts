@@ -21,6 +21,13 @@ async function startHealthBarUpdates() {
         initDone = true;
         //console.log("Starting health bars")
 
+        // Handle role changes
+        // OBR.player.onChange(async (player) => {
+        //     //await refreshAllHealthBars();
+        //     // console.log("helper player change: ")
+        //     // console.log(player)
+        // });
+
         //update health bars on change
         OBR.scene.items.onChange( async (_) => {
             //console.log("Item change detected")
@@ -563,6 +570,7 @@ async function refreshAllHealthBars(sceneMetadata?: any) {
         sceneMetadata = await OBR.scene.getMetadata();
     }
     const sceneMetadataObject = JSON.parse(JSON.stringify(sceneMetadata));
+    //console.log(sceneMetadata)
     try {
         const verticalOffsetNew = sceneMetadataObject[getPluginId("metadata")]["offset"];
         verticalOffset = verticalOffsetNew;

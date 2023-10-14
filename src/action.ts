@@ -24,9 +24,9 @@ OBR.onReady(async ()=> {
         setUpActionPopover(role);
     }
 
-    //hide settings from players
+    // Handle role changes
     OBR.player.onChange(async (player) => {
-        //console.log(player.role);
+        //console.log("action" + player.role);
         setUpActionPopover(player.role);
     });
 
