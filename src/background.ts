@@ -1,6 +1,6 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
-import icon from "./status.svg";
+import icon from "../public/status.svg";
 import { initScene } from "./helpers";
 
 /**

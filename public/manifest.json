@@ -9,7 +9,7 @@
   "description": "Health Bars and Armor Class for your D&D adventures!",
   "action": {
     "title": "Stat Bubbles for D&D",
-    "icon": "/src/status.svg",
+    "icon": "/status.svg",
     "popover": "/actionPopover.html",
     "height": 210,
     "width": 250
