@@ -127,7 +127,7 @@ async function handleBubbleValueUpdate(id: string) {
   const selection = await OBR.player.getSelection();
   const items = await OBR.scene.items.getItems<Image>(selection);
 
-  //TODO log error if more than one token selected
+  //TODO: log error if more than one token selected
 
   //get existing metadata from token, if it exists
   //max one object selected

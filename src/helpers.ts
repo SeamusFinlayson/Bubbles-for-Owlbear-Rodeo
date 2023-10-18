@@ -68,7 +68,7 @@ async function startHealthBarUpdates() {
     
             //update array of all items currently on the board
             itemsLast = items;
-    
+
             //draw health bars
             const roll = await OBR.player.getRole();
             for (const item of changedItems) {
@@ -87,44 +87,17 @@ async function startHealthBarUpdates() {
             deleteItemsArray.length = 0;
         });
 
-        OBR.scene.onMetadataChange((metadata) => {
+        OBR.scene.onMetadataChange(async (metadata) => {
 
-            //get metadata 
-            //console.log(metadata)
-            const retrievedMetadata = JSON.parse(JSON.stringify(metadata));
-            let verticalOffsetNew: number = 0;
-            try {
-                verticalOffsetNew = retrievedMetadata[getPluginId("metadata")][offsetMetadataId];
-            } catch (error) {
-                verticalOffsetNew = 0;
+            if (await getGlobalSettings(metadata)) {
+                refreshAllHealthBars();
             }
-            let barAtTopNew: any = null;
-            try {
-                barAtTopNew = retrievedMetadata[getPluginId("metadata")][barAtTopMetadataId];
-            } catch (error) {
-                barAtTopNew = false;
-            }
-            let nameTagsNew: any = null;
-            try {
-                nameTagsNew = retrievedMetadata[getPluginId("metadata")][nameTagsMetadataId];
-            } catch (error) {
-                nameTagsNew = false;
-            }
-
-            if ( // ignore changes from other extensions
-                verticalOffsetNew !== verticalOffset || 
-                barAtTopNew !== barAtTop ||
-                nameTagsNew !== nameTags
-                ) { 
-                refreshAllHealthBars(metadata);
-            }
-            
-        })
+        });
     }
 };
 
 const drawHealthBar = async (item: Image, roll: String) => {
-
+    
     const metadata: any = item.metadata[getPluginId("metadata")];
 
     //try to extract armor class metadata
@@ -170,7 +143,7 @@ const drawHealthBar = async (item: Image, roll: String) => {
     var visible: boolean;
     try {
         visible = !metadata["hide"];
-    } catch (error) {
+    } catch (error) { // catch type error
         if (!(error instanceof TypeError)) {
             //console.log("type error")
             throw {
@@ -198,7 +171,7 @@ const drawHealthBar = async (item: Image, roll: String) => {
         let bubbleOpacity = 0.6;
         if (!visible) {
             healthBackgroundColor = "black";
-            setVisibilityProperty = true;
+            // setVisibilityProperty = true;
             // backgroundOpacity = 0.7;
             // healthOpacity = 0.5;
         }
@@ -521,6 +494,8 @@ const getImageBounds = (item: Image, dpi: number) => {
     return { width, height };
 };
 
+
+//TODO: remove unnecessary api call, items can be obtained from where this function is called
 async function deleteOrphanHealthBars() {
 
     //get ids of all items on map that could have health bars
@@ -558,35 +533,16 @@ async function deleteOrphanHealthBars() {
     }
 }
 
-async function refreshAllHealthBars(sceneMetadata?: any) {
+async function refreshAllHealthBars() {
 
     //get shapes from scene
     const items: Image[] = await OBR.scene.items.getItems(
         (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
     );
 
-    // load settings from scene metadata
-    if (typeof sceneMetadata === 'undefined') {
-        sceneMetadata = await OBR.scene.getMetadata();
-    }
-    const sceneMetadataObject = JSON.parse(JSON.stringify(sceneMetadata));
-    //console.log(sceneMetadata)
-    try {
-        const verticalOffsetNew = sceneMetadataObject[getPluginId("metadata")]["offset"];
-        verticalOffset = verticalOffsetNew;
-    } catch (error) {}
-    try {
-        const barAtTopNew = sceneMetadataObject[getPluginId("metadata")][barAtTopMetadataId];
-        barAtTop = barAtTopNew;
-    } catch (error) {}
-    try {
-        const nameTagsNew = sceneMetadataObject[getPluginId("metadata")][nameTagsMetadataId];
-        nameTags = nameTagsNew;
-    } catch (error) {}
-
     //store array of all items currently on the board for change monitoring
     itemsLast = items;
-
+    
     //draw health bars
     const roll = await OBR.player.getRole();
     for (const item of items) {
@@ -609,18 +565,20 @@ async function refreshAllHealthBars(sceneMetadata?: any) {
 export async function initScene() {
 
     // Handle when the scene is either changed or made ready after extension load
-    OBR.scene.onReadyChange((isReady) => {
+    OBR.scene.onReadyChange(async (isReady) => {
         if (isReady) {
-            refreshAllHealthBars();
-            startHealthBarUpdates();
+            await getGlobalSettings();
+            await refreshAllHealthBars();
+            await startHealthBarUpdates();
         }
     });
   
     // Check if the scene is already ready once the extension loads
     const isReady = await OBR.scene.isReady();
     if (isReady) {
-        refreshAllHealthBars();
-        startHealthBarUpdates();
+        await getGlobalSettings();
+        await refreshAllHealthBars();
+        await startHealthBarUpdates();
     }
 }
 
@@ -670,4 +628,92 @@ async function addNameTagItemAttachmentsToDeleteList(itemId: String) {
         itemId + "name-tag-background",
         itemId + "name-tag-text"
     );
+}
+
+async function getGlobalSettings(sceneMetadata?: any) {
+
+    // Variable indicating if health bar refresh is needed
+    let doRefresh = false;
+
+    // Variables to hold new global settings
+    let newVerticalOffset: number;
+    let newBarAtTop: boolean;
+    let newNameTags: boolean;
+
+    // load settings from scene metadata if not passed to function
+    if (typeof sceneMetadata === 'undefined') {
+        sceneMetadata = await OBR.scene.getMetadata();
+    }
+
+    // Try to extract vertical offset value from scene metadata
+    try {
+        newVerticalOffset = sceneMetadata[getPluginId("metadata")][offsetMetadataId];
+    } catch (error) {
+        if (error instanceof TypeError) {
+            newVerticalOffset = 0;
+        } else {
+            throw error;
+        }
+    }
+    
+    // Check if the new value is different from the previous and valid
+    if ((newVerticalOffset !== verticalOffset) && typeof newVerticalOffset === "number" && newVerticalOffset !== null && !isNaN(newVerticalOffset)) {
+
+        // Update global variable
+        verticalOffset = newVerticalOffset;
+
+        // Refresh needed due to settings change
+        doRefresh = true;
+    }
+
+    // Try to extract bar at top value from scene metadata 
+    try {
+        newBarAtTop = sceneMetadata[getPluginId("metadata")][barAtTopMetadataId];
+    } catch (error) {
+        if (error instanceof TypeError) {
+            newBarAtTop = false;
+        } else {
+            throw error;
+        }
+    }
+
+    // Check if the new value is different from the previous and valid
+    if ((newBarAtTop !== barAtTop) && typeof newBarAtTop === "boolean" && newBarAtTop !== null) {
+
+        // Update global variable
+        barAtTop = newBarAtTop;
+
+        // Refresh needed due to settings change
+        doRefresh = true;
+    }
+
+    // Try to extract name tags value from scene metadata
+    try {
+        newNameTags = sceneMetadata[getPluginId("metadata")][nameTagsMetadataId];        
+    } catch (error) {
+        if (error instanceof TypeError) {
+            newNameTags = false;
+        } else {
+            throw error;
+        }
+    }
+
+    // Check if the new value is different from the previous and valid
+    if ((newNameTags !== nameTags) && typeof newNameTags === "boolean" && newNameTags !== null) {
+
+        // Update global variable
+        nameTags = newNameTags;
+
+        // Refresh needed due to settings change
+        doRefresh = true;
+    }
+
+    // Debug only
+    // if (doRefresh) {
+    //     console.log("Refresh flag set...")
+    // } else {
+    //     console.log("No refresh needed.")
+    // }
+
+    return doRefresh;
 }

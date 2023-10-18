@@ -15,6 +15,8 @@ OBR.onReady(async ()=> {
         if (isReady) {
             const role = await OBR.player.getRole();
             setUpActionPopover(role);
+        } else {
+            initDone = false;
         }
     });
   
@@ -90,6 +92,8 @@ async function updateActionTheme(theme: Theme) {
 
 async function setUpActionPopover(role: "GM" | "PLAYER") {
 
+    //console.log("Setting up action popover")
+
     if(!initDone || (role !== roleLast)) {
         initDone = true;
         roleLast = role;
@@ -133,7 +137,7 @@ async function setUpInputs() {
     try {
         const offset: any = retrievedMetadata[getPluginId("metadata")][offsetMetadataId];
         //console.log("retrieved" + offset);
-        if (offset !== null && offset != "undefined") {
+        if (offset !== null && typeof offset !== "undefined") {
             //console.log("here" + offset);
             (document.getElementById(offsetMetadataId) as HTMLInputElement).value = String(offset);
         } else {
@@ -164,9 +168,19 @@ async function setUpInputs() {
 
         // create metadata object based on user input
         const offset = parseFloat((event.target as HTMLInputElement).value);
-        let newMetadata = {[offsetMetadataId]: offset}
 
-        updateSceneMetadata(newMetadata);
+        // let newMetadata = {[offsetMetadataId]: offset}
+        // updateSceneMetadata(newMetadata);
+
+        // console.log(offset)
+        // console.log("type: " + typeof offset)
+        if (typeof offset === "number" && offset !== null && !isNaN(offset)) {
+            let newMetadata = {[offsetMetadataId]: offset}
+            updateSceneMetadata(newMetadata);
+        } else {
+            let newMetadata = {[offsetMetadataId]: 0}
+            updateSceneMetadata(newMetadata);
+        }
     });
 
     // bar above token
@@ -174,9 +188,15 @@ async function setUpInputs() {
 
         // create metadata object based on user input
         const barAtTop = (event.target as HTMLInputElement).checked;
-        let newMetadata = {[barAtTopMetadataId]: barAtTop};
 
-        updateSceneMetadata(newMetadata);
+        if (barAtTop === true) {
+            let newMetadata = {[barAtTopMetadataId]: true};
+            updateSceneMetadata(newMetadata);
+        } else {
+            let newMetadata = {[barAtTopMetadataId]: false};
+            updateSceneMetadata(newMetadata);
+        }
+
     });
 
     //name tags
@@ -184,9 +204,23 @@ async function setUpInputs() {
 
         // create metadata object based on user input
         const nameTags = (event.target as HTMLInputElement).checked;
-        let newMetadata = {[nameTagsMetadataId]: nameTags};
 
-        updateSceneMetadata(newMetadata);
+        if (nameTags === true) {
+            let newMetadata = {[nameTagsMetadataId]: true};
+            updateSceneMetadata(newMetadata);
+        } else {
+            let newMetadata = {[nameTagsMetadataId]: false};
+            updateSceneMetadata(newMetadata);
+        }
+    });
+
+    //log scene metadata button
+    (document.getElementById("log-scene-metadata") as HTMLButtonElement).addEventListener("click",async () => {
+        const sceneMetadata = await OBR.scene.getMetadata();
+        console.log("Scene:");
+        console.log(sceneMetadata);
+        console.log("Bubbles:");
+        console.log(JSON.parse(JSON.stringify(sceneMetadata))[getPluginId("metadata")]);
     });
 }
 
@@ -206,3 +240,4 @@ async function updateSceneMetadata(newMetadata: any) {
     //write metadata into scene
     OBR.scene.setMetadata({[getPluginId("metadata")]: combinedMetadata});
 }
+

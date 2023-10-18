@@ -94,6 +94,34 @@ body {
     margin: 16px;
 }
 
+.action-button {
+    height: 30px;
+    border-radius: 8px;
+    border-width: 0px;
+    border-style: solid;
+    background-color: rgba(0, 0, 0, 0.144);
+    text-align: center;
+    color: white;
+    font-size: medium;
+    margin: 0px;
+    position: absolute;
+    left: 16px;
+}
+
+.action-button:hover {
+    background-color: rgba(0, 0, 0, 0.253);
+    /* border-width: 1px; */
+    outline: none;
+    transition: .05s;
+}
+
+.action-button:active {
+    background-color: rgba(0, 0, 0, 0.651);
+    /* border-width: 1px; */
+    outline: none;
+    transform: translateY(2px);
+}
+
 /* hide number input arrows */
 input[type='number'] {
     -moz-appearance:textfield;
