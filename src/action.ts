@@ -147,7 +147,7 @@ async function setUpInputs() {
     try {
         const barAtTop: any = retrievedMetadata[getPluginId("metadata")][barAtTopMetadataId];
         //console.log("retrieved" + barAtTop);
-        if (barAtTop !== null && barAtTop !== "undefined") {
+        if (barAtTop !== null && typeof barAtTop !== "undefined") {
             (document.getElementById(barAtTopMetadataId) as HTMLInputElement).checked = barAtTop;
         } else {
             (document.getElementById(barAtTopMetadataId) as HTMLInputElement).checked = false;
@@ -156,7 +156,7 @@ async function setUpInputs() {
     try {
         const nameTags: any = retrievedMetadata[getPluginId("metadata")][nameTagsMetadataId];
         //console.log("retrieved" + nameTags);
-        if (nameTags !== null && nameTags !== "undefined") {
+        if (nameTags !== null && typeof nameTags !== "undefined") {
             (document.getElementById(nameTagsMetadataId) as HTMLInputElement).checked = nameTags;
         } else {
             (document.getElementById(nameTagsMetadataId) as HTMLInputElement).checked = false;

@@ -29,11 +29,17 @@ async function startHealthBarUpdates() {
         // });
 
         //update health bars on change
-        OBR.scene.items.onChange( async (_) => {
+        OBR.scene.items.onChange( async (itemsFromCallback) => {
             //console.log("Item change detected")
     
             //get rid of health bars that no longer attach to anything
-            await deleteOrphanHealthBars();
+            let imagesFromCallback: Image[] = [];
+            for (let item of itemsFromCallback) {
+                if ((item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)) {
+                    imagesFromCallback.push(item);
+                }
+            }
+            await deleteOrphanHealthBars(imagesFromCallback);
     
             //get shapes from scene
             const items: Image[] = await OBR.scene.items.getItems(
@@ -496,12 +502,15 @@ const getImageBounds = (item: Image, dpi: number) => {
 
 
 //TODO: remove unnecessary api call, items can be obtained from where this function is called
-async function deleteOrphanHealthBars() {
+async function deleteOrphanHealthBars(newItems?: Image[]) {
 
     //get ids of all items on map that could have health bars
-    const newItems: Image[] = await OBR.scene.items.getItems(
-        (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
-    );
+    if (typeof newItems === "undefined") {
+        newItems = await OBR.scene.items.getItems(
+            (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
+        );
+    }
+    
     var newItemIds: String[] = [];
     for(const item of newItems) {
         newItemIds.push(item.id);
@@ -542,7 +551,7 @@ async function refreshAllHealthBars() {
 
     //store array of all items currently on the board for change monitoring
     itemsLast = items;
-    
+
     //draw health bars
     const roll = await OBR.player.getRole();
     for (const item of items) {
