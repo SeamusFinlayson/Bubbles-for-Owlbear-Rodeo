@@ -127,7 +127,10 @@ async function handleBubbleValueUpdate(id: string) {
   const selection = await OBR.player.getSelection();
   const items = await OBR.scene.items.getItems<Image>(selection);
 
-  //TODO: log error if more than one token selected
+  // Throw error if more than one token selected
+  if (items.length > 1) {
+    throw "Selection exceeded max length, expected 1, got: " + items.length;
+  }
 
   //get existing metadata from token, if it exists
   //max one object selected

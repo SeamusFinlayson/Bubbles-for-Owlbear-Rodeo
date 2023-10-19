@@ -500,8 +500,6 @@ const getImageBounds = (item: Image, dpi: number) => {
     return { width, height };
 };
 
-
-//TODO: remove unnecessary api call, items can be obtained from where this function is called
 async function deleteOrphanHealthBars(newItems?: Image[]) {
 
     //get ids of all items on map that could have health bars
