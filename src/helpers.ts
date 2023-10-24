@@ -1,4 +1,4 @@
-import OBR, { Image, Item, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
+import OBR, { AttachmentBehavior, Image, Item, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 
 var tokenIds: String[] = []; // for orphan health bar management
@@ -168,10 +168,12 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
             let statOpacity = 0.5;
             if (!visible) {
                 color = "black";
-                setVisibilityProperty = false;
-                backgroundOpacity = 1;
-                statOpacity = 0.8;
+                //setVisibilityProperty = false;
+                //backgroundOpacity = 1;
+                //statOpacity = 0.8;
             }
+            
+            let disableAttachmentBehavior: AttachmentBehavior[] = ["ROTATION", "VISIBLE", "COPY", "SCALE"];
 
             let backgroundOffset: number;
             switch (statBars.length) {
@@ -196,7 +198,7 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
                 .strokeOpacity(0.5)
                 .strokeWidth(0)
                 .position({ x: barOrigin.x, y: barOrigin.y - backgroundOffset})
-                .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+                .disableAttachmentBehavior(disableAttachmentBehavior)
                 .attachedTo(item.id)
                 .layer("ATTACHMENT")
                 .locked(true)
@@ -227,7 +229,7 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
                     .strokeWidth(0)
                     .strokeOpacity(0)
                     .position({ x: barOrigin.x, y: barOrigin.y - statBar.position * barHeight})
-                    .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+                    .disableAttachmentBehavior(disableAttachmentBehavior)
                     .attachedTo(item.id)
                     .layer("ATTACHMENT")
                     .locked(true)
@@ -237,7 +239,7 @@ const drawHealthBars = async (item: Image, roll: "GM" | "PLAYER") => {
 
                 const statLabel = buildText()
                     .position({ x: barOrigin.x, y: barOrigin.y + 1.5 - statBar.position * barHeight})
-                    .disableAttachmentBehavior(["ROTATION", "VISIBLE"])
+                    .disableAttachmentBehavior(disableAttachmentBehavior)
                     .plainText("" + statBar.value + "/" + statBar.maxValue)
                     .textAlign("CENTER")
                     .textAlignVertical("MIDDLE")
