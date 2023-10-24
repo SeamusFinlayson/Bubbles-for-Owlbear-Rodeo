@@ -13,11 +13,11 @@ Visit the [Owlbear Rodeo store](https://extensions.owlbear.rodeo/bubble-tracker)
 ### Basic
 
 **This extension does math for you!** 
-To add 6 to you HP type +6 and press Enter. To subtract 6 to you HP type -6 and press Enter. This works for every bubble.
+To add 6 to your HP type +6 and press Enter. To subtract 6 from your HP type -6 and press Enter. This works for every bubble.
 
 **Deigned to be keyboard friendly.**
 
-1. Click on a token and use the shortcut Shift + S to see and edit a token's trackers.
+1. Click on a token and use the shortcut Shift + S (or click the extension icon in the token's context menu) to see and edit a token's trackers.
 2. Press Tab to cycle through the bubbles.
 3. Press the Space key to toggle the switch.
 4. When you're done press Escape and the menu will close.
