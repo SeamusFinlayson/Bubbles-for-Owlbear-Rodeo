@@ -1,7 +1,8 @@
 import OBR, { Image } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
-import "./style.css";
-import popoverHTML from './popover.html?raw';
+//import "./style.css";
+//import popoverHTML from './popover.html?raw';
+// import actionPopoverHTML from './actionPopover.html?raw';
 
 /**
  * This file represents the HTML of the popover that is shown once
@@ -10,8 +11,17 @@ import popoverHTML from './popover.html?raw';
 
 OBR.onReady(async () => {
 
+  // const app = document.querySelector<HTMLDivElement>("#app");
+  // console.log("app: " + app);
+
   // Setup the document
-  document.querySelector<HTMLDivElement>("#app")!.innerHTML = popoverHTML;
+  //document.querySelector<HTMLDivElement>("#app")!.innerHTML = popoverHTML;
+
+  // OBR.action.onOpenChange((isOpen) => {
+  //   if (isOpen) {
+  //     document.querySelector<HTMLDivElement>("#app")!.innerHTML = actionPopoverHTML;
+  //   }
+  // });
 
   //OBR.theme.onChange( (theme) => {
     const theme = OBR.theme.getTheme()
@@ -116,6 +126,11 @@ async function handleBubbleValueUpdate(id: string) {
   //find selected token
   const selection = await OBR.player.getSelection();
   const items = await OBR.scene.items.getItems<Image>(selection);
+
+  // Throw error if more than one token selected
+  if (items.length > 1) {
+    throw "Selection exceeded max length, expected 1, got: " + items.length;
+  }
 
   //get existing metadata from token, if it exists
   //max one object selected

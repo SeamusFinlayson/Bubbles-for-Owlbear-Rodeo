@@ -7,6 +7,8 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, "index.html"),
         background: resolve(__dirname, "background.html"),
+        action: resolve(__dirname, "actionPopover.html"),
+        popover: resolve(__dirname, "popover.html"),
       },
     },
   },
