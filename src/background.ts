@@ -11,15 +11,16 @@ import { initScene } from "./helpers";
 OBR.onReady( async () => {
 
   fetch("./manifest.json")
-    .then((response) => response.json())
-    .then((json) => console.log(json["name"] + " - version: " + json["version"]));
+  .then((response) => response.json())
+  .then((json) => console.log(json["name"] + " - version: " + json["version"]));
 
+  //create player context menu icon
   OBR.contextMenu.create({
-    id: getPluginId("menu"),
+    id: getPluginId("player-menu"),
     icons: [
       {
         icon,
-        label: "Trackers",
+        label: "Edit Stats",
         filter: {
           every: [
             { key: "type", value: "IMAGE" },
@@ -33,9 +34,26 @@ OBR.onReady( async () => {
           max: 1,
         },
       },
+    ],
+    onClick(_context, elementId) {
+      OBR.popover.open({
+        id: getPluginId("number-bubbles"),
+        url: "/playerPopover.html",
+        height: 54,
+        width: 313,
+        anchorElementId: elementId,
+      });
+    },
+    shortcut: "Shift + S"
+  });
+
+  //create GM context menu icon
+  OBR.contextMenu.create({
+    id: getPluginId("gm-menu"),
+    icons: [
       {
         icon,
-        label: "Trackers",
+        label: "Edit Stats",
         filter: {
           every: [
             { key: "type", value: "IMAGE" },

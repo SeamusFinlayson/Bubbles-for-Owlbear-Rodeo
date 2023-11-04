@@ -9,6 +9,7 @@ export default defineConfig({
         background: resolve(__dirname, "background.html"),
         action: resolve(__dirname, "actionPopover.html"),
         popover: resolve(__dirname, "popover.html"),
+        playerPopover: resolve(__dirname, "playerPopover.html")
       },
     },
   },
