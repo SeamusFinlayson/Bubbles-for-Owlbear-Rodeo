@@ -1,6 +1,6 @@
 import OBR, { Theme } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
-import { barAtTopMetadataId, nameTagsMetadataId, offsetMetadataId } from "./sceneMetadataObjects";
+import { barAtTopMetadataId, nameTagsMetadataId, offsetMetadataId, showHealthBarsMetadataId } from "./sceneMetadataObjects";
 import actionPopover from '../actionPopover.html?raw';
 import "./actionStyle.css"
 
@@ -162,6 +162,16 @@ async function setUpInputs() {
             (document.getElementById(nameTagsMetadataId) as HTMLInputElement).checked = false;
         }
     } catch (error) {}
+    try {
+        const showBars: any = retrievedMetadata[getPluginId("metadata")][showHealthBarsMetadataId];
+        //console.log("retrieved" + showBars);
+        if (showBars !== null && typeof showBars !== "undefined") {
+            (document.getElementById(showHealthBarsMetadataId) as HTMLInputElement).checked = showBars;
+        } else {
+            (document.getElementById(showHealthBarsMetadataId) as HTMLInputElement).checked = false;
+        }
+    } catch (error) {}
+
 
     // offset bar
     (document.getElementById(offsetMetadataId) as HTMLInputElement).addEventListener("change", async (event) => {
@@ -210,6 +220,21 @@ async function setUpInputs() {
             updateSceneMetadata(newMetadata);
         } else {
             let newMetadata = {[nameTagsMetadataId]: false};
+            updateSceneMetadata(newMetadata);
+        }
+    });
+
+    //name tags
+    (document.getElementById(showHealthBarsMetadataId) as HTMLInputElement).addEventListener("change", async (event) => {
+
+        // create metadata object based on user input
+        const showBars = (event.target as HTMLInputElement).checked;
+
+        if (showBars === true) {
+            let newMetadata = {[showHealthBarsMetadataId]: true};
+            updateSceneMetadata(newMetadata);
+        } else {
+            let newMetadata = {[showHealthBarsMetadataId]: false};
             updateSceneMetadata(newMetadata);
         }
     });

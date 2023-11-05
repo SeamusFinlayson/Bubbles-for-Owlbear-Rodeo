@@ -1,6 +1,6 @@
 import OBR, { AttachmentBehavior, Image, Item, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
-import { offsetMetadataId, barAtTopMetadataId, nameTagsMetadataId } from "./sceneMetadataObjects";
+import { offsetMetadataId, barAtTopMetadataId, nameTagsMetadataId, showHealthBarsMetadataId } from "./sceneMetadataObjects";
 
 var tokenIds: String[] = []; // for orphan health bar management
 var itemsLast: Image[] = []; // for item change checks
@@ -10,6 +10,7 @@ var initDone: boolean = false; // check if on change listener has been attached 
 var verticalOffset: any = 0;
 var barAtTop: boolean = false;
 var nameTags: boolean = false;
+var showBars: boolean = false;
 
 async function startHealthBarUpdates() {
 
@@ -76,9 +77,9 @@ async function startHealthBarUpdates() {
             itemsLast = items;
 
             //draw health bars
-            const roll = await OBR.player.getRole();
+            const role = await OBR.player.getRole();
             for (const item of changedItems) {
-                await drawHealthBar(item, roll);
+                await drawHealthBar(item, role);
             }
             //console.log("Detected " + changedItems.length + " changes");
 
@@ -102,7 +103,7 @@ async function startHealthBarUpdates() {
     }
 };
 
-const drawHealthBar = async (item: Image, roll: String) => {
+const drawHealthBar = async (item: Image, role: String) => {
     
     const metadata: any = item.metadata[getPluginId("metadata")];
 
@@ -150,17 +151,14 @@ const drawHealthBar = async (item: Image, roll: String) => {
     try {
         visible = !metadata["hide"];
     } catch (error) { // catch type error
-        if (!(error instanceof TypeError)) {
-            //console.log("type error")
-            throw {
-                error
-            }
-        } else {
+        if (error instanceof TypeError) {
             visible = true;
+        } else {
+            throw error;
         }
     }
     
-    if (!((roll === "PLAYER") && !visible)) { //draw bar if it has max health and is visible
+    if (!((role === "PLAYER") && !visible)) { //draw bar if it has max health and is visible
 
         //get physical token properties
         const dpi = await OBR.scene.grid.getDpi();
@@ -486,6 +484,102 @@ const drawHealthBar = async (item: Image, roll: String) => {
 
         //addItemsArray.push(label);
         
+    } else if (showBars && maxHealth > 0){
+        //console.log("doing show bars");
+
+        //get physical token properties
+        const dpi = await OBR.scene.grid.getDpi();
+        const bounds = getImageBounds(item, dpi);
+        bounds.width = Math.abs(bounds.width);
+        bounds.height = Math.abs(bounds.height);
+        let disableAttachmentBehavior: AttachmentBehavior[] = ["ROTATION", "VISIBLE", "COPY", "SCALE"];
+
+        //set color based on visibility
+        var healthBackgroundColor = "darkgrey";
+        let setVisibilityProperty = item.visible;
+        let backgroundOpacity = 0.6;
+        let healthOpacity = 0.5;
+        if (!visible) {
+            healthBackgroundColor = "black";
+
+        }
+
+        //attachment properties
+        const barHeight = 12;
+
+        let offsetBubbles = 0;
+        if (maxHealth > 0) {
+            offsetBubbles = 1;
+        }
+
+        let bottomMultiplier: number = 1;
+        if (barAtTop) {
+            bottomMultiplier = -1;
+        }
+        let origin = {
+            x: item.position.x,
+            y: item.position.y + bottomMultiplier * bounds.height / 2 - verticalOffset,
+        }
+
+        const barPadding = 2;
+        const position = {
+            x: origin.x - bounds.width / 2 + barPadding,
+            y: origin.y - barHeight - 2,
+        };
+        const barWidth = bounds.width - barPadding * 2;
+
+        const backgroundShape = buildShape()
+        .width(barWidth)
+        .height(barHeight)
+        .shapeType("RECTANGLE")
+        .fillColor(healthBackgroundColor)
+        .fillOpacity(backgroundOpacity)
+        .strokeWidth(0)
+        .position({x: position.x, y: position.y})
+        .attachedTo(item.id)
+        .layer("ATTACHMENT")
+        .locked(true)
+        .id(item.id + "health-background")
+        .visible(setVisibilityProperty)
+        .disableAttachmentBehavior(disableAttachmentBehavior)
+        .build();
+        
+        var healthPercentage = 0;
+        if (health <= 0) {
+            healthPercentage = 0;
+        } else if (health < maxHealth) {
+            healthPercentage = health / maxHealth;
+        } else if (health >= maxHealth){
+            healthPercentage = 1;
+        } else {
+            healthPercentage = 0;
+        }
+    
+        const healthShape = buildShape()
+        .width(healthPercentage === 0 ? 0 : (barWidth) * healthPercentage)
+        .height(barHeight)
+        .shapeType("RECTANGLE")
+        .fillColor("red")
+        .fillOpacity(healthOpacity)
+        .strokeWidth(0)
+        .strokeOpacity(0)
+        .position({ x: position.x, y: position.y})
+        .attachedTo(item.id)
+        .layer("ATTACHMENT")
+        .locked(true)
+        .id(item.id + "health")
+        .visible(setVisibilityProperty)
+        .disableAttachmentBehavior(disableAttachmentBehavior)
+        .build();
+
+        //add health bar to add array
+        addItemsArray.push(backgroundShape, healthShape);
+
+        //clear other attachments
+        deleteItemsArray.push(item.id + "health-label");
+        addArmorItemAttachmentsToDeleteList(item.id);
+        addTempHealthItemAttachmentsToDeleteList(item.id);
+
     } else { // delete health bar
         await addAllItemAttachmentsToDeleteList(item.id);
     }
@@ -646,6 +740,7 @@ async function getGlobalSettings(sceneMetadata?: any) {
     let newVerticalOffset: number;
     let newBarAtTop: boolean;
     let newNameTags: boolean;
+    let newShowBars: boolean;
 
     // load settings from scene metadata if not passed to function
     if (typeof sceneMetadata === 'undefined') {
@@ -710,6 +805,27 @@ async function getGlobalSettings(sceneMetadata?: any) {
 
         // Update global variable
         nameTags = newNameTags;
+
+        // Refresh needed due to settings change
+        doRefresh = true;
+    }
+
+    // Try to extract show health bars to players value from scene metadata
+    try {
+        newShowBars = sceneMetadata[getPluginId("metadata")][showHealthBarsMetadataId];        
+    } catch (error) {
+        if (error instanceof TypeError) {
+            newShowBars = false;
+        } else {
+            throw error;
+        }
+    }
+
+    // Check if the new value is different from the previous and valid
+    if ((newShowBars !== showBars) && typeof newShowBars === "boolean" && newShowBars !== null) {
+
+        // Update global variable
+        showBars = newShowBars;
 
         // Refresh needed due to settings change
         doRefresh = true;
