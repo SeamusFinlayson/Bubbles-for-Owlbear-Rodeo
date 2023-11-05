@@ -37,9 +37,10 @@ body {
 
 .settings-grid {
     display: grid;
-    grid-template-columns: auto auto;
-    column-gap: 0px;
-    row-gap: 8px;
+    grid-template-columns: auto 50px;
+    grid-template-rows: repeat(4, 50px);
+    column-gap: 16px;
+    /* row-gap: 8px; */
     /* border:1px solid white; */
     margin: 0 16px 0 16px;
 }
@@ -58,7 +59,7 @@ body {
 }
 
 .settings-input {
-    justify-self: end;
+    justify-self: center;
     align-self: center;
     width: 50px;
     height: 30px;
@@ -66,7 +67,7 @@ body {
     border-width: 0px;
     border-style: solid;
     /* border-color: white; */
-    background-color: rgba(0, 0, 0, 0.144);
+    background-color: rgba(0, 0, 0, 0.2);
     text-align: center;
     color: white;
     font-size: medium;
@@ -74,7 +75,7 @@ body {
 }
 
 .settings-input:focus {
-    background-color: rgba(0, 0, 0, 0.404);
+    background-color: rgba(0, 0, 0, 0.4);
     /* border-width: 1px; */
     outline: none;
 }
@@ -92,7 +93,7 @@ body {
     border-radius: 8px;
     border-width: 0px;
     border-style: solid;
-    background-color: rgba(0, 0, 0, 0.144);
+    background-color: rgba(0, 0, 0, 0.2);
     text-align: center;
     color: white;
     font-size: medium;
@@ -100,14 +101,14 @@ body {
 }
 
 .action-button:hover {
-    background-color: rgba(0, 0, 0, 0.253);
+    background-color: rgba(0, 0, 0, 0.3);
     /* border-width: 1px; */
     outline: none;
     transition: .05s;
 }
 
 .action-button:active {
-    background-color: rgba(0, 0, 0, 0.651);
+    background-color: rgba(0, 0, 0, 0.4);
     /* border-width: 1px; */
     outline: none;
     transform: translateY(2px);
@@ -122,3 +123,95 @@ input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     -webkit-appearance: none;
 }
+
+.color {
+    width: 24px;
+    height: 24px;
+    /* Create a circle with a clip path to allow transition from full to hollow */
+    clip-path: path(
+      "M 12 0 A 12 12 0 0 1 12 24 A 12 12 0 0 1 12 0 M 12 12 A 0 0 0 0 0 12 12 A 0 0 0 0 0 12 12"
+    );
+    transition: all 100ms ease 0s;
+  }
+  
+  /* Hollow out the circle when selected */
+  .selected .color {
+    clip-path: path(
+      "M 12 0 A 12 12 1 1 1 12 24 A 12 12 1 1 1 12 0 M 12 3 A 9 9 0 0 0 12 21 A 9 9 0 0 0 12 3"
+    );
+  }
+  
+  .color-button:hover .color {
+    transform: scale(1.2);
+  }
+  
+  /* The switch - the box around the slider */
+  .switch {
+    position: relative;
+    display: inline-block;
+    justify-self: center;
+    align-self: center;
+    width: 45px;
+    height: 26px;
+  }
+  
+  /* Hide default HTML checkbox */
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  /* The slider */
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* transform: translate(5%, -5%); */
+    background-color: rgba(0, 0, 0, 0.4);
+    transition: .15s;
+    /* border: 1px solid rgba(189, 189, 189, 0.4); */
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 4px;
+    bottom: 4px;
+    background-color: rgba(224, 224, 224, 0.5);
+    transition: .15s;
+  }
+  
+  input:checked + .slider {
+    background-color: rgb(187, 153, 255, 0.5);
+    /* border: 1px solid rgb(117, 119, 128, 0); */
+  }
+  
+  /* input:focus + .slider.dark {
+    box-shadow: 0 0 10px #ffffff, 0 0 5px #ffffff;
+  }
+  
+  input:focus + .slider.light {
+    box-shadow: 0 0 10px #ad84ff, 0 0 5px #ad84ff, 0 0 5px #ad84ff, 0 0 5px #ad84ff;
+  } */
+  
+  input:checked + .slider:before {
+    -webkit-transform: translateX(19px);
+    -ms-transform: translateX(19px);
+    transform: translateX(19px);
+    background-color: 	rgb(204, 179, 255);
+  }
+  
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+  
+  .slider.round:before {
+    border-radius: 50%;
+  }
