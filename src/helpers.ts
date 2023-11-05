@@ -507,11 +507,6 @@ const drawHealthBar = async (item: Image, role: String) => {
         //attachment properties
         const barHeight = 12;
 
-        let offsetBubbles = 0;
-        if (maxHealth > 0) {
-            offsetBubbles = 1;
-        }
-
         let bottomMultiplier: number = 1;
         if (barAtTop) {
             bottomMultiplier = -1;
