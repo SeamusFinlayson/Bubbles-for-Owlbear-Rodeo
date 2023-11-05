@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <!-- <link rel="stylesheet" type="text/css" href="/src/actionStyle.css"> -->
-  <script type="module" src="/src/action.ts"></script>
-</head>
+  <head>
+    <!-- <link rel="stylesheet" type="text/css" href="/src/actionStyle.css"> -->
+    <script type="module" src="/src/action.ts"></script>
+  </head>
 
-<div id="parent">
+  <div id="parent">
 
     <p class="action-heading">
       Settings
@@ -13,40 +13,23 @@
 
     <hr class="action-hr">
 
-    <div class="action-row">
-      <label for="offset" class="action-label">Vertical offset</label>
-      <input type="number" id="offset" value="0" class="action-input">
-    </div>
+    <div class="settings-grid">
+      <label class="settings-label">Vertical offset</label>
+      <input type="number" id="offset" value="0" class="settings-input">
 
-    <div class="action-row">
-      <label for="bar-at-top" class="action-label">Origin above token</label>
-      <!-- <span class="action-input"> -->
-        <input type="checkbox" id="bar-at-top" value="0" class="action-checkbox">
-      <!-- </span> -->
-    </div>
+      <label class="settings-label">Origin above token</label>
+      <input type="checkbox" id="bar-at-top" value="0" class="settings-checkbox">
 
-    <div class="action-row">
-      <label for="name-tags" class="action-label">Name tags (beta)</label>
-      <!-- <span class="action-input"> -->
-        <input type="checkbox" id="name-tags" value="0" class="action-checkbox">
-      <!-- </span> -->
+      <label class="settings-label">Name tags (beta)</label> 
+      <input type="checkbox" id="name-tags" value="0" class="settings-checkbox">
+
+      <label lass="settings-label">Show monster health bars to players</label>
+      <input type="checkbox" id="show-bars" value="0" class="settings-checkbox">
     </div>
 
     <div class="action-row">
       <button class="action-button" id="log-scene-metadata">Create debug report</button>
     </div>
 
-
-    <!-- <span style="position:absolute; bottom: 5px; left: 16px;">
-      <button id="button1">Get metadata</button>
-
-      <p id="count">
-    </span> -->
-
-
-    </p>
-
-
-</div>
-
+  </div>
 </html>
