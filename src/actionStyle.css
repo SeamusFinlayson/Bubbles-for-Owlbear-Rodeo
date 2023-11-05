@@ -67,7 +67,7 @@ body {
     border-width: 0px;
     border-style: solid;
     /* border-color: white; */
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(0, 0, 0, 0.144);
     text-align: center;
     color: white;
     font-size: medium;
@@ -93,11 +93,15 @@ body {
     border-radius: 8px;
     border-width: 0px;
     border-style: solid;
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(0, 0, 0, 0.144);
     text-align: center;
     color: white;
     font-size: medium;
     padding: 8px 8px 8px 8px;
+}
+
+.action-p {
+    margin: 16px;
 }
 
 .action-button:hover {
@@ -188,7 +192,7 @@ input::-webkit-inner-spin-button {
   }
   
   input:checked + .slider {
-    background-color: rgb(187, 153, 255, 0.5);
+    background-color: rgb(116, 100, 159); /*better colour but transparency looks bad in light mode rgb(187, 153, 255, 0.5)*/
     /* border: 1px solid rgb(117, 119, 128, 0); */
   }
   

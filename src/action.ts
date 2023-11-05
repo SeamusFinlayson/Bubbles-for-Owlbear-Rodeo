@@ -42,51 +42,41 @@ OBR.onReady(async ()=> {
 
 async function updateActionTheme(theme: Theme) {
 
+    //change text color
+    const labels = document.getElementsByClassName("settings-label")
+    for (let i = 0; i < labels.length; i++) {
+        (labels[i] as HTMLLabelElement).style.color = theme.text.primary;
+    }
+
+    const headers = document.getElementsByClassName("action-heading")
+    for (let i = 0; i < headers.length; i++) {
+        (headers[i] as HTMLParagraphElement).style.color = theme.text.primary;
+    }
+
+    const buttons = document.getElementsByClassName("action-button")
+    for (let i = 0; i < buttons.length; i++) {
+        (buttons[i] as HTMLButtonElement).style.color = theme.text.primary;
+    }
+
+    const inputs = document.getElementsByClassName("settings-input")
+    for (let i = 0; i < inputs.length; i++) {
+        (inputs[i] as HTMLInputElement).style.color = theme.text.primary;
+    }
+
     if (theme.mode == "LIGHT") {
 
-        //console.log(theme)
-
-        //change text color
-        const labels = document.getElementsByClassName("action-label")
-        for (let i = 0; i < labels.length; i++) {
-            (labels[i] as HTMLLabelElement).style.color = theme.text.primary;
-        }
-
-        const headers = document.getElementsByClassName("action-heading")
-        for (let i = 0; i < headers.length; i++) {
-            (headers[i] as HTMLLabelElement).style.color = theme.text.primary;
-        }
-
-        const ps = document.getElementsByClassName("action-p")
-        for (let i = 0; i < ps.length; i++) {
-            (ps[i] as HTMLLabelElement).style.color = theme.text.primary;
-        }
-
         const hrs = document.getElementsByClassName("action-hr")
         for (let i = 0; i < hrs.length; i++) {
-            (hrs[i] as HTMLLabelElement).style.borderColor = "rgba(0, 0, 0, 0.15)";
+            (hrs[i] as HTMLHRElement).style.borderColor = "rgba(0, 0, 0, 0.15)";
         }
+        
     } else {
 
-        const labels = document.getElementsByClassName("action-label")
-        for (let i = 0; i < labels.length; i++) {
-            (labels[i] as HTMLLabelElement).style.color = theme.text.primary;
-        }
-
-        const headers = document.getElementsByClassName("action-heading")
-        for (let i = 0; i < headers.length; i++) {
-            (headers[i] as HTMLLabelElement).style.color = theme.text.primary;
-        }
-
-        const ps = document.getElementsByClassName("action-p")
-        for (let i = 0; i < ps.length; i++) {
-            (ps[i] as HTMLLabelElement).style.color = theme.text.primary;
-        }
-
         const hrs = document.getElementsByClassName("action-hr")
         for (let i = 0; i < hrs.length; i++) {
-            (hrs[i] as HTMLLabelElement).style.borderColor = "rgba(255, 255, 255, 0.12)";
+            (hrs[i] as HTMLHRElement).style.borderColor = "rgba(255, 255, 255, 0.12)";
         }
+
     }
 }
 
