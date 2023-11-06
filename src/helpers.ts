@@ -177,7 +177,9 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
         nameTagVisible = false;
     }
 
-    if (!((role === "PLAYER") && !visible) || (nameTags && nameTagEnabled && !((role === "PLAYER") && !nameTagVisible))) {
+    if (!((role === "PLAYER") && !visible) || 
+        (nameTags && nameTagEnabled && !((role === "PLAYER") && !nameTagVisible)) ||
+        (showBars && maxHealth > 0)) {
 
         //get physical token properties
         const dpi = await OBR.scene.grid.getDpi();
