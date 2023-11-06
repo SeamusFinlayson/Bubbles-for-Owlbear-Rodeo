@@ -1,11 +1,11 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
-import icon from "./status.svg";
+import menuIcon from "./status.svg";
 import { initScene } from "./helpers";
 
 /**
  * This file represents the background script run when the plugin loads.
- * It creates the context menu item for the status ring.
+ * It creates the context menu items.
  */
 
 OBR.onReady( async () => {
@@ -19,7 +19,7 @@ OBR.onReady( async () => {
     id: getPluginId("player-menu"),
     icons: [
       {
-        icon,
+        icon: menuIcon,
         label: "Edit Stats",
         filter: {
           every: [
@@ -52,7 +52,7 @@ OBR.onReady( async () => {
     id: getPluginId("gm-menu"),
     icons: [
       {
-        icon,
+        icon: menuIcon,
         label: "Edit Stats",
         filter: {
           every: [
