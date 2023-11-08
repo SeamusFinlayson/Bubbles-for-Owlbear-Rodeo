@@ -6,14 +6,16 @@ import { actionInputs } from "./ActionInputClass";
 
 var initDone: boolean = false; // check if on change listener has been attached yet
 var roleLast: "GM" | "PLAYER";
+var metadataChangeListenerAdded: boolean = false;
 
 OBR.onReady(async ()=> {
 
     // Handle when the scene is either changed or made ready after extension load
     OBR.scene.onReadyChange(async (isReady) => {
         if (isReady) {
-            const role = await OBR.player.getRole();
-            setUpActionPopover(role);
+
+            // Initialize action popover
+            setUpActionPopover();
         } else {
             initDone = false;
         }
@@ -22,13 +24,15 @@ OBR.onReady(async ()=> {
     // Check if the scene is already ready once the extension loads
     const isReady = await OBR.scene.isReady();
     if (isReady) {
-        const role = await OBR.player.getRole();
-        setUpActionPopover(role);
+
+        // Initialize action popover
+        setUpActionPopover();
     }
 
     // Handle role changes
     OBR.player.onChange(async (player) => {
-        //console.log("action" + player.role);
+
+        // Reinitialize action popover for new role
         setUpActionPopover(player.role);
     });
 
@@ -36,7 +40,6 @@ OBR.onReady(async ()=> {
     OBR.theme.onChange(async (theme) => {
         updateActionTheme(theme);
     });
-
 });
 
 async function updateActionTheme(theme: Theme) {
@@ -79,10 +82,17 @@ async function updateActionTheme(theme: Theme) {
     }
 }
 
-async function setUpActionPopover(role: "GM" | "PLAYER") {
+async function setUpActionPopover(role?: "GM" | "PLAYER") {
 
-    //console.log("Setting up action popover")
+    // Get role if not provided
+    if (typeof role === "undefined") {
+        role = await OBR.player.getRole();
+    }
 
+    // Update inputs if scene metadata changes
+    updateInputs();
+
+    // Fill popover according to role
     if(!initDone || (role !== roleLast)) {
         initDone = true;
         roleLast = role;
@@ -112,6 +122,63 @@ async function setUpActionPopover(role: "GM" | "PLAYER") {
         //initialize with correct theme
         const theme = await OBR.theme.getTheme();
         updateActionTheme(theme);
+    }
+}
+
+async function updateInputs() {
+
+    // Check if listener has already been attached
+    if (!metadataChangeListenerAdded) {
+
+        // Prevent the listener from being attached again
+        metadataChangeListenerAdded = true;
+
+        // Add metadata change listener
+        OBR.scene.onMetadataChange((metadata: any) => {
+
+            // Fill inputs with previous values, if they had values
+            for (const actionInput of actionInputs) {
+
+                // Get input's previous value from the scene metadata
+                let value: number | boolean;
+                let retrievedValue: boolean;
+
+                try {
+                    value = metadata[getPluginId("metadata")][actionInput.id];
+                    retrievedValue = true;
+                } catch (error) {
+                    if (error instanceof TypeError) {
+                        value = 0;
+                    } else {throw error;}
+                    retrievedValue = false;
+                }
+
+                // If a value was retrieved fill the input
+                if (retrievedValue) {
+
+                    // Use validation appropriate to the input type
+                    if(actionInput.type === "CHECKBOX") {
+
+                        if (value !== null && typeof value !== "undefined"  && typeof value === "boolean") {
+                            (document.getElementById(actionInput.id) as HTMLInputElement).checked = value;
+                        } else {
+                            (document.getElementById(actionInput.id) as HTMLInputElement).checked = false;
+                        }
+
+                    } else if (actionInput.type === "NUMBER") {
+                        
+                        if (value !== null && typeof value !== "undefined" && typeof value === "number") {
+                            (document.getElementById(actionInput.id) as HTMLInputElement).value = String(value);
+                        } else {
+                            (document.getElementById(actionInput.id) as HTMLInputElement).value = String(0);
+                        }
+
+                    } else {
+                        throw "Error: bad input type."
+                    }
+                }
+            }
+        });
     }
 }
 
