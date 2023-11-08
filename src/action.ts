@@ -1,12 +1,23 @@
 import OBR, { Theme } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
-import { barAtTopMetadataId, nameTagsMetadataId, offsetMetadataId, showHealthBarsMetadataId } from "./sceneMetadataObjects";
+import { barAtTopMetadataId, nameTagsMetadataId, offsetMetadataId, segmentsMetadataId, showHealthBarsMetadataId } from "./sceneMetadataObjects";
 import actionPopover from '../actionPopover.html?raw';
 import "./actionStyle.css"
-
+import { ActionInput } from "./ActionInputClass";
 
 var initDone: boolean = false; // check if on change listener has been attached yet
 var roleLast: "GM" | "PLAYER";
+
+const numberInputIds = [offsetMetadataId, segmentsMetadataId];
+const checkboxInputIds = [barAtTopMetadataId, nameTagsMetadataId, showHealthBarsMetadataId];
+
+const actionInputs: ActionInput[] = [
+    new ActionInput(offsetMetadataId, "NUMBER"),
+    new ActionInput(barAtTopMetadataId, "CHECKBOX"),
+    new ActionInput(showHealthBarsMetadataId, "CHECKBOX"),
+    new ActionInput(segmentsMetadataId, "NUMBER"),
+    new ActionInput(nameTagsMetadataId, "CHECKBOX"),
+];
 
 OBR.onReady(async ()=> {
 
@@ -33,7 +44,7 @@ OBR.onReady(async ()=> {
         setUpActionPopover(player.role);
     });
 
-    //update text on theme change
+    // Update text on theme change
     OBR.theme.onChange(async (theme) => {
         updateActionTheme(theme);
     });
@@ -103,7 +114,7 @@ async function setUpActionPopover(role: "GM" | "PLAYER") {
                 </div>
                 `;
             } catch (error) {
-                console.log(error)
+                console.log(error);
             }
         } else {
             (document.getElementById("parent") as HTMLDivElement).innerHTML = actionPopover;
@@ -116,52 +127,79 @@ async function setUpActionPopover(role: "GM" | "PLAYER") {
     }
 }
 
+function fillInput(input: ActionInput, value: any) {
+    
+    if(input.type === "CHECKBOX") {
+
+        // Write value into checkbox input field if it is valid
+        if (value !== null && typeof value !== "undefined") {
+            (document.getElementById(input.id) as HTMLInputElement).checked = value;
+        } else {
+            (document.getElementById(input.id) as HTMLInputElement).checked = false;
+        }
+    } else if (input.type === "NUMBER") {
+        
+        // Write value into number input field if it is valid
+        if (value !== null && typeof value !== "undefined") {
+            (document.getElementById(input.id) as HTMLInputElement).value = String(value);
+        } else {
+            (document.getElementById(input.id) as HTMLInputElement).value = String(0);
+        }
+    } else {
+        throw "Error: bad input type."
+    }
+}
+
 async function setUpInputs() {
 
-    //console.log("setting up inputs")
-
-    //fill action popover based on scene metadata
+    // Get scene metadata
     const sceneMetadata = await OBR.scene.getMetadata();
-    //console.log(sceneMetadata)
     const retrievedMetadata = JSON.parse(JSON.stringify(sceneMetadata));
-    try {
-        const offset: any = retrievedMetadata[getPluginId("metadata")][offsetMetadataId];
-        //console.log("retrieved" + offset);
-        if (offset !== null && typeof offset !== "undefined") {
-            //console.log("here" + offset);
-            (document.getElementById(offsetMetadataId) as HTMLInputElement).value = String(offset);
-        } else {
-            (document.getElementById(offsetMetadataId) as HTMLInputElement).value = String(0);
-        }
-    } catch (error) {}
-    try {
-        const barAtTop: any = retrievedMetadata[getPluginId("metadata")][barAtTopMetadataId];
-        //console.log("retrieved" + barAtTop);
-        if (barAtTop !== null && typeof barAtTop !== "undefined") {
-            (document.getElementById(barAtTopMetadataId) as HTMLInputElement).checked = barAtTop;
-        } else {
-            (document.getElementById(barAtTopMetadataId) as HTMLInputElement).checked = false;
-        }
-    } catch (error) {}
-    try {
-        const nameTags: any = retrievedMetadata[getPluginId("metadata")][nameTagsMetadataId];
-        //console.log("retrieved" + nameTags);
-        if (nameTags !== null && typeof nameTags !== "undefined") {
-            (document.getElementById(nameTagsMetadataId) as HTMLInputElement).checked = nameTags;
-        } else {
-            (document.getElementById(nameTagsMetadataId) as HTMLInputElement).checked = false;
-        }
-    } catch (error) {}
-    try {
-        const showBars: any = retrievedMetadata[getPluginId("metadata")][showHealthBarsMetadataId];
-        //console.log("retrieved" + showBars);
-        if (showBars !== null && typeof showBars !== "undefined") {
-            (document.getElementById(showHealthBarsMetadataId) as HTMLInputElement).checked = showBars;
-        } else {
-            (document.getElementById(showHealthBarsMetadataId) as HTMLInputElement).checked = false;
-        }
-    } catch (error) {}
 
+    // Give number inputs previous values
+    for (const actionInput of actionInputs) {
+        try {
+
+            // Get value from metadata
+            const value = retrievedMetadata[getPluginId("metadata")][actionInput.id];
+            
+            // Write value into settings menu
+            fillInput(actionInput, value);
+
+        } catch (error) {}
+    }
+
+    // // Give number inputs previous values
+    // for (const numberInputID of numberInputIds) {
+    //     try {
+
+    //         // Get value from metadata
+    //         const value = retrievedMetadata[getPluginId("metadata")][numberInputID];
+            
+    //         // Write value into settings menu
+    //         if (value !== null && typeof value !== "undefined") {
+    //             (document.getElementById(numberInputID) as HTMLInputElement).value = String(value);
+    //         } else {
+    //             (document.getElementById(numberInputID) as HTMLInputElement).value = String(0);
+    //         }
+    //     } catch (error) {}
+    // }
+
+    // // Give checkbox inputs previous values
+    // for (const checkboxInputId of checkboxInputIds) {
+    //     try {
+
+    //         // Get value from metadata
+    //         const value = retrievedMetadata[getPluginId("metadata")][checkboxInputId];
+
+    //         // Write value into settings menu
+    //         if (value !== null && typeof value !== "undefined") {
+    //             (document.getElementById(checkboxInputId) as HTMLInputElement).checked = value;
+    //         } else {
+    //             (document.getElementById(checkboxInputId) as HTMLInputElement).checked = false;
+    //         }
+    //     } catch (error) {}
+    // }
 
     // offset bar
     (document.getElementById(offsetMetadataId) as HTMLInputElement).addEventListener("change", async (event) => {
