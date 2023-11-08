@@ -37,7 +37,7 @@ body {
 
 .settings-grid {
     display: grid;
-    grid-template-columns: auto 50px;
+    grid-template-columns: minmax(162px, max-content) 50px;
     grid-template-rows: repeat(5, 50px);
     column-gap: 16px;
     /* row-gap: 8px; */
