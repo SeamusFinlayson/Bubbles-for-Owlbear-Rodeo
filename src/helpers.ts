@@ -376,6 +376,7 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
                 .build();
                 
                 var healthPercentage = 0;
+                if (segments !== 0) {}
                 if (health <= 0) {
                     healthPercentage = 0;
                 } else if (health < maxHealth) {
@@ -470,16 +471,21 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
             .disableAttachmentBehavior(disableAttachmentBehavior)
             .build();
             
-            var healthPercentage = 0;
+            let healthPercentage = 0;
             if (health <= 0) {
                 healthPercentage = 0;
             } else if (health < maxHealth) {
-                healthPercentage = health / maxHealth;
+                if (segments === 0) {
+                    healthPercentage = health / maxHealth;
+                } else {
+                    healthPercentage = Math.ceil((health / maxHealth)*segments)/segments;
+                }
             } else if (health >= maxHealth){
                 healthPercentage = 1;
             } else {
                 healthPercentage = 0;
             }
+
         
             const healthShape = buildShape()
             .width(healthPercentage === 0 ? 0 : (barWidth) * healthPercentage)
