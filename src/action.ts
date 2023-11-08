@@ -1,9 +1,8 @@
 import OBR, { Theme } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
-import { barAtTopMetadataId, nameTagsMetadataId, offsetMetadataId, showHealthBarsMetadataId } from "./sceneMetadataObjects";
 import actionPopover from '../actionPopover.html?raw';
 import "./actionStyle.css"
-
+import { actionInputs } from "./ActionInputClass";
 
 var initDone: boolean = false; // check if on change listener has been attached yet
 var roleLast: "GM" | "PLAYER";
@@ -33,7 +32,7 @@ OBR.onReady(async ()=> {
         setUpActionPopover(player.role);
     });
 
-    //update text on theme change
+    // Update text on theme change
     OBR.theme.onChange(async (theme) => {
         updateActionTheme(theme);
     });
@@ -99,11 +98,11 @@ async function setUpActionPopover(role: "GM" | "PLAYER") {
                 <hr class="action-hr">
     
                 <div class="action-row">
-                    <p class="action-p">Must have GM access to change settings.</p>
+                    <p class="settings-label">Must have GM access to change settings.</p>
                 </div>
                 `;
             } catch (error) {
-                console.log(error)
+                console.log(error);
             }
         } else {
             (document.getElementById("parent") as HTMLDivElement).innerHTML = actionPopover;
@@ -118,118 +117,100 @@ async function setUpActionPopover(role: "GM" | "PLAYER") {
 
 async function setUpInputs() {
 
-    //console.log("setting up inputs")
+    // Get scene metadata
+    const sceneMetadata: any = await OBR.scene.getMetadata();
 
-    //fill action popover based on scene metadata
-    const sceneMetadata = await OBR.scene.getMetadata();
-    //console.log(sceneMetadata)
-    const retrievedMetadata = JSON.parse(JSON.stringify(sceneMetadata));
-    try {
-        const offset: any = retrievedMetadata[getPluginId("metadata")][offsetMetadataId];
-        //console.log("retrieved" + offset);
-        if (offset !== null && typeof offset !== "undefined") {
-            //console.log("here" + offset);
-            (document.getElementById(offsetMetadataId) as HTMLInputElement).value = String(offset);
-        } else {
-            (document.getElementById(offsetMetadataId) as HTMLInputElement).value = String(0);
-        }
-    } catch (error) {}
-    try {
-        const barAtTop: any = retrievedMetadata[getPluginId("metadata")][barAtTopMetadataId];
-        //console.log("retrieved" + barAtTop);
-        if (barAtTop !== null && typeof barAtTop !== "undefined") {
-            (document.getElementById(barAtTopMetadataId) as HTMLInputElement).checked = barAtTop;
-        } else {
-            (document.getElementById(barAtTopMetadataId) as HTMLInputElement).checked = false;
-        }
-    } catch (error) {}
-    try {
-        const nameTags: any = retrievedMetadata[getPluginId("metadata")][nameTagsMetadataId];
-        //console.log("retrieved" + nameTags);
-        if (nameTags !== null && typeof nameTags !== "undefined") {
-            (document.getElementById(nameTagsMetadataId) as HTMLInputElement).checked = nameTags;
-        } else {
-            (document.getElementById(nameTagsMetadataId) as HTMLInputElement).checked = false;
-        }
-    } catch (error) {}
-    try {
-        const showBars: any = retrievedMetadata[getPluginId("metadata")][showHealthBarsMetadataId];
-        //console.log("retrieved" + showBars);
-        if (showBars !== null && typeof showBars !== "undefined") {
-            (document.getElementById(showHealthBarsMetadataId) as HTMLInputElement).checked = showBars;
-        } else {
-            (document.getElementById(showHealthBarsMetadataId) as HTMLInputElement).checked = false;
-        }
-    } catch (error) {}
+    // Fill inputs with previous values, if they had values
+    for (const actionInput of actionInputs) {
 
+        // Get input's previous value from the scene metadata
+        let value: number | boolean;
+        let retrievedValue: boolean;
 
-    // offset bar
-    (document.getElementById(offsetMetadataId) as HTMLInputElement).addEventListener("change", async (event) => {
-
-        // create metadata object based on user input
-        const offset = parseFloat((event.target as HTMLInputElement).value);
-
-        // let newMetadata = {[offsetMetadataId]: offset}
-        // updateSceneMetadata(newMetadata);
-
-        // console.log(offset)
-        // console.log("type: " + typeof offset)
-        if (typeof offset === "number" && offset !== null && !isNaN(offset)) {
-            let newMetadata = {[offsetMetadataId]: offset}
-            updateSceneMetadata(newMetadata);
-        } else {
-            let newMetadata = {[offsetMetadataId]: 0}
-            updateSceneMetadata(newMetadata);
-        }
-    });
-
-    // bar above token
-    (document.getElementById(barAtTopMetadataId) as HTMLInputElement).addEventListener("change", async (event) => {
-
-        // create metadata object based on user input
-        const barAtTop = (event.target as HTMLInputElement).checked;
-
-        if (barAtTop === true) {
-            let newMetadata = {[barAtTopMetadataId]: true};
-            updateSceneMetadata(newMetadata);
-        } else {
-            let newMetadata = {[barAtTopMetadataId]: false};
-            updateSceneMetadata(newMetadata);
+        try {
+            value = sceneMetadata[getPluginId("metadata")][actionInput.id];
+            retrievedValue = true;
+        } catch (error) {
+            if (error instanceof TypeError) {
+                value = 0;
+            } else {throw error;}
+            retrievedValue = false;
         }
 
-    });
+        // If a value was retrieved fill the input
+        if (retrievedValue) {
 
-    //name tags
-    (document.getElementById(nameTagsMetadataId) as HTMLInputElement).addEventListener("change", async (event) => {
+            // Use validation appropriate to the input type
+            if(actionInput.type === "CHECKBOX") {
 
-        // create metadata object based on user input
-        const nameTags = (event.target as HTMLInputElement).checked;
+                if (value !== null && typeof value !== "undefined"  && typeof value === "boolean") {
+                    (document.getElementById(actionInput.id) as HTMLInputElement).checked = value;
+                } else {
+                    (document.getElementById(actionInput.id) as HTMLInputElement).checked = false;
+                }
 
-        if (nameTags === true) {
-            let newMetadata = {[nameTagsMetadataId]: true};
-            updateSceneMetadata(newMetadata);
-        } else {
-            let newMetadata = {[nameTagsMetadataId]: false};
-            updateSceneMetadata(newMetadata);
+            } else if (actionInput.type === "NUMBER") {
+                
+                if (value !== null && typeof value !== "undefined" && typeof value === "number") {
+                    (document.getElementById(actionInput.id) as HTMLInputElement).value = String(value);
+                } else {
+                    (document.getElementById(actionInput.id) as HTMLInputElement).value = String(0);
+                }
+
+            } else {
+                throw "Error: bad input type."
+            }
         }
-    });
 
-    //name tags
-    (document.getElementById(showHealthBarsMetadataId) as HTMLInputElement).addEventListener("change", async (event) => {
+        // Add event an event lister to the input so changes are written to the scene's metadata
+        (document.getElementById(actionInput.id) as HTMLInputElement).addEventListener("change", async (event) => {
 
-        // create metadata object based on user input
-        const showBars = (event.target as HTMLInputElement).checked;
+            // Use validation appropriate to the input type
+            if (actionInput.type === "CHECKBOX") {
 
-        if (showBars === true) {
-            let newMetadata = {[showHealthBarsMetadataId]: true};
-            updateSceneMetadata(newMetadata);
-        } else {
-            let newMetadata = {[showHealthBarsMetadataId]: false};
-            updateSceneMetadata(newMetadata);
-        }
-    });
+                const value = (event.target as HTMLInputElement).checked;
 
-    //log scene metadata button
+                if (value === true) {
+                    const newMetadata = {[actionInput.id]: true};
+                    updateSceneMetadata(newMetadata);
+                } else {
+                    let newMetadata = {[actionInput.id]: false};
+                    updateSceneMetadata(newMetadata);
+                }
+
+            } else if (actionInput.type === "NUMBER") {
+
+                const value = parseFloat((event.target as HTMLInputElement).value);
+    
+                if (typeof value === "number" && value !== null && !isNaN(value)) {
+                    if (actionInput.id === "segments") {
+
+                        // Segments only accepts whole numbers
+                        let intValue = Math.trunc(value);
+                        if (intValue < 0) { // Cannot be less than 0
+                            intValue = 0;
+                        }
+                        (event.target as HTMLInputElement).value = String(intValue); // Update input with valid value 
+                        const newMetadata = {[actionInput.id]: intValue}
+                        updateSceneMetadata(newMetadata);
+                    } else {
+                        (event.target as HTMLInputElement).value = String(value);
+                        const newMetadata = {[actionInput.id]: value}
+                        updateSceneMetadata(newMetadata);
+                    }
+                } else {
+                    (event.target as HTMLInputElement).value = String(0);
+                    let newMetadata = {[actionInput.id]: 0}
+                    updateSceneMetadata(newMetadata);
+                }
+
+            } else {
+                throw "Error: bad input type."
+            }
+        });
+    }
+
+    // Add listener to "Create debug report" button
     (document.getElementById("log-scene-metadata") as HTMLButtonElement).addEventListener("click",async () => {
         const sceneMetadata = await OBR.scene.getMetadata();
         console.log("Scene:");

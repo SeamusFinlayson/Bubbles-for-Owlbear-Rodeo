@@ -37,9 +37,9 @@ body {
 
 .settings-grid {
     display: grid;
-    grid-template-columns: auto 50px;
-    grid-template-rows: repeat(4, 50px);
-    column-gap: 16px;
+    grid-template-columns: minmax(162px, auto) 50px;
+    grid-template-rows: repeat(5, 50px);
+    column-gap: minmax(8px, 16px);
     /* row-gap: 8px; */
     /* border:1px solid white; */
     margin: 0 16px 0 16px;
@@ -49,6 +49,10 @@ body {
     justify-self: stretch;
     align-self: center;
     font-family: Roboto, Helvetica, Arial, sans-serif;
+}
+
+.indented {
+  padding: 0 0 0 16px;
 }
 
 .settings-checkbox {
@@ -83,7 +87,7 @@ body {
 .action-row {
     display: flexbox;
     justify-content: space-around;
-    flex-direction: column;
+    flex-direction: row;
     margin: 16px 14px 0px 14px;
     margin-trim: 8;
     /* margin: 0 0 0 0; */
