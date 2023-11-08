@@ -1,7 +1,7 @@
 import OBR, { AttachmentBehavior, Image, Item, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
-import { offsetMetadataId, barAtTopMetadataId, nameTagsMetadataId, showHealthBarsMetadataId } from "./sceneMetadataObjects";
 import nameTagIcon from "./nameTag.svg";
+import { ActionMetadataId, actionInputs } from "./ActionInputClass";
 
 var tokenIds: String[] = []; // for orphan health bar management
 var itemsLast: Image[] = []; // for item change checks
@@ -12,6 +12,7 @@ var verticalOffset: any = 0;
 var barAtTop: boolean = false;
 var nameTags: boolean = false;
 var showBars: boolean = false;
+var segments: number = 0;
 
 async function startHealthBarUpdates() {
 
@@ -726,108 +727,189 @@ async function addNameTagItemAttachmentsToDeleteList(itemId: String) {
 
 async function getGlobalSettings(sceneMetadata?: any) {
 
-    // Variable indicating if health bar refresh is needed
-    let doRefresh = false;
-
-    // Variables to hold new global settings
-    let newVerticalOffset: number;
-    let newBarAtTop: boolean;
-    let newNameTags: boolean;
-    let newShowBars: boolean;
-
     // load settings from scene metadata if not passed to function
     if (typeof sceneMetadata === 'undefined') {
         sceneMetadata = await OBR.scene.getMetadata();
     }
 
-    // Try to extract vertical offset value from scene metadata
-    try {
-        newVerticalOffset = sceneMetadata[getPluginId("metadata")][offsetMetadataId];
-    } catch (error) {
-        if (error instanceof TypeError) {
-            newVerticalOffset = 0;
-        } else {
-            throw error;
-        }
-    }
+    // Variable indicating if health bar refresh is needed
+    let doRefresh = false;
     
-    // Check if the new value is different from the previous and valid
-    if ((newVerticalOffset !== verticalOffset) && typeof newVerticalOffset === "number" && newVerticalOffset !== null && !isNaN(newVerticalOffset)) {
+    // Get input's previous value from the scene metadata
+    let value: number | boolean;
+    let retrievedValue: boolean;
 
-        // Update global variable
-        verticalOffset = newVerticalOffset;
+    for (const actionInput of actionInputs) {
 
-        // Refresh needed due to settings change
-        doRefresh = true;
-    }
+        try {
+            value = sceneMetadata[getPluginId("metadata")][actionInput.id];
+            retrievedValue = true;
+        } catch (error) {
+            if (error instanceof TypeError) {
+                value = 0;
+            } else {throw error;}
+            retrievedValue = false;
+        }
+    
+        // If a value was retrieved try to update global variable value
+        if (retrievedValue) {
+    
+            // Use validation appropriate to the input type
+            if(actionInput.type === "CHECKBOX") {
+    
+                // Check if the new value is different from the previous and valid
+                if (checkForSettingsValueChange(actionInput.id, value) && typeof value === "boolean" && value !== null) {
 
-    // Try to extract bar at top value from scene metadata 
-    try {
-        newBarAtTop = sceneMetadata[getPluginId("metadata")][barAtTopMetadataId];
-    } catch (error) {
-        if (error instanceof TypeError) {
-            newBarAtTop = false;
-        } else {
-            throw error;
+                    // Update global variable
+                    updateSettingsValue(actionInput.id, value);
+
+                    // Refresh needed due to settings change
+                    doRefresh = true;
+                }
+    
+            } else if (actionInput.type === "NUMBER") {
+                
+                // Check if the new value is different from the previous and valid
+                if (checkForSettingsValueChange(actionInput.id, value) && typeof value === "number" && value !== null && !isNaN(value)) {
+
+                    // Update global variable
+                    updateSettingsValue(actionInput.id, value);
+
+                    // Refresh needed due to settings change
+                    doRefresh = true;
+                }
+    
+            } else {
+                throw "Error: bad input type."
+            }
         }
     }
 
-    // Check if the new value is different from the previous and valid
-    if ((newBarAtTop !== barAtTop) && typeof newBarAtTop === "boolean" && newBarAtTop !== null) {
+    // // Variables to hold new global settings
+    // let newVerticalOffset: number;
+    // let newBarAtTop: boolean;
+    // let newNameTags: boolean;
+    // let newShowBars: boolean;
 
-        // Update global variable
-        barAtTop = newBarAtTop;
+    // // Try to extract vertical offset value from scene metadata
+    // try {
+    //     newVerticalOffset = sceneMetadata[getPluginId("metadata")][offsetMetadataId];
+    // } catch (error) {
+    //     if (error instanceof TypeError) {
+    //         newVerticalOffset = 0;
+    //     } else {
+    //         throw error;
+    //     }
+    // }
+    
+    // // Check if the new value is different from the previous and valid
+    // if ((newVerticalOffset !== verticalOffset) && typeof newVerticalOffset === "number" && newVerticalOffset !== null && !isNaN(newVerticalOffset)) {
 
-        // Refresh needed due to settings change
-        doRefresh = true;
-    }
+    //     // Update global variable
+    //     verticalOffset = newVerticalOffset;
 
-    // Try to extract name tags value from scene metadata
-    try {
-        newNameTags = sceneMetadata[getPluginId("metadata")][nameTagsMetadataId];        
-    } catch (error) {
-        if (error instanceof TypeError) {
-            newNameTags = false;
-        } else {
-            throw error;
-        }
-    }
+    //     // Refresh needed due to settings change
+    //     doRefresh = true;
+    // }
 
-    // Check if the new value is different from the previous and valid
-    if ((newNameTags !== nameTags) && typeof newNameTags === "boolean" && newNameTags !== null) {
+    // // Try to extract bar at top value from scene metadata 
+    // try {
+    //     newBarAtTop = sceneMetadata[getPluginId("metadata")][barAtTopMetadataId];
+    // } catch (error) {
+    //     if (error instanceof TypeError) {
+    //         newBarAtTop = false;
+    //     } else {
+    //         throw error;
+    //     }
+    // }
 
-        // Update global variable
-        nameTags = newNameTags;
+    // // Check if the new value is different from the previous and valid
+    // if ((newBarAtTop !== barAtTop) && typeof newBarAtTop === "boolean" && newBarAtTop !== null) {
 
-        // Update context menu icon
-        updateNameTagContextMenuIcon();
+    //     // Update global variable
+    //     barAtTop = newBarAtTop;
 
-        // Refresh needed due to settings change
-        doRefresh = true;
-    }
+    //     // Refresh needed due to settings change
+    //     doRefresh = true;
+    // }
 
-    // Try to extract show health bars to players value from scene metadata
-    try {
-        newShowBars = sceneMetadata[getPluginId("metadata")][showHealthBarsMetadataId];        
-    } catch (error) {
-        if (error instanceof TypeError) {
-            newShowBars = false;
-        } else {
-            throw error;
-        }
-    }
+    // // Try to extract name tags value from scene metadata
+    // try {
+    //     newNameTags = sceneMetadata[getPluginId("metadata")][nameTagsMetadataId];        
+    // } catch (error) {
+    //     if (error instanceof TypeError) {
+    //         newNameTags = false;
+    //     } else {
+    //         throw error;
+    //     }
+    // }
 
-    // Check if the new value is different from the previous and valid
-    if ((newShowBars !== showBars) && typeof newShowBars === "boolean" && newShowBars !== null) {
+    // // Check if the new value is different from the previous and valid
+    // if ((newNameTags !== nameTags) && typeof newNameTags === "boolean" && newNameTags !== null) {
 
-        // Update global variable
-        showBars = newShowBars;
+    //     // Update global variable
+    //     nameTags = newNameTags;
 
-        // Refresh needed due to settings change
-        doRefresh = true;
-    }
+    //     // Update context menu icon
+    //     updateNameTagContextMenuIcon();
+
+    //     // Refresh needed due to settings change
+    //     doRefresh = true;
+    // }
+
+    // // Try to extract show health bars to players value from scene metadata
+    // try {
+    //     newShowBars = sceneMetadata[getPluginId("metadata")][showHealthBarsMetadataId];        
+    // } catch (error) {
+    //     if (error instanceof TypeError) {
+    //         newShowBars = false;
+    //     } else {
+    //         throw error;
+    //     }
+    // }
+
+    // // Check if the new value is different from the previous and valid
+    // if ((newShowBars !== showBars) && typeof newShowBars === "boolean" && newShowBars !== null) {
+
+    //     // Update global variable
+    //     showBars = newShowBars;
+
+    //     // Refresh needed due to settings change
+    //     doRefresh = true;
+    // }
 
     return doRefresh;
+}
+
+function updateSettingsValue (id: ActionMetadataId, value: number | boolean) {
+    if (id === "offset" && typeof value === "number") {
+        verticalOffset = value;
+    } else if (id === "bar-at-top" && typeof value === "boolean") {
+        barAtTop = value;
+    } else if (id === "show-bars" && typeof value === "boolean") {
+        showBars = value;
+    } else if (id === "segments" && typeof value === "number") {
+        segments = value;
+    } else if (id === "name-tags" && typeof value === "boolean") {
+        nameTags = value;
+        updateNameTagContextMenuIcon();
+    }
+}
+
+function checkForSettingsValueChange (id: ActionMetadataId, value: number | boolean): boolean {
+    if (id === "offset" && typeof value === "number") {
+        return(verticalOffset !== value);
+    } else if (id === "bar-at-top" && typeof value === "boolean") {
+        return(barAtTop !== value);
+    } else if (id === "show-bars" && typeof value === "boolean") {
+        return(showBars !== value);
+    } else if (id === "segments" && typeof value === "number") {
+        return(segments !== value);
+    } else if (id === "name-tags" && typeof value === "boolean") {
+        return(nameTags !== value);
+    } else {
+        throw "Invalid check of " + id + " for value of type " + typeof value;
+    }
 }
 
 async function updateNameTagContextMenuIcon() {

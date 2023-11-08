@@ -38,7 +38,7 @@ body {
 .settings-grid {
     display: grid;
     grid-template-columns: auto 50px;
-    grid-template-rows: repeat(4, 50px);
+    grid-template-rows: repeat(5, 50px);
     column-gap: 16px;
     /* row-gap: 8px; */
     /* border:1px solid white; */
@@ -49,6 +49,13 @@ body {
     justify-self: stretch;
     align-self: center;
     font-family: Roboto, Helvetica, Arial, sans-serif;
+}
+
+.settings-label-indented {
+  justify-self: stretch;
+  align-self: center;
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  padding: 16px;
 }
 
 .settings-checkbox {

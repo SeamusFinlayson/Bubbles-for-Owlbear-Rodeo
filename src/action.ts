@@ -1,23 +1,11 @@
 import OBR, { Theme } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
-import { barAtTopMetadataId, nameTagsMetadataId, offsetMetadataId, segmentsMetadataId, showHealthBarsMetadataId } from "./sceneMetadataObjects";
 import actionPopover from '../actionPopover.html?raw';
 import "./actionStyle.css"
-import { ActionInput } from "./ActionInputClass";
+import { actionInputs } from "./ActionInputClass";
 
 var initDone: boolean = false; // check if on change listener has been attached yet
 var roleLast: "GM" | "PLAYER";
-
-const numberInputIds = [offsetMetadataId, segmentsMetadataId];
-const checkboxInputIds = [barAtTopMetadataId, nameTagsMetadataId, showHealthBarsMetadataId];
-
-const actionInputs: ActionInput[] = [
-    new ActionInput(offsetMetadataId, "NUMBER"),
-    new ActionInput(barAtTopMetadataId, "CHECKBOX"),
-    new ActionInput(showHealthBarsMetadataId, "CHECKBOX"),
-    new ActionInput(segmentsMetadataId, "NUMBER"),
-    new ActionInput(nameTagsMetadataId, "CHECKBOX"),
-];
 
 OBR.onReady(async ()=> {
 
@@ -127,147 +115,88 @@ async function setUpActionPopover(role: "GM" | "PLAYER") {
     }
 }
 
-function fillInput(input: ActionInput, value: any) {
-    
-    if(input.type === "CHECKBOX") {
-
-        // Write value into checkbox input field if it is valid
-        if (value !== null && typeof value !== "undefined") {
-            (document.getElementById(input.id) as HTMLInputElement).checked = value;
-        } else {
-            (document.getElementById(input.id) as HTMLInputElement).checked = false;
-        }
-    } else if (input.type === "NUMBER") {
-        
-        // Write value into number input field if it is valid
-        if (value !== null && typeof value !== "undefined") {
-            (document.getElementById(input.id) as HTMLInputElement).value = String(value);
-        } else {
-            (document.getElementById(input.id) as HTMLInputElement).value = String(0);
-        }
-    } else {
-        throw "Error: bad input type."
-    }
-}
-
 async function setUpInputs() {
 
     // Get scene metadata
-    const sceneMetadata = await OBR.scene.getMetadata();
-    const retrievedMetadata = JSON.parse(JSON.stringify(sceneMetadata));
+    const sceneMetadata: any = await OBR.scene.getMetadata();
 
-    // Give number inputs previous values
+    // Fill inputs with previous values, if they had values
     for (const actionInput of actionInputs) {
+
+        // Get input's previous value from the scene metadata
+        let value: number | boolean;
+        let retrievedValue: boolean;
+
         try {
+            value = sceneMetadata[getPluginId("metadata")][actionInput.id];
+            retrievedValue = true;
+        } catch (error) {
+            if (error instanceof TypeError) {
+                value = 0;
+            } else {throw error;}
+            retrievedValue = false;
+        }
 
-            // Get value from metadata
-            const value = retrievedMetadata[getPluginId("metadata")][actionInput.id];
-            
-            // Write value into settings menu
-            fillInput(actionInput, value);
+        // If a value was retrieved fill the input
+        if (retrievedValue) {
 
-        } catch (error) {}
+            // Use validation appropriate to the input type
+            if(actionInput.type === "CHECKBOX") {
+
+                if (value !== null && typeof value !== "undefined"  && typeof value === "boolean") {
+                    (document.getElementById(actionInput.id) as HTMLInputElement).checked = value;
+                } else {
+                    (document.getElementById(actionInput.id) as HTMLInputElement).checked = false;
+                }
+
+            } else if (actionInput.type === "NUMBER") {
+                
+                if (value !== null && typeof value !== "undefined" && typeof value === "number") {
+                    (document.getElementById(actionInput.id) as HTMLInputElement).value = String(value);
+                } else {
+                    (document.getElementById(actionInput.id) as HTMLInputElement).value = String(0);
+                }
+
+            } else {
+                throw "Error: bad input type."
+            }
+        }
+
+        // Add event an event lister to the input so changes are written to the scene's metadata
+        (document.getElementById(actionInput.id) as HTMLInputElement).addEventListener("change", async (event) => {
+
+            // Use validation appropriate to the input type
+            if (actionInput.type === "CHECKBOX") {
+
+                const value = (event.target as HTMLInputElement).checked;
+
+                if (value === true) {
+                    const newMetadata = {[actionInput.id]: true};
+                    updateSceneMetadata(newMetadata);
+                } else {
+                    let newMetadata = {[actionInput.id]: false};
+                    updateSceneMetadata(newMetadata);
+                }
+
+            } else if (actionInput.type === "NUMBER") {
+
+                const value = parseFloat((event.target as HTMLInputElement).value);
+    
+                if (typeof value === "number" && value !== null && !isNaN(value)) {
+                    const newMetadata = {[actionInput.id]: value}
+                    updateSceneMetadata(newMetadata);
+                } else {
+                    let newMetadata = {[actionInput.id]: 0}
+                    updateSceneMetadata(newMetadata);
+                }
+
+            } else {
+                throw "Error: bad input type."
+            }
+        });
     }
 
-    // // Give number inputs previous values
-    // for (const numberInputID of numberInputIds) {
-    //     try {
-
-    //         // Get value from metadata
-    //         const value = retrievedMetadata[getPluginId("metadata")][numberInputID];
-            
-    //         // Write value into settings menu
-    //         if (value !== null && typeof value !== "undefined") {
-    //             (document.getElementById(numberInputID) as HTMLInputElement).value = String(value);
-    //         } else {
-    //             (document.getElementById(numberInputID) as HTMLInputElement).value = String(0);
-    //         }
-    //     } catch (error) {}
-    // }
-
-    // // Give checkbox inputs previous values
-    // for (const checkboxInputId of checkboxInputIds) {
-    //     try {
-
-    //         // Get value from metadata
-    //         const value = retrievedMetadata[getPluginId("metadata")][checkboxInputId];
-
-    //         // Write value into settings menu
-    //         if (value !== null && typeof value !== "undefined") {
-    //             (document.getElementById(checkboxInputId) as HTMLInputElement).checked = value;
-    //         } else {
-    //             (document.getElementById(checkboxInputId) as HTMLInputElement).checked = false;
-    //         }
-    //     } catch (error) {}
-    // }
-
-    // offset bar
-    (document.getElementById(offsetMetadataId) as HTMLInputElement).addEventListener("change", async (event) => {
-
-        // create metadata object based on user input
-        const offset = parseFloat((event.target as HTMLInputElement).value);
-
-        // let newMetadata = {[offsetMetadataId]: offset}
-        // updateSceneMetadata(newMetadata);
-
-        // console.log(offset)
-        // console.log("type: " + typeof offset)
-        if (typeof offset === "number" && offset !== null && !isNaN(offset)) {
-            let newMetadata = {[offsetMetadataId]: offset}
-            updateSceneMetadata(newMetadata);
-        } else {
-            let newMetadata = {[offsetMetadataId]: 0}
-            updateSceneMetadata(newMetadata);
-        }
-    });
-
-    // bar above token
-    (document.getElementById(barAtTopMetadataId) as HTMLInputElement).addEventListener("change", async (event) => {
-
-        // create metadata object based on user input
-        const barAtTop = (event.target as HTMLInputElement).checked;
-
-        if (barAtTop === true) {
-            let newMetadata = {[barAtTopMetadataId]: true};
-            updateSceneMetadata(newMetadata);
-        } else {
-            let newMetadata = {[barAtTopMetadataId]: false};
-            updateSceneMetadata(newMetadata);
-        }
-
-    });
-
-    //name tags
-    (document.getElementById(nameTagsMetadataId) as HTMLInputElement).addEventListener("change", async (event) => {
-
-        // create metadata object based on user input
-        const nameTags = (event.target as HTMLInputElement).checked;
-
-        if (nameTags === true) {
-            let newMetadata = {[nameTagsMetadataId]: true};
-            updateSceneMetadata(newMetadata);
-        } else {
-            let newMetadata = {[nameTagsMetadataId]: false};
-            updateSceneMetadata(newMetadata);
-        }
-    });
-
-    //name tags
-    (document.getElementById(showHealthBarsMetadataId) as HTMLInputElement).addEventListener("change", async (event) => {
-
-        // create metadata object based on user input
-        const showBars = (event.target as HTMLInputElement).checked;
-
-        if (showBars === true) {
-            let newMetadata = {[showHealthBarsMetadataId]: true};
-            updateSceneMetadata(newMetadata);
-        } else {
-            let newMetadata = {[showHealthBarsMetadataId]: false};
-            updateSceneMetadata(newMetadata);
-        }
-    });
-
-    //log scene metadata button
+    // Add listener to "Create debug report" button
     (document.getElementById("log-scene-metadata") as HTMLButtonElement).addEventListener("click",async () => {
         const sceneMetadata = await OBR.scene.getMetadata();
         console.log("Scene:");
