@@ -98,7 +98,7 @@ async function setUpActionPopover(role: "GM" | "PLAYER") {
                 <hr class="action-hr">
     
                 <div class="action-row">
-                    <p class="action-p">Must have GM access to change settings.</p>
+                    <p class="settings-label">Must have GM access to change settings.</p>
                 </div>
                 `;
             } catch (error) {
