@@ -183,9 +183,23 @@ async function setUpInputs() {
                 const value = parseFloat((event.target as HTMLInputElement).value);
     
                 if (typeof value === "number" && value !== null && !isNaN(value)) {
-                    const newMetadata = {[actionInput.id]: value}
-                    updateSceneMetadata(newMetadata);
+                    if (actionInput.id === "segments") {
+
+                        // Segments only accepts whole numbers
+                        let intValue = Math.trunc(value);
+                        if (intValue < 0) { // Cannot be less than 0
+                            intValue = 0;
+                        }
+                        (event.target as HTMLInputElement).value = String(intValue); // Update input with valid value 
+                        const newMetadata = {[actionInput.id]: intValue}
+                        updateSceneMetadata(newMetadata);
+                    } else {
+                        (event.target as HTMLInputElement).value = String(value);
+                        const newMetadata = {[actionInput.id]: value}
+                        updateSceneMetadata(newMetadata);
+                    }
                 } else {
+                    (event.target as HTMLInputElement).value = String(0);
                     let newMetadata = {[actionInput.id]: 0}
                     updateSceneMetadata(newMetadata);
                 }
