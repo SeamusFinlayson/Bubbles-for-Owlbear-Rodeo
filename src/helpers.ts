@@ -988,6 +988,8 @@ async function updateNameTagContextMenuIcon() {
         });
     } else {
 
-        OBR.contextMenu.remove(getPluginId("name-tag-menu"))
+        OBR.contextMenu.remove(getPluginId("gm-name-tag-menu"));
+        OBR.contextMenu.remove(getPluginId("player-name-tag-menu"));
+
     }
 }
