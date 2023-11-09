@@ -41,14 +41,10 @@ async function startHealthBarUpdates() {
         });
     }
 
-
-
     //only execute this code once
     if (!initDone) {
         initDone = true;
         //console.log("Starting health bars")
-
-    console.log("background")
 
         //update health bars on change
         OBR.scene.items.onChange( async (itemsFromCallback) => {
