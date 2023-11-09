@@ -134,7 +134,7 @@ async function updateInputs() {
         metadataChangeListenerAdded = true;
 
         // Add metadata change listener
-        OBR.scene.onMetadataChange((metadata: any) => {
+        const unsubscribeFromSceneMetadata = OBR.scene.onMetadataChange((metadata: any) => {
 
             // Fill inputs with previous values, if they had values
             for (const actionInput of actionInputs) {
@@ -177,6 +177,15 @@ async function updateInputs() {
                         throw "Error: bad input type."
                     }
                 }
+            }
+        });
+
+        const unsubscribeFromPlayerChange = OBR.player.onChange((player) => {
+
+            if(player.role === "PLAYER") {
+                unsubscribeFromSceneMetadata();
+                unsubscribeFromPlayerChange();
+                metadataChangeListenerAdded = false;
             }
         });
     }

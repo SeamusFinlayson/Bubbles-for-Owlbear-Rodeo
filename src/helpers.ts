@@ -13,23 +13,38 @@ var barAtTop: boolean = false;
 var nameTags: boolean = false;
 var showBars: boolean = false;
 var segments: number = 0;
+var subscribedToPlayerChange = false;
 
 async function startHealthBarUpdates() {
 
     // generate all health bars based on scene token metadata
     //refreshAllHealthBars();
 
+    if (!subscribedToPlayerChange) {
+
+        // Don't run this again unless the listeners have been unsubscribed
+        subscribedToPlayerChange = true;
+
+        // Handle role changes
+        const unSubscribeFromPlayer = OBR.player.onChange(async () => {
+            refreshAllHealthBars();
+            // console.log("helper player change: ")
+            // console.log(player)
+        });
+
+        const unsubscribeFromScene = OBR.scene.onReadyChange((isReady) => {
+            if (!isReady) {
+                unSubscribeFromPlayer();
+                unsubscribeFromScene();
+                subscribedToPlayerChange = false;
+            }
+        });
+    }
+
     //only execute this code once
     if (!initDone) {
         initDone = true;
         //console.log("Starting health bars")
-
-        // Handle role changes
-        // OBR.player.onChange(async (player) => {
-        //     //await refreshAllHealthBars();
-        //     // console.log("helper player change: ")
-        //     // console.log(player)
-        // });
 
         //update health bars on change
         OBR.scene.items.onChange( async (itemsFromCallback) => {
@@ -988,6 +1003,7 @@ async function updateNameTagContextMenuIcon() {
         });
     } else {
 
-        OBR.contextMenu.remove(getPluginId("name-tag-menu"))
+        OBR.contextMenu.remove(getPluginId("gm-name-tag-menu"));
+        OBR.contextMenu.remove(getPluginId("player-name-tag-menu"));
     }
 }
