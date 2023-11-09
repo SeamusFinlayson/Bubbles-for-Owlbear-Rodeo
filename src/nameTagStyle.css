@@ -1,8 +1,6 @@
 body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-        "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-        sans-serif;
+    font-family: Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: white;
@@ -29,12 +27,59 @@ body {
     margin: 0 16px 0 16px;
 }
 
+.input-div {
+    background-color: rgba(0, 0, 0, 0.25);
+    margin: 8px 8px 2px 8px;
+    border-radius: 8px;
+    height: 40px;
+
+    outline-width: 2px;
+    outline-color: rgba(204, 179, 255, 0);
+    outline-style: solid;
+
+    display: grid;
+    /* grid-template-columns: 194px; */
+}
+
+.input-div:focus-within {
+    outline-width: 2px;
+    outline-color: rgba(204, 179, 255, 0.4);
+    outline-style: solid;
+
+    background-color: rgba(0, 0, 0, 0.35);
+
+    /* box-shadow: 0 0 16px rgb(116, 100, 159); */
+    transition: 0.15s;
+}
+
+.name-input {
+    margin: 4px 11px 4px 11px;
+    padding: 0px;
+    align-self: stretch;
+    justify-self: stretch;
+    /* width: 100px; */
+    min-width: none;
+    max-width: fit-content;
+
+    outline: 0px;
+    outline-color: rgba(255, 255, 255, 0.2);
+    outline-style: solid;
+
+    border:none;
+    border-radius: 4px;
+    background: none;
+
+    color: white;
+    font-size: medium;
+    
+    display: flex;
+    align-items: center;
+}
+
 .settings-bar {
     background-color: black;
-    grid-column-start: 1;
-    grid-column-end: 2;
-    grid-row-start: 1;
-    grid-row-end: 1;
+    grid-column-start: 1 / span 2;
+    /* grid-row-start: 1; */
 }
 
 .settings-label {

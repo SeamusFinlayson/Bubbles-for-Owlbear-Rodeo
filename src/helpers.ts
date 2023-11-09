@@ -946,7 +946,7 @@ async function updateNameTagContextMenuIcon() {
             OBR.popover.open({
                 id: getPluginId("number-bubbles"),
                 url: "/src/nameTagPopover.html",
-                height: 100,
+                height: 150,
                 width: 226,
                 anchorElementId: elementId,
             });
@@ -979,7 +979,7 @@ async function updateNameTagContextMenuIcon() {
             OBR.popover.open({
                 id: getPluginId("number-bubbles"),
                 url: "/src/playerNameTagPopover.html",
-                height: 50,
+                height: 100,
                 width: 226,
                 anchorElementId: elementId,
             });
