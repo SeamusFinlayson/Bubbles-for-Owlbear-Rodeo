@@ -1,11 +1,5 @@
 // metadata object names
-export type ActionMetadataId = "offset" | "bar-at-top" | "name-tags" | "show-bars" | "segments"
-
-const offsetMetadataId = "offset";
-const barAtTopMetadataId = "bar-at-top";
-const nameTagsMetadataId = "name-tags";
-const showHealthBarsMetadataId = "show-bars";
-const segmentsMetadataId = "segments";
+export type ActionMetadataId = "offset" | "bar-at-top" | "name-tags" | "show-bars" | "segments";
 
 class ActionInput {
     id: ActionMetadataId;
@@ -18,11 +12,11 @@ class ActionInput {
 }
 
 export const actionInputs: ActionInput[] = [
-    new ActionInput(offsetMetadataId, "NUMBER"),
-    new ActionInput(barAtTopMetadataId, "CHECKBOX"),
-    new ActionInput(showHealthBarsMetadataId, "CHECKBOX"),
-    new ActionInput(segmentsMetadataId, "NUMBER"),
-    new ActionInput(nameTagsMetadataId, "CHECKBOX"),
+    new ActionInput("offset", "NUMBER"),
+    new ActionInput("bar-at-top", "CHECKBOX"),
+    new ActionInput("show-bars", "CHECKBOX"),
+    new ActionInput("segments", "NUMBER"),
+    new ActionInput("name-tags", "CHECKBOX"),
 ];
 
 
