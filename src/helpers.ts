@@ -7,23 +7,22 @@ var tokenIds: String[] = []; // for orphan health bar management
 var itemsLast: Image[] = []; // for item change checks
 var addItemsArray: Item[] = []; // for bulk addition or changing of items  
 var deleteItemsArray: string[] = []; // for bulk deletion of scene items
-var initDone: boolean = false; // check if on change listener has been attached yet
 var verticalOffset: any = 0;
 var barAtTop: boolean = false;
 var nameTags: boolean = false;
 var showBars: boolean = false;
 var segments: number = 0;
-var subscribedToPlayerChange = false;
+var sceneListenersSet = false;
 
 async function startHealthBarUpdates() {
 
     // generate all health bars based on scene token metadata
     //refreshAllHealthBars();
 
-    if (!subscribedToPlayerChange) {
+    if (!sceneListenersSet) {
 
         // Don't run this again unless the listeners have been unsubscribed
-        subscribedToPlayerChange = true;
+        sceneListenersSet = true;
 
         // Handle role changes
         const unSubscribeFromPlayer = OBR.player.onChange(async () => {
@@ -32,23 +31,18 @@ async function startHealthBarUpdates() {
             // console.log(player)
         });
 
-        const unsubscribeFromScene = OBR.scene.onReadyChange((isReady) => {
-            if (!isReady) {
-                unSubscribeFromPlayer();
-                unsubscribeFromScene();
-                subscribedToPlayerChange = false;
+        // Handle metadata changes
+        const unsubscribeFromSceneMetadata = OBR.scene.onMetadataChange(async (metadata) => {
+
+            // Do a refresh if an item change is detected
+            if (await getGlobalSettings(metadata)) {
+                refreshAllHealthBars();
             }
         });
-    }
 
-    //only execute this code once
-    if (!initDone) {
-        initDone = true;
-        //console.log("Starting health bars")
-
-        //update health bars on change
-        OBR.scene.items.onChange( async (itemsFromCallback) => {
-            //console.log("Item change detected")
+        // Handle item changes (Update health bars)
+        const unsubscribeFromItems = OBR.scene.items.onChange(async (itemsFromCallback) => {
+            //console.log("Item change detected") // Debug only
     
             //get rid of health bars that no longer attach to anything
             let imagesFromCallback: Image[] = [];
@@ -112,10 +106,14 @@ async function startHealthBarUpdates() {
             deleteItemsArray.length = 0;
         });
 
-        OBR.scene.onMetadataChange(async (metadata) => {
-
-            if (await getGlobalSettings(metadata)) {
-                refreshAllHealthBars();
+        // Unsubscribe listeners that rely on the scene if it stops being ready
+        const unsubscribeFromScene = OBR.scene.onReadyChange((isReady) => {
+            if (!isReady) {
+                unSubscribeFromPlayer();
+                unsubscribeFromSceneMetadata();
+                unsubscribeFromItems();
+                unsubscribeFromScene();
+                sceneListenersSet = false;
             }
         });
     }
@@ -698,11 +696,6 @@ export async function initScene() {
     }
 }
 
-//refresh all health bars on player roll change
-// OBR.player.onChange((player) => {
-    
-// })
-
 async function addAllItemAttachmentsToDeleteList(itemId: String) {
     deleteItemsArray.push(
         itemId + "health-background", 
@@ -755,12 +748,12 @@ async function getGlobalSettings(sceneMetadata?: any) {
 
     // Variable indicating if health bar refresh is needed
     let doRefresh = false;
-    
-    // Get input's previous value from the scene metadata
-    let value: number | boolean;
-    let retrievedValue: boolean;
 
     for (const actionInput of actionInputs) {
+
+        // Get input's previous value from the scene metadata
+        let value: number | boolean;
+        let retrievedValue: boolean;
 
         try {
             value = sceneMetadata[getPluginId("metadata")][actionInput.id];
@@ -771,12 +764,16 @@ async function getGlobalSettings(sceneMetadata?: any) {
             } else {throw error;}
             retrievedValue = false;
         }
+
+        if (typeof value === "undefined") {
+            retrievedValue = false;
+        }
     
         // If a value was retrieved try to update global variable value
         if (retrievedValue) {
     
             // Use validation appropriate to the input type
-            if(actionInput.type === "CHECKBOX") {
+            if (actionInput.type === "CHECKBOX") {
     
                 // Check if the new value is different from the previous and valid
                 if (checkForSettingsValueChange(actionInput.id, value) && typeof value === "boolean" && value !== null) {
@@ -803,101 +800,19 @@ async function getGlobalSettings(sceneMetadata?: any) {
             } else {
                 throw "Error: bad input type."
             }
+
+        } else {
+
+            // Set to default values if setting could not be retrieved
+            if (actionInput.type === "CHECKBOX") {
+                updateSettingsValue(actionInput.id, false);
+            } else if (actionInput.type === "NUMBER") {
+                updateSettingsValue(actionInput.id, 0);
+            }
+
+            //console.log("Could not get " + actionInput.id) // Debug only
         }
     }
-
-    // // Variables to hold new global settings
-    // let newVerticalOffset: number;
-    // let newBarAtTop: boolean;
-    // let newNameTags: boolean;
-    // let newShowBars: boolean;
-
-    // // Try to extract vertical offset value from scene metadata
-    // try {
-    //     newVerticalOffset = sceneMetadata[getPluginId("metadata")][offsetMetadataId];
-    // } catch (error) {
-    //     if (error instanceof TypeError) {
-    //         newVerticalOffset = 0;
-    //     } else {
-    //         throw error;
-    //     }
-    // }
-    
-    // // Check if the new value is different from the previous and valid
-    // if ((newVerticalOffset !== verticalOffset) && typeof newVerticalOffset === "number" && newVerticalOffset !== null && !isNaN(newVerticalOffset)) {
-
-    //     // Update global variable
-    //     verticalOffset = newVerticalOffset;
-
-    //     // Refresh needed due to settings change
-    //     doRefresh = true;
-    // }
-
-    // // Try to extract bar at top value from scene metadata 
-    // try {
-    //     newBarAtTop = sceneMetadata[getPluginId("metadata")][barAtTopMetadataId];
-    // } catch (error) {
-    //     if (error instanceof TypeError) {
-    //         newBarAtTop = false;
-    //     } else {
-    //         throw error;
-    //     }
-    // }
-
-    // // Check if the new value is different from the previous and valid
-    // if ((newBarAtTop !== barAtTop) && typeof newBarAtTop === "boolean" && newBarAtTop !== null) {
-
-    //     // Update global variable
-    //     barAtTop = newBarAtTop;
-
-    //     // Refresh needed due to settings change
-    //     doRefresh = true;
-    // }
-
-    // // Try to extract name tags value from scene metadata
-    // try {
-    //     newNameTags = sceneMetadata[getPluginId("metadata")][nameTagsMetadataId];        
-    // } catch (error) {
-    //     if (error instanceof TypeError) {
-    //         newNameTags = false;
-    //     } else {
-    //         throw error;
-    //     }
-    // }
-
-    // // Check if the new value is different from the previous and valid
-    // if ((newNameTags !== nameTags) && typeof newNameTags === "boolean" && newNameTags !== null) {
-
-    //     // Update global variable
-    //     nameTags = newNameTags;
-
-    //     // Update context menu icon
-    //     updateNameTagContextMenuIcon();
-
-    //     // Refresh needed due to settings change
-    //     doRefresh = true;
-    // }
-
-    // // Try to extract show health bars to players value from scene metadata
-    // try {
-    //     newShowBars = sceneMetadata[getPluginId("metadata")][showHealthBarsMetadataId];        
-    // } catch (error) {
-    //     if (error instanceof TypeError) {
-    //         newShowBars = false;
-    //     } else {
-    //         throw error;
-    //     }
-    // }
-
-    // // Check if the new value is different from the previous and valid
-    // if ((newShowBars !== showBars) && typeof newShowBars === "boolean" && newShowBars !== null) {
-
-    //     // Update global variable
-    //     showBars = newShowBars;
-
-    //     // Refresh needed due to settings change
-    //     doRefresh = true;
-    // }
 
     return doRefresh;
 }
@@ -914,6 +829,8 @@ function updateSettingsValue (id: ActionMetadataId, value: number | boolean) {
     } else if (id === "name-tags" && typeof value === "boolean") {
         nameTags = value;
         updateNameTagContextMenuIcon();
+    } else {
+        throw "Invalid update to " + id + " with value of type " + typeof value;
     }
 }
 
@@ -929,7 +846,7 @@ function checkForSettingsValueChange (id: ActionMetadataId, value: number | bool
     } else if (id === "name-tags" && typeof value === "boolean") {
         return(nameTags !== value);
     } else {
-        throw "Invalid check of " + id + " for value of type " + typeof value;
+        throw "Invalid check for " + id + " against value of type " + typeof value;
     }
 }
 
