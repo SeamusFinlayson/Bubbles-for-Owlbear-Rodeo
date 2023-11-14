@@ -61,10 +61,14 @@ async function setUpInputs() {
             value = JSON.parse(JSON.stringify(item.metadata[getPluginId("metadata")]))[statInput.id];
             retrievedValue = true;
         } catch (error) {
-            if (error instanceof TypeError) {
+            if (error instanceof TypeError || error instanceof SyntaxError) {
                 value = 0;
                 retrievedValue = false;
             } else {throw error;}
+        }
+
+        if (typeof value === "undefined") {
+            retrievedValue = false;
         }
 
         // If a value was retrieved fill the input
@@ -73,7 +77,7 @@ async function setUpInputs() {
             // Use validation appropriate to the input type
             if(statInput.type === "CHECKBOX") {
 
-                if (value !== null && typeof value !== "undefined"  && typeof value === "boolean") {
+                if (value !== null && typeof value === "boolean") {
                     (document.getElementById(statInput.id) as HTMLInputElement).checked = value;
                 } else {
                     (document.getElementById(statInput.id) as HTMLInputElement).checked = false;
@@ -81,7 +85,7 @@ async function setUpInputs() {
 
             } else if (statInput.type === "TEXT") {
 
-                if (value !== null && typeof value !== "undefined" && typeof value === "number") {
+                if (value !== null && typeof value === "number") {
                     (document.getElementById(statInput.id) as HTMLInputElement).value = String(value);
                 } else {
                     (document.getElementById(statInput.id) as HTMLInputElement).value = String(0);
@@ -89,6 +93,14 @@ async function setUpInputs() {
 
             } else {
                 throw "Error: bad input type."
+            }
+        } else {
+
+            // Un retrieved values get set to 0
+            if (statInput.type === "CHECKBOX") {
+                (document.getElementById(statInput.id) as HTMLInputElement).checked = false;
+            } else if (statInput.type === "TEXT") {
+                (document.getElementById(statInput.id) as HTMLInputElement).value = String(0);
             }
         }
 
@@ -128,7 +140,7 @@ async function handleInputChange(id: StatMetadataID, type: "TEXT" | "CHECKBOX") 
                 // Get item metadata
                 let retrievedMetadata: any;
                 if (item.metadata[getPluginId("metadata")]) {
-                    retrievedMetadata = JSON.parse(JSON.stringify(item.metadata[getPluginId("metadata")]))
+                    retrievedMetadata = JSON.parse(JSON.stringify(item.metadata[getPluginId("metadata")]));
                 }
 
                 // Combine metadata
