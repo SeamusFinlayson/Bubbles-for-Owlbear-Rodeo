@@ -8,6 +8,7 @@ OBR.onReady(async ()=> {
 
     setUpTheme();
     setUpInputs();
+    closePopoverOnEscapeKey();
 });
 
 async function setUpTheme() {
@@ -82,4 +83,18 @@ async function handleInputChange(id:string) {
             item.metadata[getPluginId(metadataPath)] = combinedMetadata;
         }
     });
+}
+
+async function closePopoverOnEscapeKey() {
+    
+    // attach keydown listener to close popover on escape key pressed
+    document.addEventListener("keydown", (event) => {
+        // var name = event.key;
+        // var code = event.code;
+        //console.log(`Key pressed ${name} \r\n Key code value: ${code}`); // log key pressed
+
+        if (event.key == "Escape") {
+            OBR.popover.close(getPluginId("bubbles-name-tag"));
+        }
+    }, false);
 }
