@@ -35,16 +35,11 @@ OBR.onReady( async () => {
         },
       },
     ],
-    onClick(_context, elementId) {
-      OBR.popover.open({
-        id: getPluginId("number-bubbles"),
-        url: "/playerPopover.html",
-        height: 54,
-        width: 313,
-        anchorElementId: elementId,
-      });
-    },
-    shortcut: "Shift + S"
+    shortcut: "Shift + S",
+    embed: {
+      url: "/playerPopover.html",
+      height: 82,
+    }
   });
 
   //create GM context menu icon
@@ -66,19 +61,11 @@ OBR.onReady( async () => {
         },
       },
     ],
-    onClick(_context, elementId) {
-      OBR.popover.open({
-        id: getPluginId("number-bubbles"),
-        url: "/popover.html",
-        height: 54,
-        width: 400,
-        anchorElementId: elementId,
-        //hidePaper: false,
-        //anchorOrigin: {vertical: "BOTTOM", horizontal: "LEFT"}
-        //transformOrigin: {vertical: "TOP", horizontal: "RIGHT"}
-      });
-    },
-    shortcut: "Shift + S"
+    shortcut: "Shift + S",
+    embed: {
+      url: "/popover.html",
+      height: 132,
+    }
   });
 
   //startHealthBars(await OBR.scene.isReady());

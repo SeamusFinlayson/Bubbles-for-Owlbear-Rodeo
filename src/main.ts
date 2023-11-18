@@ -14,23 +14,38 @@ async function setUpTheme() {
     const theme = OBR.theme.getTheme();
     if ((await theme).mode == "LIGHT") {
 
-        //change text color
+        // Change text color
         const labels = document.getElementsByClassName("label");
-        //console.log("Theme changed for " + labels.length + " labels") 
         for (let i = 0; i < labels.length; i++) {
             (labels[i] as HTMLLabelElement).style.color = (await theme).text.primary;
         }
 
-        //change bubble focus color
-        const numberBoxes = document.getElementsByClassName("number-box");
-        //console.log("Theme changed for " + numberBoxes.length + " inputs") 
+        const numberBoxes = document.getElementsByClassName("number-bubble");
         for (let i = 0; i < numberBoxes.length; i++) {
-            //console.log("Theme changed for " + numberBoxes[i].id);
             numberBoxes[i].classList.replace("dark", "light");
         }
 
-        const checkBoxSlider = document.getElementById("slider span");
-        checkBoxSlider?.classList.replace("dark", "light");
+        (document.getElementById("divisor") as HTMLLabelElement).style.color = "black";
+
+        // Change stat outline color
+        const statBackgrounds = document.getElementsByClassName("stat-background");
+        console.log(statBackgrounds.length)
+        for (let i = 0; i < statBackgrounds.length; i++) {
+            statBackgrounds[i].classList.replace("dark", "light");
+        }
+
+        // Change grid background color
+        const grid = document.getElementsByClassName("stat-grid");
+        for (let i = 0; i < grid.length; i++) {
+            grid[i].classList.replace("dark", "light");
+        }
+
+        // Change hide switch background color
+        const hideSwitchRow = document.getElementsByClassName("hide-switch-row")
+        for (let i = 0; i < hideSwitchRow.length; i++) {
+            hideSwitchRow[i].classList.replace("dark", "light");
+        }
+
     }
 }
 
@@ -109,7 +124,7 @@ async function setUpInputs() {
     }
 
     // Must be called at end to have text pre-selected otherwise text will change after selection
-    selectHealthInput();
+    //selectHealthInput();
 }
 
 async function handleInputChange(id: StatMetadataID, type: "TEXT" | "CHECKBOX") {
@@ -231,8 +246,8 @@ async function closePopoverOnEscapeKey() {
     }, false);
 }
 
-async function selectHealthInput() {
+// async function selectHealthInput() {
 
-    // Select health input
-    (document.getElementById(statInputs[0].id) as HTMLInputElement)?.select();
-}
+//     // Select health input
+//     (document.getElementById(statInputs[0].id) as HTMLInputElement)?.select();
+// }
