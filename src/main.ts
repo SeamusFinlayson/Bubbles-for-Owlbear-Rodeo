@@ -5,7 +5,6 @@ import { StatMetadataID, statInputs } from "./StatInputClass";
 OBR.onReady(async () => {
 
     setUpTheme();
-    closePopoverOnEscapeKey();
     setUpInputs();
 });
 
@@ -99,6 +98,11 @@ async function setUpInputs() {
                 }
 
             } else if (statInput.type === "TEXT") {
+
+                //Fix bug where first value is read as a string instead of a number
+                if (typeof value === "string") {
+                    value = parseFloat(value);
+                }
 
                 if (value !== null && typeof value === "number") {
                     (document.getElementById(statInput.id) as HTMLInputElement).value = String(value);
@@ -232,19 +236,19 @@ async function handleInputChange(id: StatMetadataID, type: "TEXT" | "CHECKBOX") 
     });
 }
 
-async function closePopoverOnEscapeKey() {
+// async function closePopoverOnEscapeKey() {
     
-    // attach keydown listener to close popover on escape key pressed
-    document.addEventListener("keydown", (event) => {
-        // var name = event.key;
-        // var code = event.code;
-        //console.log(`Key pressed ${name} \r\n Key code value: ${code}`); // log key pressed
+//     // attach keydown listener to close popover on escape key pressed
+//     document.addEventListener("keydown", (event) => {
+//         // var name = event.key;
+//         // var code = event.code;
+//         //console.log(`Key pressed ${name} \r\n Key code value: ${code}`); // log key pressed
 
-        if (event.key == "Escape") {
-            OBR.popover.close(getPluginId("number-bubbles"));
-        }
-    }, false);
-}
+//         if (event.key == "Escape") {
+//             OBR.popover.close(getPluginId("number-bubbles"));
+//         }
+//     }, false);
+// }
 
 // async function selectHealthInput() {
 
