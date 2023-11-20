@@ -89,9 +89,6 @@ async function setUpActionPopover(role?: "GM" | "PLAYER") {
         role = await OBR.player.getRole();
     }
 
-    // Update inputs if scene metadata changes
-    updateInputs();
-
     // Fill popover according to role
     if(!initDone || (role !== roleLast)) {
         initDone = true;
@@ -121,8 +118,13 @@ async function setUpActionPopover(role?: "GM" | "PLAYER") {
                 console.log(error);
             }
         } else {
+
+            // Set up the popover for GM view
             (document.getElementById("parent") as HTMLDivElement).innerHTML = actionPopover;
             setUpInputs();
+
+            // Update inputs if scene metadata changes
+            updateInputs();
         }
 
         //initialize with correct theme
