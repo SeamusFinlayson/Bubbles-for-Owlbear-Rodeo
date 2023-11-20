@@ -1,25 +1,26 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
-import icon from "./status.svg";
+import menuIcon from "./status.svg";
 import { initScene } from "./helpers";
 
 /**
  * This file represents the background script run when the plugin loads.
- * It creates the context menu item for the status ring.
+ * It creates the context menu items.
  */
 
 OBR.onReady( async () => {
 
   fetch("./manifest.json")
-    .then((response) => response.json())
-    .then((json) => console.log(json["name"] + " - version: " + json["version"]));
+  .then((response) => response.json())
+  .then((json) => console.log(json["name"] + " - version: " + json["version"]));
 
+  //create player context menu icon
   OBR.contextMenu.create({
-    id: getPluginId("menu"),
+    id: getPluginId("player-menu"),
     icons: [
       {
-        icon,
-        label: "Trackers",
+        icon: menuIcon,
+        label: "Edit Stats",
         filter: {
           every: [
             { key: "type", value: "IMAGE" },
@@ -33,9 +34,21 @@ OBR.onReady( async () => {
           max: 1,
         },
       },
+    ],
+    shortcut: "Shift + S",
+    embed: {
+      url: "/playerPopover.html",
+      height: 82,
+    }
+  });
+
+  //create GM context menu icon
+  OBR.contextMenu.create({
+    id: getPluginId("gm-menu"),
+    icons: [
       {
-        icon,
-        label: "Trackers",
+        icon: menuIcon,
+        label: "Edit Stats",
         filter: {
           every: [
             { key: "type", value: "IMAGE" },
@@ -48,19 +61,11 @@ OBR.onReady( async () => {
         },
       },
     ],
-    onClick(_context, elementId) {
-      OBR.popover.open({
-        id: getPluginId("number-bubbles"),
-        url: "/popover.html",
-        height: 54,
-        width: 400,
-        anchorElementId: elementId,
-        //hidePaper: false,
-        //anchorOrigin: {vertical: "BOTTOM", horizontal: "LEFT"}
-        //transformOrigin: {vertical: "TOP", horizontal: "RIGHT"}
-      });
-    },
-    shortcut: "Shift + S"
+    shortcut: "Shift + S",
+    embed: {
+      url: "/popover.html",
+      height: 132,
+    }
   });
 
   //startHealthBars(await OBR.scene.isReady());
