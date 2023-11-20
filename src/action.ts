@@ -89,9 +89,6 @@ async function setUpActionPopover(role?: "GM" | "PLAYER") {
         role = await OBR.player.getRole();
     }
 
-    // Update inputs if scene metadata changes
-    updateInputs();
-
     // Fill popover according to role
     if(!initDone || (role !== roleLast)) {
         initDone = true;
@@ -101,11 +98,17 @@ async function setUpActionPopover(role?: "GM" | "PLAYER") {
             try {
                 (document.getElementById("parent") as HTMLDivElement).innerHTML = 
                 `
-                <p class="action-heading">
-                    Settings
-                </p>
-    
-                <hr class="action-hr">
+                <div class="action-heading">
+                    <p class="heading-p">Settings</p>
+                    <a 
+                        class="action-button help-button" 
+                        href="https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo#how-to-use"
+                        target="_blank"
+                        rel="noreferrer noopener"
+                    >?</a>
+                </div>
+          
+              <hr class="action-hr">
     
                 <div class="action-row">
                     <p class="settings-label">Must have GM access to change settings.</p>
@@ -115,8 +118,13 @@ async function setUpActionPopover(role?: "GM" | "PLAYER") {
                 console.log(error);
             }
         } else {
+
+            // Set up the popover for GM view
             (document.getElementById("parent") as HTMLDivElement).innerHTML = actionPopover;
             setUpInputs();
+
+            // Update inputs if scene metadata changes
+            updateInputs();
         }
 
         //initialize with correct theme
