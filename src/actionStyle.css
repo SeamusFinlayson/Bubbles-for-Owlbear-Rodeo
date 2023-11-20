@@ -1,31 +1,30 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+  font-family: Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: white;
 }
 
 .action-heading {
+  display: grid;
+  grid-template-columns: minmax(162px, auto) 50px;
   margin: 16px 16px;
-  font-family: Roboto, Helvetica, Arial, sans-serif;
+  padding: 0;
+
+  align-items: center;
+
+  /* line-height: 32px; */
+}
+
+.heading-p {
   letter-spacing: 0em;
-  display: block;
   color: rgb(255, 255, 255);
   font-size: 1.125rem;
   font-weight: 700;
-  line-height: 32px;
+  margin: 0
 }
   
-.action-heading-spacing {
-  position:absolute;
-  top: 15px;
-  left: 15px;
-  right: 10px;
-  white-space: nowrap;
-}
   
 .action-hr {
   margin: 12px 16px;
@@ -96,16 +95,13 @@ body {
 .action-button {
   border-radius: 8px;
   border-width: 0px;
-  border-style: solid;
+  /* outline: solid 1px rgba(255, 255, 255, 0.1); */
+
   background-color: rgba(0, 0, 0, 0.144);
   text-align: center;
   color: white;
   font-size: medium;
   padding: 8px 8px 8px 8px;
-}
-
-.action-p {
-  margin: 16px;
 }
 
 .action-button:hover {
@@ -120,6 +116,17 @@ body {
   /* border-width: 1px; */
   outline: none;
   transform: translateY(2px);
+}
+
+.help-button {
+  padding: 8px 12px;
+  font-weight: 700;
+  justify-self: end;
+  text-decoration: none;
+}
+
+.action-p {
+  margin: 16px;
 }
 
 /* hide number input arrows */
