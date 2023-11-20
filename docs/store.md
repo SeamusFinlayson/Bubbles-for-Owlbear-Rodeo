@@ -2,7 +2,7 @@
 title: Stat Bubbles for D&D
 description: Health Bars and Armor Class for your D&D adventures!
 author: Seamus Finlayson
-image: https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/74efbbf2-1c95-40cb-9458-b38b3c6019e9
+image: https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/c5d0c62b-c022-41a0-b43b-8bd87d4a1dc0
 icon: https://owlbear-rodeo-bubbles-extension.onrender.com/logo.png
 tags:
   - combat
@@ -12,25 +12,34 @@ learn-more: https://github.com/SeamusFinlayson/Bubbles-for-Owkbear-Rodeo
 
 # Stat Bubbles for D&D
 
-Health Bars and Armor Class for your D&D adventures! Track hit points, maximum hit points, temporary hit points, armor class and hide the monsters' stats from players.
+Health Bars and Armor Class for your D&D adventures! 
+
+This extension can track:
+* Hit points
+* Maximum hit points
+* Temporary hit points
+* Armor class 
+* And hide the monsters' stats from players.
 
 ## How to use
 
 ### Basic
 
+**Right click** on a token to access the **context menu embed** to edit a token's stats.
+
+![image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/08ab4d9f-7ce5-4536-8774-73c84f0730a7)
+
+
 **This extension does math for you!** 
-To add 6 to your HP type +6 and press Enter. To subtract 6 from your HP type -6 and press Enter. This works for every bubble.
+To add 6 to your HP type +6 and press Enter. To subtract 6 from your HP type -6 and press Enter. This works for every stat.
 
-**Deigned to be keyboard friendly.**
+![Context menu embed](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/a71cf43d-b9db-46e8-9b9d-5eff77069491)
 
-1. Click on a token and use the shortcut Shift + S (or click the extension icon in the token's context menu) to see and edit a token's trackers.
-2. Press Tab to cycle through the bubbles.
-3. Press the Space key to toggle the switch.
-4. When you're done press Escape and the menu will close.
+In a hurry? press **Tab** to cycle through the bubbles.
 
-Works with tokens on the **Prop**, **Mount**, and **Character** layers.
+This extension works with tokens on the **Prop**, **Mount**, and **Character** layers.
 
-The **health bar is created automatically** if a number greater than 0 is in the max health (second) bubble. Temp HP and armor class bubbles work the same way. 
+The health bar is **created automatically** if a number greater than 0 is in the max health field. The temporary HP and armor class bubbles work the same way.
 
 ### For GMs
 
@@ -42,9 +51,24 @@ The hide switch:
 * Removes the context menu icon for the players.
 * Turns the health bar background black to indicate that it is hidden.
 
-The **settings** page allows GMs (but not players) to customize the position of the token stats and add name tags.
+Players don't get access to the hide switch. This is what they see when editing their character:
 
-![Recording 2023-10-24 120939](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/2045280c-4daa-4f70-a6cc-30632e119a90)
+![image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/17693b55-3758-4455-b9a8-c720054f7229)
+
+The **settings** menu allows GMs (but not players) to customize the extension to better fit their use case.
+
+
+![image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/1b0df2f5-f51f-43de-b156-4c27ba79d75e)
+
+|Menu Item|Description|
+|---|---|
+| ? | View these instructions in a new tab |
+| Vertical offset | Move all tokens' stats up and down to accommodate name tags or other extensions. |
+| Origin above token | Move all tokens' stats above them. |
+| Show monster health bars to players | Show just the health bar of hidden tokens to players. |
+| Monster health bar segments | When *Show monster health bars to players* is enabled the GM has the option to show a less granular version of the monsters' health to players.   For example: say you only want to show when a monster drops to half health, write 2 in this field. |
+| Name tags (beta) | This feature (which is still in development) adds a custom implementation of name tags to Owlbear Rodeo that will never overlap with a token's health bar.|
+| Create debug report | If your having problems with this extension and contact me for support I may ask you to use this. Otherwise, don't worry about it. |
 
 ## Support
 

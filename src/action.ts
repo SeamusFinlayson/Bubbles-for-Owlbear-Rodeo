@@ -101,11 +101,17 @@ async function setUpActionPopover(role?: "GM" | "PLAYER") {
             try {
                 (document.getElementById("parent") as HTMLDivElement).innerHTML = 
                 `
-                <p class="action-heading">
-                    Settings
-                </p>
-    
-                <hr class="action-hr">
+                <div class="action-heading">
+                    <p class="heading-p">Settings</p>
+                    <a 
+                        class="action-button help-button" 
+                        href="https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo#how-to-use"
+                        target="_blank"
+                        rel="noreferrer noopener"
+                    >?</a>
+                </div>
+          
+              <hr class="action-hr">
     
                 <div class="action-row">
                     <p class="settings-label">Must have GM access to change settings.</p>
