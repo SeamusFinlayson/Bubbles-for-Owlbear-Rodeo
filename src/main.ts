@@ -91,20 +91,23 @@ async function setUpInputs() {
             // Use validation appropriate to the input type
             if(statInput.type === "CHECKBOX") {
 
-                if (value !== null && typeof value === "boolean") {
-                    (document.getElementById(statInput.id) as HTMLInputElement).checked = value;
-                } else {
-                    (document.getElementById(statInput.id) as HTMLInputElement).checked = false;
+                let checkbox = document.getElementById(statInput.id);
+                if (checkbox !== null) {
+                    if (value !== null && typeof value === "boolean") {
+                        (document.getElementById(statInput.id) as HTMLInputElement).checked = value;
+                    } else {
+                        (document.getElementById(statInput.id) as HTMLInputElement).checked = false;
+                    }
                 }
 
             } else if (statInput.type === "TEXT") {
 
-                //Fix bug where first value is read as a string instead of a number
+                // Fix bug where first value is read as a string instead of a number
                 if (typeof value === "string") {
                     value = parseFloat(value);
                 }
 
-                if (value !== null && typeof value === "number") {
+                if (value !== null && typeof value === "number" && !isNaN(value)) {
                     (document.getElementById(statInput.id) as HTMLInputElement).value = String(value);
                 } else {
                     (document.getElementById(statInput.id) as HTMLInputElement).value = String(0);
@@ -117,7 +120,10 @@ async function setUpInputs() {
 
             // Un retrieved values get set to 0
             if (statInput.type === "CHECKBOX") {
-                (document.getElementById(statInput.id) as HTMLInputElement).checked = false;
+                let checkbox = document.getElementById(statInput.id);
+                if (checkbox !== null) {
+                    (document.getElementById(statInput.id) as HTMLInputElement).checked = false;
+                }
             } else if (statInput.type === "TEXT") {
                 (document.getElementById(statInput.id) as HTMLInputElement).value = String(0);
             }
