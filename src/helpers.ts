@@ -213,6 +213,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
         const textVerticalOffset = 1.5;
         const barHeight = 20;
         const disableAttachmentBehavior: AttachmentBehavior[] = ["ROTATION", "VISIBLE", "COPY", "SCALE"];
+        const disableHit = true;
 
         let offsetBubbles = 0;
         if (maxHealth > 0) {
@@ -258,6 +259,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
                 .id(item.id + "ac-background")
                 .visible(setVisibilityProperty)
                 .disableAttachmentBehavior(disableAttachmentBehavior)
+                .disableHit(disableHit)
                 .build();
 
                 const armorText = buildText()
@@ -279,6 +281,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
                 .id(item.id + "ac-label")
                 .visible(setVisibilityProperty)
                 .disableAttachmentBehavior(disableAttachmentBehavior)
+                .disableHit(disableHit)
                 .build();
 
                 addItemsArray.push(backgroundShape, armorText);
@@ -321,6 +324,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
                 .id(item.id + "temp-hp-background")
                 .visible(setVisibilityProperty)
                 .disableAttachmentBehavior(disableAttachmentBehavior)
+                .disableHit(disableHit)
                 .build();
 
                 const tempHealthText = buildText()
@@ -342,6 +346,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
                 .id(item.id + "temp-hp-label")
                 .visible(setVisibilityProperty)
                 .disableAttachmentBehavior(disableAttachmentBehavior)
+                .disableHit(disableHit)
                 .build();
 
                 addItemsArray.push(tempHealthBackgroundShape, tempHealthText);
@@ -380,6 +385,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
                 .id(item.id + "health-background")
                 .visible(setVisibilityProperty)
                 .disableAttachmentBehavior(disableAttachmentBehavior)
+                .disableHit(disableHit)
                 .build();
                 
                 var healthPercentage = 0;
@@ -409,6 +415,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
                 .id(item.id + "health")
                 .visible(setVisibilityProperty)
                 .disableAttachmentBehavior(disableAttachmentBehavior)
+                .disableHit(disableHit)
                 .build();
 
                 const healthText = buildText()
@@ -431,6 +438,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
                 .id(item.id + "health-label")
                 .visible(setVisibilityProperty)
                 .disableAttachmentBehavior(disableAttachmentBehavior)
+                .disableHit(disableHit)
                 .build();
 
                 //add health bar to add array
@@ -476,6 +484,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
             .id(item.id + "health-background")
             .visible(setVisibilityProperty)
             .disableAttachmentBehavior(disableAttachmentBehavior)
+            .disableHit(disableHit)
             .build();
             
             let healthPercentage = 0;
@@ -509,6 +518,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
             .id(item.id + "health")
             .visible(setVisibilityProperty)
             .disableAttachmentBehavior(disableAttachmentBehavior)
+            .disableHit(disableHit)
             .build();
 
             //add health bar to add array
@@ -558,6 +568,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
             .id(item.id + "name-tag-background")
             .visible(setVisibilityProperty)
             .disableAttachmentBehavior(disableAttachmentBehavior)
+            .disableHit(disableHit)
             .build();
 
             const nameTagText = buildText()
@@ -580,6 +591,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
             .id(item.id + "name-tag-text")
             .visible(setVisibilityProperty)
             .disableAttachmentBehavior(disableAttachmentBehavior)
+            .disableHit(disableHit)
             .build();
 
             addItemsArray.push(nameTagBackground, nameTagText);
