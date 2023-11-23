@@ -50,7 +50,7 @@ async function updateActionTheme(theme: Theme) {
         (labels[i] as HTMLLabelElement).style.color = theme.text.primary;
     }
 
-    const headers = document.getElementsByClassName("action-heading")
+    const headers = document.getElementsByClassName("heading-p")
     for (let i = 0; i < headers.length; i++) {
         (headers[i] as HTMLParagraphElement).style.color = theme.text.primary;
     }
