@@ -263,7 +263,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
                 .build();
 
                 const armorText = buildText()
-                .position({x: armorPosition.x - diameter / 2 - 0, y: armorPosition.y - diameter / 2 + textVerticalOffset})
+                .position({x: armorPosition.x - diameter / 2 - 0.5, y: armorPosition.y - diameter / 2 + textVerticalOffset})
                 .plainText("" + armorClass)
                 .textAlign("CENTER")
                 .textAlignVertical("MIDDLE")
@@ -328,7 +328,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
                 .build();
 
                 const tempHealthText = buildText()
-                .position({x: tempHealthPosition.x - diameter / 2 - 0, y: tempHealthPosition.y - diameter / 2 + textVerticalOffset})
+                .position({x: tempHealthPosition.x - diameter / 2 - 0.5, y: tempHealthPosition.y - diameter / 2 + textVerticalOffset})
                 .plainText("" + tempHealth)
                 .textAlign("CENTER")
                 .textAlignVertical("MIDDLE")
