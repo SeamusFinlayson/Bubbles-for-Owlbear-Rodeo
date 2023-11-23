@@ -5,12 +5,12 @@
   "author": "Seamus Finlayson",
   "homepage_url": "https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo",
   "icon": "/logo.png",
-  "background_url": "/background.html",
+  "background_url": "/src/background/background.html",
   "description": "Health Bars and Armor Class for your D&D adventures!",
   "action": {
     "title": "Stat Bubbles for D&D",
     "icon": "/status.svg",
-    "popover": "/actionPopover.html",
+    "popover": "/src/action/actionPopover.html",
     "height": 410,
     "width": 260
   }

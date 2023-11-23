@@ -1,6 +1,6 @@
 import OBR from "@owlbear-rodeo/sdk";
-import { getPluginId } from "./getPluginId";
-import menuIcon from "./status.svg";
+import { getPluginId } from "../getPluginId";
+import menuIcon from "../status.svg";
 import { initScene } from "./helpers";
 
 /**
@@ -10,7 +10,7 @@ import { initScene } from "./helpers";
 
 OBR.onReady( async () => {
 
-  fetch("./manifest.json")
+  fetch("/manifest.json")
   .then((response) => response.json())
   .then((json) => console.log(json["name"] + " - version: " + json["version"]));
 
@@ -37,7 +37,7 @@ OBR.onReady( async () => {
     ],
     shortcut: "Shift + S",
     embed: {
-      url: "/playerPopover.html",
+      url: "/src/edit-stats/editStatsPlayer.html",
       height: 82,
     }
   });
@@ -63,7 +63,7 @@ OBR.onReady( async () => {
     ],
     shortcut: "Shift + S",
     embed: {
-      url: "/popover.html",
+      url: "/src/edit-stats/editStatsGm.html",
       height: 132,
     }
   });

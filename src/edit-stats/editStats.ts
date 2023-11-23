@@ -1,5 +1,5 @@
 import OBR from "@owlbear-rodeo/sdk";
-import { getPluginId } from "./getPluginId";
+import { getPluginId } from "../getPluginId";
 import { StatMetadataID, statInputs } from "./StatInputClass";
 
 OBR.onReady(async () => {
