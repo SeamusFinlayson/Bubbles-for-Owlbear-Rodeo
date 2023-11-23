@@ -1,6 +1,6 @@
 import OBR, { Theme } from "@owlbear-rodeo/sdk";
-import { getPluginId } from "./getPluginId";
-import actionPopover from '../actionPopover.html?raw';
+import { getPluginId } from "../getPluginId";
+import actionPopover from "./actionPopover.html?raw";
 import "./actionStyle.css"
 import { actionInputs } from "./ActionInputClass";
 

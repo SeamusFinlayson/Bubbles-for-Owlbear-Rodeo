@@ -1,7 +1,7 @@
 import OBR, { AttachmentBehavior, Image, Item, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
-import { getPluginId } from "./getPluginId";
-import nameTagIcon from "./nameTag.svg";
-import { ActionMetadataId, actionInputs } from "./ActionInputClass";
+import { getPluginId } from "../getPluginId";
+import nameTagIcon from "../name-tags/nameTag.svg";
+import { ActionMetadataId, actionInputs } from "../action/ActionInputClass";
 
 var tokenIds: String[] = []; // for orphan health bar management
 var itemsLast: Image[] = []; // for item change checks
@@ -883,7 +883,7 @@ async function updateNameTagContextMenuIcon() {
             onClick(_context, elementId) {
             OBR.popover.open({
                 id: getPluginId("bubbles-name-tag"),
-                url: "/src/nameTagPopover.html",
+                url: "/src/name-tags/nameTagPopover.html",
                 height: 100,
                 width: 226,
                 anchorElementId: elementId,
@@ -916,7 +916,7 @@ async function updateNameTagContextMenuIcon() {
             onClick(_context, elementId) {
             OBR.popover.open({
                 id: getPluginId("bubbles-name-tag"),
-                url: "/src/playerNameTagPopover.html",
+                url: "/src/name-tags/playerNameTagPopover.html",
                 height: 50,
                 width: 226,
                 anchorElementId: elementId,

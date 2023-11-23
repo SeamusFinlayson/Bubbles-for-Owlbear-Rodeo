@@ -1,5 +1,5 @@
 import OBR from "@owlbear-rodeo/sdk";
-import { getPluginId } from "./getPluginId";
+import { getPluginId } from "../getPluginId";
 
 const inputIds = ["enable-name-tag", "hide-name-tag"]
 const metadataPath = "name-tag"
