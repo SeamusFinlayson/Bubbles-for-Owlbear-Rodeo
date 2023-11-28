@@ -196,7 +196,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
         bounds.height = Math.abs(bounds.height);
 
         //set color based on visibility
-        let healthBackgroundColor = "darkgrey";
+        let healthBackgroundColor = "#A4A4A4";
         const setVisibilityProperty = item.visible;
         const backgroundOpacity = 0.6;
         const healthOpacity = 0.5;
