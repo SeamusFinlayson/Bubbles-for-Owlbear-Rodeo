@@ -16,7 +16,7 @@ async function setUpTheme() {
         // Change text color
         const labels = document.getElementsByClassName("label");
         for (let i = 0; i < labels.length; i++) {
-            (labels[i] as HTMLLabelElement).style.color = (await theme).text.primary;
+            (labels[i] as HTMLLabelElement).style.color = "rgba(0, 0, 0, 0.8)";
         }
 
         const numberBoxes = document.getElementsByClassName("number-bubble");
