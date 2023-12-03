@@ -99,14 +99,14 @@ async function setUpActionPopover(role?: "GM" | "PLAYER") {
                 (document.getElementById("parent") as HTMLDivElement).innerHTML = 
                 `
                 <div class="action-heading">
-                    <p class="heading-p">Settings</p>
-                    <a 
-                        class="action-button help-button" 
-                        href="https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo#how-to-use"
-                        target="_blank"
-                        rel="noreferrer noopener"
-                    >?</a>
-                </div>
+                <p class="heading-p">Settings</p>
+                <a 
+                  class="action-button help-button" 
+                  href="https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo#support-the-extension"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >?</a>
+              </div>
           
               <hr class="action-hr">
     
