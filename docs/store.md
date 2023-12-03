@@ -2,7 +2,7 @@
 title: Stat Bubbles for D&D
 description: Health Bars and Armor Class for your D&D adventures!
 author: Seamus Finlayson
-image: https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/c5d0c62b-c022-41a0-b43b-8bd87d4a1dc0
+image: https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/c8871bc3-b27c-424e-b15b-5fd44a8f53ec
 icon: https://owlbear-rodeo-bubbles-extension.onrender.com/logo.png
 tags:
   - combat
@@ -12,28 +12,28 @@ learn-more: https://github.com/SeamusFinlayson/Bubbles-for-Owkbear-Rodeo
 
 # Stat Bubbles for D&D
 
-Health Bars and Armor Class for your D&D adventures! 
+**Health Bars and Armor Class for your D&D adventures!** 
 
-This extension can track:
+This extension provides a simple way to track:
 * Hit points
 * Maximum hit points
 * Temporary hit points
 * Armor class 
 * And hide the monsters' stats from players.
 
-## How to use
+## How it works
 
 ### Basic
 
 **Right click** on a token to access the **context menu embed** to edit a token's stats.
 
-![image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/08ab4d9f-7ce5-4536-8774-73c84f0730a7)
+![image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/a97e35c1-a2ef-44a4-affd-f5e027d94e9e)
 
 
 **This extension does math for you!** 
 To add 6 to your HP type +6 and press Enter. To subtract 6 from your HP type -6 and press Enter. This works for every stat.
 
-![Context menu embed](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/a71cf43d-b9db-46e8-9b9d-5eff77069491)
+<img src="https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/efb78c59-b37c-4166-8643-0a4d600b16c4" width=600>
 
 In a hurry? press **Tab** to cycle through the bubbles.
 
@@ -43,7 +43,7 @@ The health bar is **created automatically** if a number greater than 0 is in the
 
 ### For GMs
 
-Use the **hide switch** to hide the monster stats from your players. 
+Use the **hide switch** to hide the monster stats from your players.
 
 The hide switch:
 
@@ -53,10 +53,9 @@ The hide switch:
 
 Players don't get access to the hide switch. This is what they see when editing their character:
 
-![image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/17693b55-3758-4455-b9a8-c720054f7229)
+![image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/12b2e273-8a5f-4798-bd73-289ed3f91ceb)
 
 The **settings** menu allows GMs (but not players) to customize the extension to better fit their use case.
-
 
 ![image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/1b0df2f5-f51f-43de-b156-4c27ba79d75e)
 
@@ -70,6 +69,12 @@ The **settings** menu allows GMs (but not players) to customize the extension to
 | Name tags (beta) | This feature (which is still in development) adds a custom implementation of name tags to Owlbear Rodeo that will never overlap with a token's health bar.|
 | Create debug report | If your having problems with this extension and contact me for support I may ask you to use this. Otherwise, don't worry about it. |
 
+### Uninstalling
+
+Refresh your page after uninstalling the extension to clear health bars and stat bubbles from the scene.
+
 ## Support
 
-If you need support for this extension you can open an issue on [GitHub](https://github.com/SeamusFinlayson/Bubbles-for-Owkbear-Rodeo) or message me in the Owlbear Rodeo discord @Seamus.
+If you need support for this extension you can open an issue on [GitHub](https://github.com/SeamusFinlayson/Bubbles-for-Owkbear-Rodeo) or message me in the [Owlbear Rodeo discord](https://discord.gg/yWSErB6Qaj) @Seamus.
+
+If you like using this extension consider [buying me a coffee](https://ko-fi.com/seamusfinlayson).

@@ -1,7 +1,7 @@
 import OBR, { AttachmentBehavior, Image, Item, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
-import { getPluginId } from "./getPluginId";
-import nameTagIcon from "./nameTag.svg";
-import { ActionMetadataId, actionInputs } from "./ActionInputClass";
+import { getPluginId } from "../getPluginId";
+import nameTagIcon from "../name-tags/nameTag.svg";
+import { ActionMetadataId, actionInputs } from "../action/ActionInputClass";
 
 var tokenIds: String[] = []; // for orphan health bar management
 var itemsLast: Image[] = []; // for item change checks
@@ -42,68 +42,62 @@ async function startHealthBarUpdates() {
 
         // Handle item changes (Update health bars)
         const unsubscribeFromItems = OBR.scene.items.onChange(async (itemsFromCallback) => {
-            //console.log("Item change detected") // Debug only
-    
-            //get rid of health bars that no longer attach to anything
-            let imagesFromCallback: Image[] = [];
+
+            // Filter items for only images from character, mount, and prop layers
+            let images: Image[] = [];
             for (let item of itemsFromCallback) {
                 if ((item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)) {
-                    imagesFromCallback.push(item);
+                    images.push(item);
                 }
             }
-            await deleteOrphanHealthBars(imagesFromCallback);
-    
-            //get shapes from scene
-            const items: Image[] = await OBR.scene.items.getItems(
-                (item) => (item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)
-            );
-    
-            //console.log("Changed items length: " + items.length)
+
+            //get rid of health bars that no longer attach to anything
+            await deleteOrphanHealthBars(images);
     
             //create list of modified items
             var changedItems: Image[] = [];
-            for (let i = 0; i < items.length; i++) {
+            for (let i = 0; i < images.length; i++) {
     
                 if(i > itemsLast.length - 1) { //check for extra items at the end of the list 
-                    changedItems.push(items[i]);
+                    changedItems.push(images[i]);
                 } else if( //check for scaling changes
-                    !((itemsLast[i].scale.x == items[i].scale.x) &&
-                    (itemsLast[i].scale.y == items[i].scale.y) &&
-                    ((itemsLast[i].name == items[i].name) || !nameTags))
+                    !((itemsLast[i].scale.x == images[i].scale.x) &&
+                    (itemsLast[i].scale.y == images[i].scale.y) &&
+                    ((itemsLast[i].name == images[i].name) || !nameTags))
                 ) {
-                    deleteItemsArray.push(items[i].id + "health-label");
-                    deleteItemsArray.push(items[i].id + "name-tag-text");
-                    changedItems.push(items[i]);
+                    deleteItemsArray.push(images[i].id + "health-label");
+                    deleteItemsArray.push(images[i].id + "name-tag-text");
+                    changedItems.push(images[i]);
                 } else if( //check position, visibility, and metadata changes
-                    !((itemsLast[i].position.x == items[i].position.x) &&
-                    (itemsLast[i].position.y == items[i].position.y) &&
-                    (itemsLast[i].visible == items[i].visible) &&
-                    (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(items[i].metadata[getPluginId("metadata")])) &&
-                    (JSON.stringify(itemsLast[i].metadata[getPluginId("name-tag")]) == JSON.stringify(items[i].metadata[getPluginId("name-tag")])))
+                    !((itemsLast[i].position.x == images[i].position.x) &&
+                    (itemsLast[i].position.y == images[i].position.y) &&
+                    (itemsLast[i].visible == images[i].visible) &&
+                    (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(images[i].metadata[getPluginId("metadata")])) &&
+                    (JSON.stringify(itemsLast[i].metadata[getPluginId("name-tag")]) == JSON.stringify(images[i].metadata[getPluginId("name-tag")])))
                 ) { //update items
-                    changedItems.push(items[i]);
+                    changedItems.push(images[i]);
                 }
             }
-    
+
             //update array of all items currently on the board
-            itemsLast = items;
+            itemsLast = images;
 
             //draw health bars
             const role = await OBR.player.getRole();
             for (const item of changedItems) {
                 await drawHealthBar(item, role);
             }
-            //console.log("Detected " + changedItems.length + " changes");
 
             //bulk delete items
-            OBR.scene.local.deleteItems(deleteItemsArray);
+            await OBR.scene.local.deleteItems(deleteItemsArray);
 
             //bulk add items 
-            OBR.scene.local.addItems(addItemsArray);
+            await OBR.scene.local.addItems(addItemsArray);
     
             //clear add and delete arrays arrays
             addItemsArray.length = 0;
             deleteItemsArray.length = 0;
+
         });
 
         // Unsubscribe listeners that rely on the scene if it stops being ready
@@ -119,7 +113,7 @@ async function startHealthBarUpdates() {
     }
 };
 
-const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
+async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
     
     const metadata: any = item.metadata[getPluginId("metadata")];
 
@@ -200,14 +194,13 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
         const bounds = getImageBounds(item, dpi);
         bounds.width = Math.abs(bounds.width);
         bounds.height = Math.abs(bounds.height);
-        let disableAttachmentBehavior: AttachmentBehavior[] = ["ROTATION", "VISIBLE", "COPY", "SCALE"];
 
         //set color based on visibility
-        var healthBackgroundColor = "darkgrey";
-        let setVisibilityProperty = item.visible;
-        let backgroundOpacity = 0.6;
-        let healthOpacity = 0.5;
-        let bubbleOpacity = 0.6;
+        let healthBackgroundColor = "#A4A4A4";
+        const setVisibilityProperty = item.visible;
+        const backgroundOpacity = 0.6;
+        const healthOpacity = 0.5;
+        const bubbleOpacity = 0.6;
         if (!visible) {
             healthBackgroundColor = "black";
         }
@@ -219,19 +212,24 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
         const circleTextHeight = diameter + 0;
         const textVerticalOffset = 1.5;
         const barHeight = 20;
+        const disableAttachmentBehavior: AttachmentBehavior[] = ["ROTATION", "VISIBLE", "COPY", "SCALE"];
+        const disableHit = true;
 
         let offsetBubbles = 0;
         if (maxHealth > 0) {
             offsetBubbles = 1;
         }
 
-        let bottomMultiplier: number = 1;
+        let alignBottomMultiplier: number = 1;
         if (barAtTop) {
-            bottomMultiplier = -1;
+            alignBottomMultiplier = -1;
         }
         let origin = {
             x: item.position.x,
-            y: item.position.y + bottomMultiplier * bounds.height / 2 - verticalOffset,
+            y: item.position.y + alignBottomMultiplier * bounds.height / 2 - verticalOffset,
+        }
+        if (barAtTop) {
+            origin.y += 1;
         }
     
         if (!((role === "PLAYER") && !visible)) { //draw bar if it has max health and is visible
@@ -244,6 +242,9 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
                 armorPosition = {
                     x: origin.x + bounds.width / 2 - diameter / 2 - 2,
                     y: origin.y - diameter / 2 - 4 - barHeight * offsetBubbles,
+                }
+                if (barAtTop) {
+                    armorPosition.y = origin.y + diameter / 2;
                 }
 
                 const color = "cornflowerblue" //"#5c8fdb"
@@ -264,10 +265,11 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
                 .id(item.id + "ac-background")
                 .visible(setVisibilityProperty)
                 .disableAttachmentBehavior(disableAttachmentBehavior)
+                .disableHit(disableHit)
                 .build();
 
                 const armorText = buildText()
-                .position({x: armorPosition.x - diameter / 2 - 0, y: armorPosition.y - diameter / 2 + textVerticalOffset})
+                .position({x: armorPosition.x - diameter / 2 - 0.5, y: armorPosition.y - diameter / 2 + textVerticalOffset})
                 .plainText("" + armorClass)
                 .textAlign("CENTER")
                 .textAlignVertical("MIDDLE")
@@ -285,6 +287,7 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
                 .id(item.id + "ac-label")
                 .visible(setVisibilityProperty)
                 .disableAttachmentBehavior(disableAttachmentBehavior)
+                .disableHit(disableHit)
                 .build();
 
                 addItemsArray.push(backgroundShape, armorText);
@@ -310,6 +313,9 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
                         y: origin.y  - diameter / 2 - 4 - barHeight * offsetBubbles,
                     }
                 }
+                if (barAtTop) {
+                    tempHealthPosition.y = origin.y + diameter / 2;
+                }
 
                 const tempHealthBackgroundShape = buildShape()
                 .width(bounds.width)
@@ -327,10 +333,11 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
                 .id(item.id + "temp-hp-background")
                 .visible(setVisibilityProperty)
                 .disableAttachmentBehavior(disableAttachmentBehavior)
+                .disableHit(disableHit)
                 .build();
 
                 const tempHealthText = buildText()
-                .position({x: tempHealthPosition.x - diameter / 2 - 0, y: tempHealthPosition.y - diameter / 2 + textVerticalOffset})
+                .position({x: tempHealthPosition.x - diameter / 2 - 0.5, y: tempHealthPosition.y - diameter / 2 + textVerticalOffset})
                 .plainText("" + tempHealth)
                 .textAlign("CENTER")
                 .textAlignVertical("MIDDLE")
@@ -348,6 +355,7 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
                 .id(item.id + "temp-hp-label")
                 .visible(setVisibilityProperty)
                 .disableAttachmentBehavior(disableAttachmentBehavior)
+                .disableHit(disableHit)
                 .build();
 
                 addItemsArray.push(tempHealthBackgroundShape, tempHealthText);
@@ -386,6 +394,7 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
                 .id(item.id + "health-background")
                 .visible(setVisibilityProperty)
                 .disableAttachmentBehavior(disableAttachmentBehavior)
+                .disableHit(disableHit)
                 .build();
                 
                 var healthPercentage = 0;
@@ -415,6 +424,7 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
                 .id(item.id + "health")
                 .visible(setVisibilityProperty)
                 .disableAttachmentBehavior(disableAttachmentBehavior)
+                .disableHit(disableHit)
                 .build();
 
                 const healthText = buildText()
@@ -437,6 +447,7 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
                 .id(item.id + "health-label")
                 .visible(setVisibilityProperty)
                 .disableAttachmentBehavior(disableAttachmentBehavior)
+                .disableHit(disableHit)
                 .build();
 
                 //add health bar to add array
@@ -482,6 +493,7 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
             .id(item.id + "health-background")
             .visible(setVisibilityProperty)
             .disableAttachmentBehavior(disableAttachmentBehavior)
+            .disableHit(disableHit)
             .build();
             
             let healthPercentage = 0;
@@ -515,6 +527,7 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
             .id(item.id + "health")
             .visible(setVisibilityProperty)
             .disableAttachmentBehavior(disableAttachmentBehavior)
+            .disableHit(disableHit)
             .build();
 
             //add health bar to add array
@@ -564,6 +577,7 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
             .id(item.id + "name-tag-background")
             .visible(setVisibilityProperty)
             .disableAttachmentBehavior(disableAttachmentBehavior)
+            .disableHit(disableHit)
             .build();
 
             const nameTagText = buildText()
@@ -586,6 +600,7 @@ const drawHealthBar = async (item: Image, role: "PLAYER" | "GM") => {
             .id(item.id + "name-tag-text")
             .visible(setVisibilityProperty)
             .disableAttachmentBehavior(disableAttachmentBehavior)
+            .disableHit(disableHit)
             .build();
 
             addItemsArray.push(nameTagBackground, nameTagText);
@@ -877,7 +892,7 @@ async function updateNameTagContextMenuIcon() {
             onClick(_context, elementId) {
             OBR.popover.open({
                 id: getPluginId("bubbles-name-tag"),
-                url: "/src/nameTagPopover.html",
+                url: "/src/name-tags/nameTagPopover.html",
                 height: 100,
                 width: 226,
                 anchorElementId: elementId,
@@ -910,7 +925,7 @@ async function updateNameTagContextMenuIcon() {
             onClick(_context, elementId) {
             OBR.popover.open({
                 id: getPluginId("bubbles-name-tag"),
-                url: "/src/playerNameTagPopover.html",
+                url: "/src/name-tags/playerNameTagPopover.html",
                 height: 50,
                 width: 226,
                 anchorElementId: elementId,

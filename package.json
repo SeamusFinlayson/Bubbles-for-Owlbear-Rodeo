@@ -16,5 +16,8 @@
   },
   "dependencies": {
     "@owlbear-rodeo/sdk": "^2.1.0"
+  },
+  "engines": {
+    "node": "18.17.0"
   }
 }

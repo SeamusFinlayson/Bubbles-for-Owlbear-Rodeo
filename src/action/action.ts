@@ -1,6 +1,6 @@
 import OBR, { Theme } from "@owlbear-rodeo/sdk";
-import { getPluginId } from "./getPluginId";
-import actionPopover from '../actionPopover.html?raw';
+import { getPluginId } from "../getPluginId";
+import actionPopover from "./actionPopover.html?raw";
 import "./actionStyle.css"
 import { actionInputs } from "./ActionInputClass";
 
@@ -50,7 +50,7 @@ async function updateActionTheme(theme: Theme) {
         (labels[i] as HTMLLabelElement).style.color = theme.text.primary;
     }
 
-    const headers = document.getElementsByClassName("action-heading")
+    const headers = document.getElementsByClassName("heading-p")
     for (let i = 0; i < headers.length; i++) {
         (headers[i] as HTMLParagraphElement).style.color = theme.text.primary;
     }
@@ -99,14 +99,14 @@ async function setUpActionPopover(role?: "GM" | "PLAYER") {
                 (document.getElementById("parent") as HTMLDivElement).innerHTML = 
                 `
                 <div class="action-heading">
-                    <p class="heading-p">Settings</p>
-                    <a 
-                        class="action-button help-button" 
-                        href="https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo#how-to-use"
-                        target="_blank"
-                        rel="noreferrer noopener"
-                    >?</a>
-                </div>
+                <p class="heading-p">Settings</p>
+                <a 
+                  class="action-button help-button" 
+                  href="https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo#support-the-extension"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >?</a>
+              </div>
           
               <hr class="action-hr">
     
