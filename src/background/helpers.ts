@@ -228,6 +228,9 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
             x: item.position.x,
             y: item.position.y + alignBottomMultiplier * bounds.height / 2 - verticalOffset,
         }
+        if (barAtTop) {
+            origin.y += 1;
+        }
     
         if (!((role === "PLAYER") && !visible)) { //draw bar if it has max health and is visible
 
@@ -241,7 +244,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
                     y: origin.y - diameter / 2 - 4 - barHeight * offsetBubbles,
                 }
                 if (barAtTop) {
-                    armorPosition.y += barHeight + diameter + 4
+                    armorPosition.y = origin.y + diameter / 2;
                 }
 
                 const color = "cornflowerblue" //"#5c8fdb"
@@ -311,7 +314,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
                     }
                 }
                 if (barAtTop) {
-                    tempHealthPosition.y += barHeight + diameter + 4
+                    tempHealthPosition.y = origin.y + diameter / 2;
                 }
 
                 const tempHealthBackgroundShape = buildShape()
