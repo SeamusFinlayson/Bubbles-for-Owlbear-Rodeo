@@ -91,26 +91,26 @@ body {
 .health-background {
   width: 104;
   border-radius: 12px;
-  background-color: rgba(255, 0, 0, 0.3);
+  background-color: rgba(255, 0, 0, 0.4);
 
   outline-style:none;
-  outline-color: rgba(255, 0, 0, 0.3) !important;
+  outline-color: rgba(255, 0, 0, 0.4) !important;
 }
 
 .temp-background {
-  background-color: rgba(106, 142, 35, 0.3);
+  background-color: rgba(106, 142, 35, 0.4);
   border-radius: 50%;
 
   outline-style:solid;
-  outline-color: rgba(106, 142, 35, 0.3) !important;
+  outline-color: rgba(106, 142, 35, 0.4) !important;
 }
 
 .ac-background {
-  background-color: rgba(100, 148, 237, 0.3);
+  background-color: rgba(100, 148, 237, 0.4);
   border-radius: 50%;
 
   outline-style:solid;
-  outline-color: rgba(100, 148, 237, 0.3) !important;
+  outline-color: rgba(100, 148, 237, 0.4) !important;
 }
 
 .stat-background.dark {
@@ -129,7 +129,7 @@ body {
 
 .stat-background.dark:focus-within {
   outline-style:solid;
-  outline-width: px;
+  outline-width: 2px;
   outline-offset: 0px;
 }
 
@@ -147,7 +147,7 @@ body {
   padding: 1px 0 0 0;
   margin: 0;
 
-  color: white;
+  color: rgba(255, 255, 255, 0.9);
   background-color: rgba(0, 0, 0, 0);
 
   text-align: center;
@@ -167,11 +167,11 @@ body {
 
 .number-bubble.dark:focus {
   /* box-shadow: 0 0 2px #ffffff; */
-  background-color: rgba(0, 0, 0, 0.14)  !important;
+  background-color: rgba(0, 0, 0, 0.2)  !important;
 }
 
 .number-bubble.dark:hover {
-  background-color: rgba(0, 0, 0, 0.07);
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 .number-bubble.dark::selection {
@@ -187,7 +187,7 @@ body {
   padding: 1px 0 0 0;
   margin: 0;
 
-  color: black;
+  color: rgba(0, 0, 0, 87);
   background-color: rgba(0, 0, 0, 0);
 
   text-align: center;
