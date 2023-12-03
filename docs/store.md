@@ -43,7 +43,7 @@ The health bar is **created automatically** if a number greater than 0 is in the
 
 ### For GMs
 
-Use the **hide switch** to hide the monster stats from your players. 
+Use the **hide switch** to hide the monster stats from your players.
 
 The hide switch:
 
