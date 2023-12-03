@@ -8,6 +8,10 @@ Track hit points and armor class with Roll20 style bubbles using this [Owlbear R
 
 Visit the [Owlbear Rodeo store](https://extensions.owlbear.rodeo/bubble-tracker) to install the extension.
 
+## Support the extension
+
+If you like using this extension consider [buying me a coffee](https://ko-fi.com/seamusfinlayson).
+
 ### How to use
 
 ### Basic
