@@ -10,7 +10,9 @@ Visit the [Owlbear Rodeo store](https://extensions.owlbear.rodeo/bubble-tracker)
 
 ## Support the extension
 
-If you like using this extension consider [buying me a coffee](https://ko-fi.com/seamusfinlayson).
+If you like using this extension consider supporting it on [ko-fi](https://ko-fi.com/seamusfinlayson).
+
+<a href='https://ko-fi.com/O5O7RSACL' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
 ## How it works
 
@@ -19,7 +21,6 @@ If you like using this extension consider [buying me a coffee](https://ko-fi.com
 **Right click** on a token to access the **context menu embed** to edit a token's stats.
 
 ![image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/a97e35c1-a2ef-44a4-affd-f5e027d94e9e)
-
 
 **This extension does math for you!** 
 To add 6 to your HP type +6 and press Enter. To subtract 6 from your HP type -6 and press Enter. This works for every stat.
