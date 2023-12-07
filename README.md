@@ -1,6 +1,6 @@
 # **Stat Bubbles for D&D** Extension for Owlbear Rodeo
 
-Track hit points and armor class with Roll20 style bubbles using this [Owlbear Rodeo](https://www.owlbear.rodeo/) extension.
+Track hit points and armor class using this [Owlbear Rodeo](https://www.owlbear.rodeo/) extension.
 
 ![image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/c5d0c62b-c022-41a0-b43b-8bd87d4a1dc0)
 
