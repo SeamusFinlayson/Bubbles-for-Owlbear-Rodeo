@@ -2,7 +2,7 @@
 
 Track hit points and armor class using this [Owlbear Rodeo](https://www.owlbear.rodeo/) extension.
 
-![image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/c5d0c62b-c022-41a0-b43b-8bd87d4a1dc0)
+![Stat Bubbles GitHub Image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/079334d0-a813-4a6a-a225-19a07a1f3f53)
 
 ## Installing
 
