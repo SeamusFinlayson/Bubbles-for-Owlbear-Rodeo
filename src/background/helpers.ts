@@ -13,7 +13,6 @@ var nameTags: boolean = false;
 var showBars: boolean = false;
 var segments: number = 0;
 var sceneListenersSet = false;
-let itemsMutex = false;
 let userRoleLast: "GM" | "PLAYER";
 
 
@@ -52,11 +51,6 @@ async function startHealthBarUpdates() {
 
         // Handle item changes (Update health bars)
         const unsubscribeFromItems = OBR.scene.items.onChange(async (itemsFromCallback) => {
-
-            while (itemsMutex) {
-                await new Promise(resolve => setTimeout(resolve, 20 + 10*Math.random()));
-            }
-            itemsMutex = true;
 
             // Filter items for only images from character, mount, and prop layers
             let images: Image[] = [];
@@ -112,9 +106,6 @@ async function startHealthBarUpdates() {
             //clear add and delete arrays arrays
             addItemsArray.length = 0;
             deleteItemsArray.length = 0;
-
-            itemsMutex = false;
-
         });
 
         // Unsubscribe listeners that rely on the scene if it stops being ready
@@ -669,6 +660,8 @@ async function deleteOrphanHealthBars(newItems?: Image[]) {
 }
 
 async function refreshAllHealthBars() {
+
+    //console.log("refresh")
 
     //get shapes from scene
     const items: Image[] = await OBR.scene.items.getItems(
