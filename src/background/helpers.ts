@@ -3,16 +3,19 @@ import { getPluginId } from "../getPluginId";
 import nameTagIcon from "../name-tags/nameTag.svg";
 import { ActionMetadataId, actionInputs } from "../action/ActionInputClass";
 
-var tokenIds: String[] = []; // for orphan health bar management
-var itemsLast: Image[] = []; // for item change checks
-var addItemsArray: Item[] = []; // for bulk addition or changing of items  
-var deleteItemsArray: string[] = []; // for bulk deletion of scene items
+let tokenIds: String[] = []; // for orphan health bar management
+let itemsLast: Image[] = []; // for item change checks
+let addItemsArray: Item[] = []; // for bulk addition or changing of items  
+let deleteItemsArray: string[] = []; // for bulk deletion of scene items
 var verticalOffset: any = 0;
 var barAtTop: boolean = false;
 var nameTags: boolean = false;
 var showBars: boolean = false;
 var segments: number = 0;
 var sceneListenersSet = false;
+let itemsMutex = false;
+let userRoleLast: "GM" | "PLAYER";
+
 
 async function startHealthBarUpdates() {
 
@@ -24,11 +27,18 @@ async function startHealthBarUpdates() {
         // Don't run this again unless the listeners have been unsubscribed
         sceneListenersSet = true;
 
+        // Initialize previous user role
+        userRoleLast = await OBR.player.getRole();
+
         // Handle role changes
         const unSubscribeFromPlayer = OBR.player.onChange(async () => {
-            refreshAllHealthBars();
-            // console.log("helper player change: ")
-            // console.log(player)
+
+            // Do a refresh if player role change is detected
+            const userRole = await OBR.player.getRole();
+            if (userRole !== userRoleLast) {
+                refreshAllHealthBars();
+                userRoleLast = userRole;
+            }
         });
 
         // Handle metadata changes
@@ -42,6 +52,11 @@ async function startHealthBarUpdates() {
 
         // Handle item changes (Update health bars)
         const unsubscribeFromItems = OBR.scene.items.onChange(async (itemsFromCallback) => {
+
+            while (itemsMutex) {
+                await new Promise(resolve => setTimeout(resolve, 20 + 10*Math.random()));
+            }
+            itemsMutex = true;
 
             // Filter items for only images from character, mount, and prop layers
             let images: Image[] = [];
@@ -98,6 +113,8 @@ async function startHealthBarUpdates() {
             addItemsArray.length = 0;
             deleteItemsArray.length = 0;
 
+            itemsMutex = false;
+
         });
 
         // Unsubscribe listeners that rely on the scene if it stops being ready
@@ -114,6 +131,8 @@ async function startHealthBarUpdates() {
 };
 
 async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
+
+    //console.log("draw")
     
     const metadata: any = item.metadata[getPluginId("metadata")];
 
@@ -635,8 +654,6 @@ async function deleteOrphanHealthBars(newItems?: Image[]) {
     for(const item of newItems) {
         newItemIds.push(item.id);
     }
-    
-    var orphanFound = false; 
 
     //check for orphaned health bars
     for(const oldId of tokenIds) {
@@ -644,22 +661,11 @@ async function deleteOrphanHealthBars(newItems?: Image[]) {
 
             // delete orphaned health bar
             addAllItemAttachmentsToDeleteList(oldId);
-
-            orphanFound = true;
         }
     }
 
-    OBR.scene.local.deleteItems(deleteItemsArray);
-    deleteItemsArray.length = 0;
-
     // update item list with current values
     tokenIds = newItemIds;
-
-    // update current items list
-    if(orphanFound) {
-        itemsLast = newItems;
-        //console.log("orphan found: " + orphanFound)
-    }
 }
 
 async function refreshAllHealthBars() {
