@@ -53,43 +53,53 @@ async function startHealthBarUpdates() {
         const unsubscribeFromItems = OBR.scene.items.onChange(async (itemsFromCallback) => {
 
             // Filter items for only images from character, mount, and prop layers
-            let images: Image[] = [];
+            let imagesFromCallback: Image[] = [];
             for (let item of itemsFromCallback) {
                 if ((item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)) {
-                    images.push(item);
+                    imagesFromCallback.push(item);
                 }
             }
 
             //get rid of health bars that no longer attach to anything
-            await deleteOrphanHealthBars(images);
+            await deleteOrphanHealthBars(imagesFromCallback);
     
-            //create list of modified items
+            //create list of modified and new items, skipping deleted items
             var changedItems: Image[] = [];
-            for (let i = 0; i < images.length; i++) {
+            let s = 0; // # items skipped in itemsLast array, caused by deleted items
+            let newCount = 0;
+            for (let i = 0; i < imagesFromCallback.length; i++) {
     
-                if(i > itemsLast.length - 1) { //check for extra items at the end of the list 
-                    changedItems.push(images[i]);
+                if(i > itemsLast.length - s - 1) { //check for new items at the end of the list
+                    changedItems.push(imagesFromCallback[i]);
+                    newCount++;
+                } else if (itemsLast[i+s].id !== imagesFromCallback[i].id) {
+                    s++; // Skip an index in itemsLast
+                    i--; // Reuse the index item in imagesFromCallback
                 } else if( //check for scaling changes
-                    !((itemsLast[i].scale.x == images[i].scale.x) &&
-                    (itemsLast[i].scale.y == images[i].scale.y) &&
-                    ((itemsLast[i].name == images[i].name) || !nameTags))
+                    !((itemsLast[i+s].scale.x == imagesFromCallback[i].scale.x) &&
+                    (itemsLast[i+s].scale.y == imagesFromCallback[i].scale.y) &&
+                    ((itemsLast[i+s].name == imagesFromCallback[i].name) || !nameTags))
                 ) {
-                    deleteItemsArray.push(images[i].id + "health-label");
-                    deleteItemsArray.push(images[i].id + "name-tag-text");
-                    changedItems.push(images[i]);
+                    // Attachments must be deleted to prevent ghost selection highlight bug
+                    deleteItemsArray.push(imagesFromCallback[i].id + "health-label");
+                    deleteItemsArray.push(imagesFromCallback[i].id + "name-tag-text");
+                    changedItems.push(imagesFromCallback[i]);
                 } else if( //check position, visibility, and metadata changes
-                    !((itemsLast[i].position.x == images[i].position.x) &&
-                    (itemsLast[i].position.y == images[i].position.y) &&
-                    (itemsLast[i].visible == images[i].visible) &&
-                    (JSON.stringify(itemsLast[i].metadata[getPluginId("metadata")]) == JSON.stringify(images[i].metadata[getPluginId("metadata")])) &&
-                    (JSON.stringify(itemsLast[i].metadata[getPluginId("name-tag")]) == JSON.stringify(images[i].metadata[getPluginId("name-tag")])))
+                    !((itemsLast[i+s].position.x == imagesFromCallback[i].position.x) &&
+                    (itemsLast[i+s].position.y == imagesFromCallback[i].position.y) &&
+                    (itemsLast[i+s].visible == imagesFromCallback[i].visible) &&
+                    (JSON.stringify(itemsLast[i+s].metadata[getPluginId("metadata")]) == JSON.stringify(imagesFromCallback[i].metadata[getPluginId("metadata")])) &&
+                    (JSON.stringify(itemsLast[i+s].metadata[getPluginId("name-tag")]) == JSON.stringify(imagesFromCallback[i].metadata[getPluginId("name-tag")])))
                 ) { //update items
-                    changedItems.push(images[i]);
+                    changedItems.push(imagesFromCallback[i]);
                 }
             }
 
+            // console.log("Skipped " + s + " items");
+            // console.log(newCount + " new items");
+
             //update array of all items currently on the board
-            itemsLast = images;
+            itemsLast = imagesFromCallback;
 
             //draw health bars
             const role = await OBR.player.getRole();
@@ -123,7 +133,7 @@ async function startHealthBarUpdates() {
 
 async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
 
-    //console.log("draw")
+    // console.log("draw")
     
     const metadata: any = item.metadata[getPluginId("metadata")];
 
