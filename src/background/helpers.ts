@@ -66,12 +66,12 @@ async function startHealthBarUpdates() {
             //create list of modified and new items, skipping deleted items
             var changedItems: Image[] = [];
             let s = 0; // # items skipped in itemsLast array, caused by deleted items
-            let newCount = 0;
+            //let newCount = 0;
             for (let i = 0; i < imagesFromCallback.length; i++) {
     
                 if(i > itemsLast.length - s - 1) { //check for new items at the end of the list
                     changedItems.push(imagesFromCallback[i]);
-                    newCount++;
+                    //newCount++;
                 } else if (itemsLast[i+s].id !== imagesFromCallback[i].id) {
                     s++; // Skip an index in itemsLast
                     i--; // Reuse the index item in imagesFromCallback
