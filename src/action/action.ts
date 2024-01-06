@@ -45,31 +45,37 @@ OBR.onReady(async ()=> {
 async function updateActionTheme(theme: Theme) {
 
     //change text color
-    const labels = document.getElementsByClassName("settings-label")
+    const labels = document.getElementsByClassName("settings-label");
     for (let i = 0; i < labels.length; i++) {
         (labels[i] as HTMLLabelElement).style.color = theme.text.primary;
     }
 
-    const headers = document.getElementsByClassName("heading-p")
+    const headers = document.getElementsByClassName("heading-p");
     for (let i = 0; i < headers.length; i++) {
         (headers[i] as HTMLParagraphElement).style.color = theme.text.primary;
     }
 
-    const buttons = document.getElementsByClassName("action-button")
+    const buttons = document.getElementsByClassName("action-button");
     for (let i = 0; i < buttons.length; i++) {
         (buttons[i] as HTMLButtonElement).style.color = theme.text.primary;
     }
 
-    const inputs = document.getElementsByClassName("settings-input")
+    const inputs = document.getElementsByClassName("settings-input");
     for (let i = 0; i < inputs.length; i++) {
         (inputs[i] as HTMLInputElement).style.color = theme.text.primary;
     }
 
     if (theme.mode == "LIGHT") {
 
-        const hrs = document.getElementsByClassName("action-hr")
+        const hrs = document.getElementsByClassName("action-hr");
         for (let i = 0; i < hrs.length; i++) {
             (hrs[i] as HTMLHRElement).style.borderColor = "rgba(0, 0, 0, 0.15)";
+        }
+
+        const buttonSvgs = document.getElementsByClassName("button-svg");
+        for (let i = 0; i < buttonSvgs.length; i++) {
+            (buttonSvgs[i] as HTMLElement).classList.add("button-svg-light-mode");
+            (buttonSvgs[i] as HTMLElement).classList.remove("button-svg-dark-mode");
         }
         
     } else {
@@ -79,6 +85,11 @@ async function updateActionTheme(theme: Theme) {
             (hrs[i] as HTMLHRElement).style.borderColor = "rgba(255, 255, 255, 0.12)";
         }
 
+        const buttonSvgs = document.getElementsByClassName("button-svg");
+        for (let i = 0; i < buttonSvgs.length; i++) {
+            (buttonSvgs[i] as HTMLElement).classList.add("button-svg-dark-mode");
+            (buttonSvgs[i] as HTMLElement).classList.remove("button-svg-light-mode");
+        }
     }
 }
 

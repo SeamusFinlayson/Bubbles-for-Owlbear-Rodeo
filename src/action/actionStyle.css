@@ -119,10 +119,9 @@ body {
 }
 
 .patreon-button {
-  padding: 8px 10px;
-  font-weight: 700;
-  width: 14px;
-  height: 18px;
+  padding: 6px 6px;
+  width: 22px;
+  height: 22px;
   justify-self: end;
   text-decoration: none;
 
@@ -137,10 +136,9 @@ body {
 }
 
 .change-log-button {
-  padding: 6px 6px;
-  font-weight: 700;
-  width: 22px;
-  height: 22px;
+  padding: 5px 5px;
+  width: 24px;
+  height: 24px;
   justify-self: end;
   text-decoration: none;
 
@@ -149,9 +147,22 @@ body {
   justify-content: center;
 }
 
+.button-svg-dark-mode {
+  fill: white;
+  stroke: white;
+}
+
+.button-svg-light-mode {
+  fill: rgb(30, 30, 30, 0.87);
+  stroke: rgb(30, 30, 30, 0.87);
+}
+
+.button-svg {
+  display: block;
+}
+
 .help-button {
   padding: 6px 6px;
-  font-weight: 700;
   width: 22px;
   height: 22px;
   justify-self: end;
