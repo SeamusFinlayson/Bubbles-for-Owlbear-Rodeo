@@ -8,13 +8,13 @@ Track hit points and armor class using this [Owlbear Rodeo](https://www.owlbear.
 
 Visit the [Owlbear Rodeo store](https://extensions.owlbear.rodeo/bubble-tracker) to install the extension.
 
-## Support the extension
+## Support the Extension
 
-If you like using this extension consider supporting it on [ko-fi](https://ko-fi.com/seamusfinlayson).
+Join my [Patreon](https://www.patreon.com/SeamusFinlayson) for updates about the extension's development. 
 
-<a href='https://ko-fi.com/O5O7RSACL' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+If you want to access in depth updates and impact the direction of future development and projects consider joining the paid tier.
 
-## How it works
+## How It Works
 
 ### Basic
 
