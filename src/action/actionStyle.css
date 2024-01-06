@@ -8,7 +8,7 @@ body {
 
 .action-heading {
   display: grid;
-  grid-template-columns: minmax(162px, auto) 50px;
+  grid-template-columns: minmax(74px, auto) repeat(3, 42px);
   margin: 16px 16px;
   padding: 0;
 
@@ -25,9 +25,9 @@ body {
   margin: 0
 }
   
-  
 .action-hr {
   margin: 12px 16px;
+  min-width: 211px;
   flex-shrink: 0;
   border-width: 0px 0px thin;
   border-style: solid;
@@ -118,11 +118,59 @@ body {
   transform: translateY(2px);
 }
 
-.help-button {
-  padding: 8px 12px;
-  font-weight: 700;
+.patreon-button {
+  padding: 6px 6px;
+  width: 22px;
+  height: 22px;
   justify-self: end;
   text-decoration: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.patreon-logo {
+  fill: white;
+  height: 8px;
+}
+
+.change-log-button {
+  padding: 5px 5px;
+  width: 24px;
+  height: 24px;
+  justify-self: end;
+  text-decoration: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button-svg-dark-mode {
+  fill: white;
+  stroke: white;
+}
+
+.button-svg-light-mode {
+  fill: rgb(30, 30, 30, 0.87);
+  stroke: rgb(30, 30, 30, 0.87);
+}
+
+.button-svg {
+  display: block;
+}
+
+.help-button {
+  padding: 6px 6px;
+  width: 22px;
+  height: 22px;
+  justify-self: end;
+  text-decoration: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .action-p {
