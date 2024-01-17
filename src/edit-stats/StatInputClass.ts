@@ -1,4 +1,4 @@
-export type StatMetadataID =  "health"| "max health"| "temporary health"| "armor class"| "hide";
+export type StatMetadataID = "health" | "max health" | "temporary health" | "armor class" | "hide";
 
 class StatInput {
     id: StatMetadataID;

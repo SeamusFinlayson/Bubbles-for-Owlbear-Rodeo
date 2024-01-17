@@ -68,6 +68,31 @@ OBR.onReady( async () => {
     }
   });
 
+  OBR.contextMenu.create({
+    id: getPluginId("damage-tool"),
+    icons: [
+      {
+        icon: menuIcon,
+        label: "Deal Damage",
+        filter: {
+          every: [],
+          roles: ["GM"],
+        },
+      },
+    ],
+    shortcut: "Shift + S",
+    onClick(_, elementId) {
+      OBR.popover.open({
+        id: getPluginId("damage-tool-popover"),
+        url: "/src/damage-tool/damageTool.html",
+        height: 550,
+        width: 700,
+        anchorElementId: elementId,
+      })
+
+    }
+  });
+
   //startHealthBars(await OBR.scene.isReady());
   initScene();
 });
