@@ -47,7 +47,7 @@ export function getTheme(theme?: Theme) {
                         }
                     },
                     InputLabelProps: {
-                        shrink:false,
+                        // shrink:false,
                         // disabled:true
                         
                     },
@@ -71,7 +71,8 @@ export function getTheme(theme?: Theme) {
                         color: grey[500],
                     },
                 }
-            }
+            },
+            
         },
     });
 }

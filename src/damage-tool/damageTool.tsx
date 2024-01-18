@@ -5,6 +5,7 @@ import { Token } from "./Token";
 import { createContext, useContext, useState } from "react";
 import { getTheme } from "./OBRThemeProvider";
 import { Box, Paper, Radio, TextField, ThemeProvider, Tooltip } from "@mui/material";
+import TokenList from "./components/TokenList";
 
 const validTokens: Token[] = [];
 
@@ -34,20 +35,26 @@ function App(): JSX.Element {
 
     return (
         <>
-            <div className="input-row">
-                <TextField type="number" label="Change health by..." onChange={evt => updateHealth(parseFloat(evt.target.value))} autoFocus></TextField>
-                {/* <input className="health-input" type="number" placeholder="Change Health" onChange={evt => updateHealth(parseFloat(evt.target.value))} autoFocus></input> */}
-            </div>
-            <div className="mother-grid">
-                {/* <h2>Current</h2>
-                <div></div>
-                <h2>New</h2> */}
+            <Box sx={{
+                paddingX: 1,
+            }}>
+                <TextField type="number" label="Change health by..."
+                    onChange={evt => updateHealth(parseFloat(evt.target.value))} autoFocus
+                ></TextField>
+            </Box>
+
+            {/* <div className="mother-grid">
                 <CurrentTokensFrame></CurrentTokensFrame>
                 <h1 className="divider-arrow">&#8594;</h1>
                 <AddedHealthContext.Provider value={addedHealth}>
                     <NewTokensFrame></NewTokensFrame>
                 </AddedHealthContext.Provider>
-            </div>
+            </div> */}
+
+            <AddedHealthContext.Provider value={addedHealth}>
+                <TokenList tokensProp={validTokens} addedHealth={addedHealth}></TokenList>
+            </AddedHealthContext.Provider>
+
             <div className="bottom-row">
                 <button className="cancel-button">Cancel (escape)</button>
                 <button className="confirm-button">Confirm (enter)</button>
@@ -111,7 +118,7 @@ function CurrentTokenElement({ token }: any) {
 
     return (
         <Paper className="current-token-element" sx={tokenElementStyle}>
-            <p className="token-name" style={{fontWeight:"normal"}}>{displayName}</p>
+            <p className="token-name" style={{ fontWeight: "normal" }}>{displayName}</p>
             <p style={healthColorStyle}>{token.health}</p>
             <p>{token.maxHealth}</p>
             <p style={tempHealthColorStyle}>{token.tempHealth}</p>
@@ -291,7 +298,7 @@ OBR.onReady(async () => {
     //         color: "text.secondary",
     //         fontWeight: "bold"
     //     }
-        
+
     //     tokenElementStyle = {
     //         bgcolor: "rgb(61, 64, 81)",
     //         color: "text.primary",
