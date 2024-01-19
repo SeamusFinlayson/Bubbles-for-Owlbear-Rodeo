@@ -1,11 +1,12 @@
-import OBR from "@owlbear-rodeo/sdk";
+import OBR, { Item } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "../getPluginId";
 import { createRoot } from 'react-dom/client';
 import { Token } from "./Token";
 import { createContext, useContext, useState } from "react";
 import { getTheme } from "./OBRThemeProvider";
-import { Box, Paper, Radio, TextField, ThemeProvider, Tooltip } from "@mui/material";
+import { Box, Button, Paper, Radio, TextField, ThemeProvider, Tooltip } from "@mui/material";
 import TokenList from "./components/TokenList";
+import { StatMetadataID } from "../edit-stats/StatInputClass";
 
 const validTokens: Token[] = [];
 
@@ -26,13 +27,30 @@ let tokenElementStyle = {
 
 function App(): JSX.Element {
 
+    // Component state
     const [addedHealth, setAddedHealth] = useState(0);
 
     function updateHealth(add_health: number) {
         setAddedHealth((isNaN(add_health) ? 0 : add_health));
-        console.log("added health" + addedHealth)
+        // console.log("added health" + addedHealth)
     }
 
+    // Keyboard button controls
+    document.addEventListener('keydown', (event) => {
+
+        if (event.key == "Escape") {
+            //console.log("Cancel")
+            handleCancelButton();
+        }
+
+        if (event.key == "Enter") {
+            //console.log("Confirm")
+            handleConfirmButton(Math.trunc(addedHealth))
+        }
+
+    }, false);
+
+    // App content
     return (
         <>
             <Box sx={{
@@ -51,16 +69,113 @@ function App(): JSX.Element {
                 </AddedHealthContext.Provider>
             </div> */}
 
-            <AddedHealthContext.Provider value={addedHealth}>
-                <TokenList tokensProp={validTokens} addedHealth={addedHealth}></TokenList>
-            </AddedHealthContext.Provider>
+            <TokenList tokensProp={validTokens} addedHealth={Math.trunc(addedHealth)}></TokenList>
 
-            <div className="bottom-row">
-                <button className="cancel-button">Cancel (escape)</button>
-                <button className="confirm-button">Confirm (enter)</button>
-            </div>
+            <Box sx={{
+                display: "flex",
+                flexDirection: "row",
+                flexWrap: "nowrap",
+                padding: "8px",
+                gap: "8px",
+                position: "fixed",
+                bottom: "0",
+                left: "0",
+                right: "0",
+            }}>
+                <Button variant="outlined" sx={{ flexGrow: 1 }} onClick={handleCancelButton}>Cancel (escape)</Button>
+                <Button variant="contained" sx={{ flexGrow: 1 }} onClick={function () { handleConfirmButton(Math.trunc(addedHealth)) }}>Confirm (enter)</Button>
+            </Box>
         </>
     );
+}
+
+function handleCancelButton() {
+
+    // Close popover
+    OBR.popover.close(getPluginId("damage-tool-popover"));
+}
+
+function handleConfirmButton(addedHealth: number) {
+
+    const validItems: Item[] = [];
+    validTokens.forEach((token) => {
+        validItems.push(token.item);
+    });
+
+    const healthId: StatMetadataID = "health";
+    const tempHealthId: StatMetadataID = "temporary health";
+
+    OBR.scene.items.updateItems(validItems, (items) => {
+        for (let i = 0; i < items.length; i++) {
+
+            if (items[i].id !== validTokens[i].item.id) {
+                throw("Error: Item mismatch in Stat Bubbles Damage Tool, could not update token.")
+            }
+            
+            let [newHealth, newTempHealth] = calculateNewHealth(
+                validTokens[i].health.valueOf(),
+                validTokens[i].maxHealth.valueOf(),
+                validTokens[i].tempHealth.valueOf(),
+                addedHealth
+            );
+
+            const newMetadata = {[healthId]: newHealth, [tempHealthId]: newTempHealth};
+
+            let retrievedMetadata: any;
+            if (items[i].metadata[getPluginId("metadata")]) {
+                retrievedMetadata = JSON.parse(JSON.stringify(items[i].metadata[getPluginId("metadata")]));
+            }
+
+            const combinedMetadata = {...retrievedMetadata, ...newMetadata}; //overwrite only the modified value
+
+            items[i].metadata[getPluginId("metadata")] = combinedMetadata;
+
+        }
+    });
+
+    // Close popover
+    OBR.popover.close(getPluginId("damage-tool-popover"));
+}
+
+function calculateNewHealth(health: number, maxHealth: number, tempHealth: number, addedHealth: number) {
+
+    let newHealth: number;
+    let newTempHealth: number;
+
+    if (addedHealth > 0) { // Healing
+
+        let healing = addedHealth;
+
+        newHealth = health + healing;
+        newTempHealth = tempHealth;
+
+        if (newHealth > maxHealth) {
+            newHealth = maxHealth;
+        }
+
+    } else { // Damage
+
+        let damage = Math.abs(addedHealth);
+
+        if (tempHealth <= 0) { // Doesn't have temp health
+
+            newHealth = health - damage;
+            newTempHealth = tempHealth;
+
+        } else { // Has temp health
+
+            if (tempHealth > damage) { // Damage only changes temp health
+                newHealth = health;
+                newTempHealth = tempHealth - damage;
+            } else { //damage overflows into regular health
+                newHealth = health + tempHealth - damage;
+                newTempHealth = 0;
+            }
+
+        }
+    }
+
+    return [newHealth, newTempHealth];
 }
 
 // Current tokens
@@ -307,7 +422,6 @@ OBR.onReady(async () => {
     // }
 
     const theme = getTheme(themeObject)
-    console.log("done")
 
     root.render(
         <ThemeProvider theme={theme}>
@@ -377,8 +491,3 @@ async function parseSelection() {
 
 
 }
-
-async function setupDocument() {
-
-}
-

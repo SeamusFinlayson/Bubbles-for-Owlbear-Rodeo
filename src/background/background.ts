@@ -6,7 +6,7 @@ import { initScene } from "./helpers";
 /**
  * This file represents the background script run when the plugin loads.
  * It creates the context menu items.
- */
+*/
 
 OBR.onReady( async () => {
 
@@ -86,7 +86,7 @@ OBR.onReady( async () => {
         id: getPluginId("damage-tool-popover"),
         url: "/src/damage-tool/damageTool.html",
         height: 550,
-        width: 700,
+        width: 600,
         anchorElementId: elementId,
       })
 

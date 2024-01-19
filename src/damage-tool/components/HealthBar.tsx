@@ -1,13 +1,14 @@
 import { Box, LinearProgress, linearProgressClasses } from "@mui/material";
 import { styled } from '@mui/material/styles';
 
-export default function HealthBar({ health, maxHealth, addedHealth }: any): JSX.Element {
+export default function HealthBar({ health, maxHealth, tempHealth, addedHealth  }: any): JSX.Element {
 
     // TODO: difficult to distinguish between healing and damage visually
     // both look like damage
 
     const solidHealthColor = "rgb(147, 46, 48, 1)";
     const darkHealthColor = "rgb(95, 30, 31)"; // alt: "rgb(147, 46, 48, 0.5)"
+    const outlineColor = "rgba(255, 255, 255, 0.6)";
     const elementWidth = 100;
     const elementWidthString = elementWidth.toString() + "px"
     const outlineThickness = 2;
@@ -15,6 +16,15 @@ export default function HealthBar({ health, maxHealth, addedHealth }: any): JSX.
 
     let baseFill;
     let topFill;
+
+    if (addedHealth < 0) {
+        const damage = Math.abs(addedHealth)
+        if (tempHealth > damage) {
+            addedHealth = 0;
+        } else {
+            addedHealth = tempHealth - damage; 
+        }
+    }
 
     if (addedHealth > 0) {
 
@@ -71,33 +81,33 @@ export default function HealthBar({ health, maxHealth, addedHealth }: any): JSX.
     return (
         <Box sx={{ display: "grid", width:elementWidthString }}>
             {/* <Box sx={{ //white layer below everything
-                zIndex: -1,
+                zIndex: 0,
                 gridArea: "1/1/1/1",
                 borderRadius: "12px",
                 bgcolor: "rgba(255,255,255,0)",
                 display: "flex",
             }}></Box> */}
             <HealthBarBase
-                sx={{ zIndex: 0, gridArea: "1/1/1/1" }}
+                sx={{ zIndex: 1, gridArea: "1/1/1/1" }}
                 variant="determinate"
                 value={baseFill}
             ></HealthBarBase >
             <HealthBarTop
-                sx={{ zIndex: 0, gridArea: "1/1/1/1" }}
+                sx={{ zIndex: 2, gridArea: "1/1/1/1" }}
                 variant="determinate"
                 value={topFill}
             ></HealthBarTop >
             <Box sx={{
-                zIndex: 1,
+                zIndex: 3,
                 gridArea: "1/1/1/1",
                 outline: "2px",
-                outlineColor: "rgba(255, 255, 255, 0.6)",
+                outlineColor: outlineColor,
                 outlineStyle: "solid",
                 outlineOffset: "-2px",
                 borderRadius: "12px",
             }}></Box>
             <Box sx={{
-                zIndex: 1,
+                zIndex: 4,
                 gridArea: "1/1/1/1",
                 fontWeight: "bold",
                 display: "flex",

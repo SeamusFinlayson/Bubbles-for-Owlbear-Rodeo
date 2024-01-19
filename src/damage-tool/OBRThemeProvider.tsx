@@ -1,9 +1,8 @@
-import { grey, pink } from "@mui/material/colors";
+import { grey } from "@mui/material/colors";
 import { Theme as MuiTheme, createTheme } from "@mui/material/styles";
 import ThemeProvider from "@mui/material/styles/ThemeProvider";
-import useEnhancedEffect from "@mui/material/utils/useEnhancedEffect";
 import OBR, { Theme } from "@owlbear-rodeo/sdk";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Create a MUI theme based off of the current OBR theme
@@ -26,7 +25,7 @@ export function getTheme(theme?: Theme) {
         components: {
             MuiButtonBase: {
                 defaultProps: {
-                    disableRipple: false,
+                    disableRipple: true,
                 },
             },
             MuiTextField: {
@@ -72,7 +71,11 @@ export function getTheme(theme?: Theme) {
                     },
                 }
             },
-            
+            MuiTooltip: {
+                defaultProps: {
+                    disableInteractive: true
+                }
+            }
         },
     });
 }
