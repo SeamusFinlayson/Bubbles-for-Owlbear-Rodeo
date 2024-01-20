@@ -30,7 +30,7 @@ export function getTheme(theme?: Theme) {
             },
             MuiTextField: {
                 defaultProps: {
-                    color:"secondary",
+                    // color:"secondary",
                     variant: "outlined",
                     size:"small",
                     sx: {
@@ -65,7 +65,7 @@ export function getTheme(theme?: Theme) {
             },
             MuiRadio: {
                 defaultProps: {
-                    color:"secondary",
+                    // color:"secondary",
                     sx: {
                         color: grey[500],
                     },

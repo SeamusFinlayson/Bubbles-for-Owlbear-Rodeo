@@ -1,44 +1,40 @@
-import { Box, LinearProgress, linearProgressClasses, styled } from "@mui/material";
+import { Box, LinearProgress, linearProgressClasses, styled, useTheme } from "@mui/material";
 
-export function TemporaryHealthBubble({ tempHealth, damage }: any): JSX.Element {
+export function TemporaryHealthBubble({ tempHealth, newTempHealth }: any): JSX.Element {
     // TODO: difficult to distinguish between healing and damage visually
     // both look like damage
 
-    let fillColor = "rgb(40, 48, 30)";
-    let backgroundColor = "rgb(83, 100, 63)";
+    let fillColor = "rgb(83, 100, 63)";
+    let faintColor = "rgb(40, 48, 30)";
     const borderRadius = "50%";
-    const outlineColor = "rgba(255, 255, 255, 0.6)";
+    let outlineColor = "rgba(255, 255, 255, 0.6)";
     const elementHeight = 44;
     const elementHeightString = elementHeight.toString() + "px";
     const outlineThickness = 2;
     const outlinePercent = outlineThickness / elementHeight * 100;
 
+    if (useTheme().palette.mode === "light") {
+        fillColor = "hsl(81, 25%, 65%)";
+        faintColor = "rgb(152, 168, 123, 0.4)";
+        outlineColor = "rgba(0, 0, 0, 0.4)";
+        // outlineThickness = 2;
+    }
+
+    let backgroundColor = faintColor;
+
+    let fill: number;
+
     if (tempHealth <= 0) {
-        backgroundColor = "rgba(0,0,0,0.35)";
-        fillColor = "rgba(0,0,0,0.35)";
-    }
-
-    let fill;
-
-    if (damage > 0 || tempHealth === 0) {
-
-        // Set fill percent
-        if (Math.abs(damage) < tempHealth) {
-            fill = outlinePercent + (100 - 2 * outlinePercent) * (tempHealth - damage) / tempHealth;
-        } else {
-            fill = 0;
-        }
-
+        backgroundColor = useTheme().palette.background.default;
+        fill = 0;
     } else {
-        fill = 100;
-    }
-
-    let newTempHealth = tempHealth - damage;
-
-    if (newTempHealth < 0) {
-        newTempHealth = 0;
-    } else if (newTempHealth > tempHealth) {
-        // newTempHealth = tempHealth;
+        if (newTempHealth >= tempHealth) {
+            fill = 100;
+        } else if (newTempHealth <= 0) {
+            fill = 0;
+        } else {
+            fill = outlinePercent + (100 - 2 * outlinePercent) * (newTempHealth) / tempHealth;
+        }
     }
 
     // New health
@@ -46,11 +42,11 @@ export function TemporaryHealthBubble({ tempHealth, damage }: any): JSX.Element 
         height: "44px",
         borderRadius: borderRadius,
         [`&.${linearProgressClasses.colorPrimary}`]: {
-            backgroundColor: fillColor,
+            backgroundColor: backgroundColor,
         },
         [`& .${linearProgressClasses.bar}`]: {
             borderRadius: 0,
-            backgroundColor: backgroundColor,
+            backgroundColor: fillColor,
         },
     }));
 

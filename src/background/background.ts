@@ -85,7 +85,7 @@ OBR.onReady( async () => {
       OBR.popover.open({
         id: getPluginId("damage-tool-popover"),
         url: "/src/damage-tool/damageTool.html",
-        height: 550,
+        height: 522,
         width: 600,
         anchorElementId: elementId,
       })

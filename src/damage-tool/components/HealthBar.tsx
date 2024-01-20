@@ -1,51 +1,39 @@
-import { Box, LinearProgress, linearProgressClasses } from "@mui/material";
+import { Box, LinearProgress, linearProgressClasses, useTheme } from "@mui/material";
 import { styled } from '@mui/material/styles';
 
-export default function HealthBar({ health, maxHealth, tempHealth, addedHealth  }: any): JSX.Element {
+export default function HealthBar({ health, newHealth, maxHealth  }: any): JSX.Element {
 
     // TODO: difficult to distinguish between healing and damage visually
     // both look like damage
 
-    const solidHealthColor = "rgb(147, 46, 48, 1)";
-    const darkHealthColor = "rgb(95, 30, 31)"; // alt: "rgb(147, 46, 48, 0.5)"
-    const outlineColor = "rgba(255, 255, 255, 0.6)";
+    let solidHealthColor = "rgb(147, 46, 48, 1)";
+    let faintHealthColor = "rgb(95, 30, 31)"; // alt: "rgb(147, 46, 48, 0.5)"
+    const backgroundColor = useTheme().palette.background.default; // alt: "rgba(0,0,0,0.35)";
+    let outlineColor = "rgba(255, 255, 255, 0.6)";
     const elementWidth = 100;
     const elementWidthString = elementWidth.toString() + "px"
-    const outlineThickness = 2;
-    const outlinePercent = outlineThickness / elementWidth * 100;
+    let outlineThickness = 2;
+    
+    if (useTheme().palette.mode === "light") {
+        solidHealthColor = "hsl(0, 59%, 75%)";
+        faintHealthColor = "rgb(218, 113, 113, 0.3)";
+        outlineColor = "rgba(0, 0, 0, 0.4)";
+        outlineThickness = 2;
+    }
 
     let baseFill;
     let topFill;
 
-    if (addedHealth < 0) {
-        const damage = Math.abs(addedHealth)
-        if (tempHealth > damage) {
-            addedHealth = 0;
-        } else {
-            addedHealth = tempHealth - damage; 
-        }
-    }
+    const outlinePercent = outlineThickness / elementWidth * 100;
+    const originalHealthFill = outlinePercent + (100 - 2 * outlinePercent) * health / maxHealth;
+    const modifiedHealthFill = outlinePercent + (100 - 2 * outlinePercent) * (newHealth) / maxHealth;
 
-    if (addedHealth > 0) {
-
-        if (health > maxHealth) {
-            health = maxHealth;
-        }
-    
-        if (health + addedHealth > maxHealth) {
-            addedHealth = maxHealth - health;
-        }
-
-        const originalHealthFill = outlinePercent + (100 - 2 * outlinePercent) * health / maxHealth;
-        const modifiedHealthFill = outlinePercent + (100 - 2 * outlinePercent) * (health + addedHealth) / maxHealth;
+    if (newHealth > health) {
 
         baseFill = modifiedHealthFill;
         topFill = originalHealthFill;
 
     } else {
-
-        const originalHealthFill = outlinePercent + (100 - 2 * outlinePercent) * health / maxHealth;
-        const modifiedHealthFill = outlinePercent + (100 - 2 * outlinePercent) * (health + addedHealth) / maxHealth;
 
         baseFill = originalHealthFill;
         topFill = modifiedHealthFill;
@@ -57,11 +45,11 @@ export default function HealthBar({ health, maxHealth, tempHealth, addedHealth  
         height: "44px",
         borderRadius: "12px",
         [`&.${linearProgressClasses.colorPrimary}`]: {
-            backgroundColor: "rgba(0,0,0,0.35)",
+            backgroundColor: backgroundColor,
         },
         [`& .${linearProgressClasses.bar}`]: {
             borderRadius: 0,
-            backgroundColor: darkHealthColor,
+            backgroundColor: faintHealthColor,
         },
     }));
 
@@ -79,7 +67,17 @@ export default function HealthBar({ health, maxHealth, tempHealth, addedHealth  
     }));
 
     return (
-        <Box sx={{ display: "grid", width:elementWidthString }}>
+        <Box sx={{ 
+                display: "grid", 
+                width:elementWidthString,
+                height:44,
+
+                // justifySelf: "center", 
+                // alignSelf: "center"
+                justifyItems: "stretch",
+                alignItems: "stretch",
+            }}
+        >
             {/* <Box sx={{ //white layer below everything
                 zIndex: 0,
                 gridArea: "1/1/1/1",
@@ -100,7 +98,7 @@ export default function HealthBar({ health, maxHealth, tempHealth, addedHealth  
             <Box sx={{
                 zIndex: 3,
                 gridArea: "1/1/1/1",
-                outline: "2px",
+                outlineWidth: outlineThickness,
                 outlineColor: outlineColor,
                 outlineStyle: "solid",
                 outlineOffset: "-2px",
@@ -112,9 +110,10 @@ export default function HealthBar({ health, maxHealth, tempHealth, addedHealth  
                 fontWeight: "bold",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center"
+                justifyContent: "center",
+                color: useTheme().palette.text.primary
             }}>
-                {(health + addedHealth).toString() + " / " + maxHealth.toString()}
+                {(newHealth).toString() + " / " + maxHealth.toString()}
             </Box>
         </Box>
     );

@@ -1,4 +1,4 @@
-import OBR, { Item } from "@owlbear-rodeo/sdk";
+import { Item } from "@owlbear-rodeo/sdk";
 
 export class Token {
     item: Item;
