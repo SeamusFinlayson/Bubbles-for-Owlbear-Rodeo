@@ -190,16 +190,12 @@ async function parseSelection() {
 
         // Extract health metadata
         let health: number = NaN;
-        let hasHealth: boolean;
         try {
             health = parseFloat(metadata["health"]);
-            hasHealth = true;
         } catch (error) {
-            hasHealth = false;
             health = 0;
         }
         if (isNaN(health)) {
-            hasHealth = false;
             health = 0;
         }
 
