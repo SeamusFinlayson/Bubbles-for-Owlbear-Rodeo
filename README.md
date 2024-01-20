@@ -1,25 +1,26 @@
 # **Stat Bubbles for D&D** Extension for Owlbear Rodeo
 
-Track hit points and armor class with Roll20 style bubbles using this [Owlbear Rodeo](https://www.owlbear.rodeo/) extension.
+Track hit points and armor class using this [Owlbear Rodeo](https://www.owlbear.rodeo/) extension.
 
-![image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/c5d0c62b-c022-41a0-b43b-8bd87d4a1dc0)
+![Stat Bubbles GitHub Image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/079334d0-a813-4a6a-a225-19a07a1f3f53)
 
 ## Installing
 
 Visit the [Owlbear Rodeo store](https://extensions.owlbear.rodeo/bubble-tracker) to install the extension.
 
-## Support the extension
+## Support the Extension
 
-If you like using this extension consider [buying me a coffee](https://ko-fi.com/seamusfinlayson).
+Join my [Patreon](https://www.patreon.com/SeamusFinlayson) for updates about the extension's development. 
 
-## How it works
+If you want to access in depth updates and impact the direction of future development and projects consider joining the paid tier.
+
+## How It Works
 
 ### Basic
 
 **Right click** on a token to access the **context menu embed** to edit a token's stats.
 
 ![image](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/a97e35c1-a2ef-44a4-affd-f5e027d94e9e)
-
 
 **This extension does math for you!** 
 To add 6 to your HP type +6 and press Enter. To subtract 6 from your HP type -6 and press Enter. This works for every stat.

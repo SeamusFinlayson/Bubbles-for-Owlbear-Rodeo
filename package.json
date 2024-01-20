@@ -11,11 +11,19 @@
     "build-preview": "vite build && vite preview"
   },
   "devDependencies": {
+    "@types/react-dom": "^18.2.18",
     "typescript": "^4.6.4",
     "vite": "^3.1.0"
   },
   "dependencies": {
-    "@owlbear-rodeo/sdk": "^2.1.0"
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@fontsource/roboto": "^5.0.8",
+    "@mui/material": "^5.15.4",
+    "@owlbear-rodeo/sdk": "^2.1.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "engines": {
     "node": "18.17.0"

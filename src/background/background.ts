@@ -6,7 +6,7 @@ import { initScene } from "./helpers";
 /**
  * This file represents the background script run when the plugin loads.
  * It creates the context menu items.
- */
+*/
 
 OBR.onReady( async () => {
 
@@ -65,6 +65,31 @@ OBR.onReady( async () => {
     embed: {
       url: "/src/edit-stats/editStatsGm.html",
       height: 132,
+    }
+  });
+
+  OBR.contextMenu.create({
+    id: getPluginId("damage-tool"),
+    icons: [
+      {
+        icon: menuIcon,
+        label: "Deal Damage",
+        filter: {
+          every: [],
+          roles: ["GM"],
+        },
+      },
+    ],
+    shortcut: "Shift + S",
+    onClick(_, elementId) {
+      OBR.popover.open({
+        id: getPluginId("damage-tool-popover"),
+        url: "/src/damage-tool/damageTool.html",
+        height: 522,
+        width: 600,
+        anchorElementId: elementId,
+      })
+
     }
   });
 
