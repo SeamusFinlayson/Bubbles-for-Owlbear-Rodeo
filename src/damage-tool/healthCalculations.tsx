@@ -3,6 +3,12 @@ export function calculateNewHealth(health: number, maxHealth: number, tempHealth
     let newHealth: number;
     let newTempHealth: number;
 
+    // If health was less than 0 use 0 instead as per 5e rules,
+    // displaying negative HP is useful or overflow but not for AOE effects
+    if (health < 0) {
+        health = 0;
+    }
+
     if (healthDiff > 0) { // Healing
 
         let healing = healthDiff;

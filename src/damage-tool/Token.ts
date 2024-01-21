@@ -1,6 +1,6 @@
 import { Item } from "@owlbear-rodeo/sdk";
 
-export class Token {
+export default class Token {
     item: Item;
     health: Number;
     maxHealth: Number;

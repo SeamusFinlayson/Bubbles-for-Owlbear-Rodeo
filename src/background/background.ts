@@ -73,7 +73,7 @@ OBR.onReady( async () => {
     icons: [
       {
         icon: menuIcon,
-        label: "Deal Damage",
+        label: "AOE Tool",
         filter: {
           every: [],
           roles: ["GM"],

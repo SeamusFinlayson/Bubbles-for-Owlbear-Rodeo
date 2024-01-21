@@ -2,10 +2,16 @@ import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "../getPluginId";
 import { StatMetadataID, statInputs } from "./StatInputClass";
 
+// TODO: Restrict maximum values on the order of +-999 or 4 characters for hp, 2 characters for temp hp and ac
+
 OBR.onReady(async () => {
 
     setUpTheme();
-    setUpInputs();
+    setUpInputs(true);
+
+    OBR.scene.items.onChange(() => {
+        setUpInputs();
+    })
 });
 
 async function setUpTheme() {
@@ -48,7 +54,7 @@ async function setUpTheme() {
     }
 }
 
-async function setUpInputs() {
+async function setUpInputs(setListeners: boolean = false) {
     
     // Get selected Items
     const selection = await OBR.player.getSelection();
@@ -118,7 +124,7 @@ async function setUpInputs() {
             }
         } else {
 
-            // Un retrieved values get set to 0
+            // Un-retrieved values get set to 0
             if (statInput.type === "CHECKBOX") {
                 let checkbox = document.getElementById(statInput.id);
                 if (checkbox !== null) {
@@ -130,7 +136,9 @@ async function setUpInputs() {
         }
 
         // Add change listeners to handle input changes
-        document.getElementById(statInput.id)?.addEventListener("change", function() {handleInputChange(statInput.id, statInput.type)});
+        if (setListeners) {
+            document.getElementById(statInput.id)?.addEventListener("change", function() {handleInputChange(statInput.id, statInput.type)});
+        }
     }
 
     // Must be called at end to have text pre-selected otherwise text will change after selection
