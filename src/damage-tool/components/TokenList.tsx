@@ -3,37 +3,23 @@ import Token from "../Token";
 import HealthBar from "./HealthBar";
 import TemporaryHealthBubble from "./TemporaryHealthBubble";
 import { calculateNewHealth, scaleHealthDiff } from "../healthCalculations";
-import { useEffect, useState } from "react";
 
 // TODO: Look into reducing height of health bar temp health bubble
 
 const paperWidth: number = 200;
 
 export default function TokenList({
-    tokens, healthDiff, damageScaleOptions, updateDamageScaleSetting
+    tokens, healthDiff, damageScaleOptions, updateDamageScaleSetting, isNarrow
 }: {
-    tokens: Token[], healthDiff: number, damageScaleOptions: number[], updateDamageScaleSetting: (name: number, value: number) => void
+    tokens: Token[], healthDiff: number, damageScaleOptions: number[],
+    updateDamageScaleSetting: (name: number, value: number) => void, isNarrow: boolean
 }): JSX.Element {
 
-    // TODO: Check if this works on mobile
-    const [isNarrow, setIsNarrow] = useState(false);
-    // console.log(window.innerWidth)
-
-    useEffect(() => {
-        const updateIsNarrow = () => {
-            (window.innerWidth < 450)? setIsNarrow(true): setIsNarrow(false);
-        }
-        window.addEventListener("resize", updateIsNarrow);
-        return () => {
-            window.removeEventListener("resize", updateIsNarrow);
-        };
-    }, [isNarrow]);
-
-    let thisElementSx: object = { marginX:1, paddingX:1, borderRadius: 1 };
-    let tokenSx: object = { gap:"8px", paddingX:"8px" };
+    let thisElementSx: object = { marginX: 1, paddingX: 1, borderRadius: 1 };
+    let tokenSx: object = { gap: "8px", paddingX: "8px" };
     if (isNarrow) {
-        thisElementSx = { marginX:0, paddingX:0.5, borderRadius:0 };
-        tokenSx = { gap:"4px", paddingX:"4px" };
+        thisElementSx = { marginX: 0, paddingX: 0.5, borderRadius: 0 };
+        tokenSx = { gap: "4px", paddingX: "4px" };
     }
 
     // Array of list elements
@@ -60,7 +46,7 @@ export default function TokenList({
             <Box key={tokens[i].item.id} sx={{
                 display: "grid",
                 gridTemplateColumns: "3fr 2fr",
-                gap: "8px"
+                gap: isNarrow ? "4px" : "8px"
             }}>
 
                 <Paper elevation={2} sx={{
@@ -91,6 +77,7 @@ export default function TokenList({
                     damageScaleOption={damageScaleOptions[i]}
                     updateDamageScaleOption={updateDamageScaleSetting}
                     index={i}
+                    isNarrow={isNarrow}
                 ></DamageScaleSettingRow>
 
             </Box>
@@ -101,7 +88,7 @@ export default function TokenList({
         <Box sx={{
             display: "flex",
             flexDirection: "column",
-            marginY:1,
+            marginY: 1,
             paddingY: 1,
             ...thisElementSx,
             bgcolor: "background.default",
@@ -109,15 +96,19 @@ export default function TokenList({
             overflowY: "auto",
             gap: "6px"
         }}>
-            <HeaderRow tokenSx={tokenSx}></HeaderRow>
+            <HeaderRow tokenSx={tokenSx} isNarrow={isNarrow}></HeaderRow>
             {tokenElements}
         </Box>
     );
 }
 
-function HeaderRow( { tokenSx }: { tokenSx: object } ): JSX.Element {
+function HeaderRow({
+    tokenSx, isNarrow
+}: {
+    tokenSx: object, isNarrow: boolean
+}): JSX.Element {
 
-    const sharedStyle = { display: "flex", justifyContent: "center", minWidth: 42 }
+    const sharedStyle = { display: "flex", justifyContent: "center", minWidth: isNarrow ? 38 : 42 }
 
     const headers: JSX.Element[] = [
         <Tooltip key={0} placement="top" title="None"><Box style={{ ...sharedStyle, paddingBottom: "2px" }}>&#x2573;</Box></Tooltip>,
@@ -132,7 +123,7 @@ function HeaderRow( { tokenSx }: { tokenSx: object } ): JSX.Element {
             display: "grid",
             gridTemplateColumns: "3fr 2fr",
             fontWeight: "bold",
-            gap: "8px"
+            gap: (isNarrow) ? "4px" : "8px"
         }}>
             <Box
                 sx={{
@@ -167,7 +158,12 @@ function HeaderRow( { tokenSx }: { tokenSx: object } ): JSX.Element {
 
 }
 
-function DamageScaleSettingRow({ damageScaleOption, updateDamageScaleOption, index }: any): JSX.Element {
+function DamageScaleSettingRow({
+    damageScaleOption, updateDamageScaleOption, index, isNarrow
+}: {
+    damageScaleOption: number, updateDamageScaleOption: (name: number, value: number) => void,
+    index: number, isNarrow: boolean
+}): JSX.Element {
 
     const columns = 4;
     const title: String[] = [
@@ -204,6 +200,7 @@ function DamageScaleSettingRow({ damageScaleOption, updateDamageScaleOption, ind
                     value={n.toString()}
                     name={index.toString()}
                     inputProps={{ 'aria-label': 'A' }}
+                    size={isNarrow ? "small" : "medium"}
                 />
             </Tooltip>
         );
