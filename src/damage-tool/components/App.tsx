@@ -58,16 +58,28 @@ export default function App({
         setDamageScaleSettings[name](value);
     }
 
+    // State for displaying narrow UI on narrow displays
+    const checkNarrow = () => (window.innerWidth < 450) ? true : false;
+    const [isNarrow, setIsNarrow] = useState(checkNarrow);
+
+    useEffect(() => {
+        const updateIsNarrow = () => setIsNarrow(checkNarrow);
+        window.addEventListener("resize", updateIsNarrow);
+        return () => {
+            window.removeEventListener("resize", updateIsNarrow);
+        };
+    }, [isNarrow]);
+
     // Keyboard button controls
     useEffect(
         () => {
 
             const handleKeydown = (event: any) => {
-                if (event.key == "Escape") { 
-                    handleCancelButton(); 
+                if (event.key == "Escape") {
+                    handleCancelButton();
                 }
-                if (event.key == "Enter") { 
-                    handleConfirmButton(Math.trunc(healthDiff), damageScaleSettings, selectedTokens); 
+                if (event.key == "Enter") {
+                    handleConfirmButton(Math.trunc(healthDiff), damageScaleSettings, selectedTokens);
                 }
             };
             document.addEventListener('keydown', handleKeydown, false);
@@ -99,6 +111,7 @@ export default function App({
                 healthDiff={Math.trunc(healthDiff)}
                 damageScaleOptions={damageScaleSettings}
                 updateDamageScaleSetting={updateDamageScaleSetting}
+                isNarrow={isNarrow}
             ></TokenList>
 
             <Box sx={{
@@ -115,12 +128,16 @@ export default function App({
                 <Button
                     variant="outlined" sx={{ flexGrow: 1 }}
                     onClick={handleCancelButton}
-                >Cancel (escape)</Button>
+                >
+                    {isNarrow ? "Cancel" : "Cancel (escape)"}
+                </Button>
                 <Button
                     variant="contained"
                     sx={{ flexGrow: 1 }}
                     onClick={function () { handleConfirmButton(Math.trunc(healthDiff), damageScaleSettings, selectedTokens); }}
-                >Confirm (enter)</Button>
+                >
+                    {isNarrow ? "Confirm" : "Confirm (enter)"}
+                </Button>
             </Box>
         </>
     );
@@ -176,7 +193,7 @@ function handleConfirmButton(healthDiff: number, damageScaleSettings: number[], 
 
         }
     });
-    
+
     // Close popover
     OBR.popover.close(getPluginId("damage-tool-popover"));
 }
