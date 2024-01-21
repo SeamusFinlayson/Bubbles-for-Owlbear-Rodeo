@@ -1,8 +1,10 @@
 import { Box, LinearProgress, linearProgressClasses, styled, useTheme } from "@mui/material";
 
-export function TemporaryHealthBubble({ tempHealth, newTempHealth }: any): JSX.Element {
-    // TODO: difficult to distinguish between healing and damage visually
-    // both look like damage
+export default function TemporaryHealthBubble({ 
+    tempHealth, newTempHealth 
+}: {
+    tempHealth: number, newTempHealth: number
+}): JSX.Element {
 
     let fillColor = "rgb(83, 100, 63)";
     let faintColor = "rgb(40, 48, 30)";
@@ -12,8 +14,11 @@ export function TemporaryHealthBubble({ tempHealth, newTempHealth }: any): JSX.E
     const elementHeightString = elementHeight.toString() + "px";
     const outlineThickness = 2;
     const outlinePercent = outlineThickness / elementHeight * 100;
+    const backgroundDefaultColor = useTheme().palette.background.default;
 
-    if (useTheme().palette.mode === "light") {
+    const isLight = useTheme().palette.mode === "light";
+
+    if (isLight) {
         fillColor = "hsl(81, 25%, 65%)";
         faintColor = "rgb(152, 168, 123, 0.4)";
         outlineColor = "rgba(0, 0, 0, 0.4)";
@@ -25,7 +30,7 @@ export function TemporaryHealthBubble({ tempHealth, newTempHealth }: any): JSX.E
     let fill: number;
 
     if (tempHealth <= 0) {
-        backgroundColor = useTheme().palette.background.default;
+        backgroundColor = backgroundDefaultColor;
         fill = 0;
     } else {
         if (newTempHealth >= tempHealth) {

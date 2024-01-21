@@ -1,43 +1,64 @@
 import { Box, LinearProgress, linearProgressClasses, useTheme } from "@mui/material";
 import { styled } from '@mui/material/styles';
 
-export default function HealthBar({ health, newHealth, maxHealth  }: any): JSX.Element {
+export default function HealthBar({ 
+    health, newHealth, maxHealth  
+}: {
+    health: number, newHealth: number, maxHealth: number 
+}): JSX.Element {
 
     // TODO: difficult to distinguish between healing and damage visually
     // both look like damage
 
+    // TODO: Look into horizontal scaling
+
     let solidHealthColor = "rgb(147, 46, 48, 1)";
     let faintHealthColor = "rgb(95, 30, 31)"; // alt: "rgb(147, 46, 48, 0.5)"
-    const backgroundColor = useTheme().palette.background.default; // alt: "rgba(0,0,0,0.35)";
+    const backgroundDefaultColor = useTheme().palette.background.default; // alt: "rgba(0,0,0,0.35)";
     let outlineColor = "rgba(255, 255, 255, 0.6)";
     const elementWidth = 100;
     const elementWidthString = elementWidth.toString() + "px"
     let outlineThickness = 2;
+
+    const isLight = useTheme().palette.mode === "light"
     
-    if (useTheme().palette.mode === "light") {
+    if (isLight) {
         solidHealthColor = "hsl(0, 59%, 75%)";
         faintHealthColor = "rgb(218, 113, 113, 0.3)";
         outlineColor = "rgba(0, 0, 0, 0.4)";
         outlineThickness = 2;
     }
 
-    let baseFill;
-    let topFill;
+    let baseFill: number;
+    let topFill: number;
 
     const outlinePercent = outlineThickness / elementWidth * 100;
-    const originalHealthFill = outlinePercent + (100 - 2 * outlinePercent) * health / maxHealth;
-    const modifiedHealthFill = outlinePercent + (100 - 2 * outlinePercent) * (newHealth) / maxHealth;
 
+    let originalHealthFill: number;
+    if (health <= 0) {
+        originalHealthFill = 0;
+    } else if (health >= maxHealth) {
+        originalHealthFill = 100;
+    } else {
+        originalHealthFill = outlinePercent + (100 - 2 * outlinePercent) * health / maxHealth;
+    }
+
+    let modifiedHealthFill: number;
+    if (newHealth <= 0) {
+        modifiedHealthFill = 0;
+    } else if (newHealth >= maxHealth) {
+        modifiedHealthFill = 100;
+    } else {
+        modifiedHealthFill = outlinePercent + (100 - 2 * outlinePercent) * (newHealth) / maxHealth;
+    }
+     
+    // Pick if original or new health is on top
     if (newHealth > health) {
-
         baseFill = modifiedHealthFill;
         topFill = originalHealthFill;
-
     } else {
-
         baseFill = originalHealthFill;
         topFill = modifiedHealthFill;
-
     }
 
     // Black background and translucent old health 
@@ -45,7 +66,7 @@ export default function HealthBar({ health, newHealth, maxHealth  }: any): JSX.E
         height: "44px",
         borderRadius: "12px",
         [`&.${linearProgressClasses.colorPrimary}`]: {
-            backgroundColor: backgroundColor,
+            backgroundColor: backgroundDefaultColor,
         },
         [`& .${linearProgressClasses.bar}`]: {
             borderRadius: 0,

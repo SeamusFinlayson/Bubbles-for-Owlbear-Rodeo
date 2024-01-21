@@ -1,8 +1,6 @@
 import { grey } from "@mui/material/colors";
-import { Theme as MuiTheme, createTheme } from "@mui/material/styles";
-import ThemeProvider from "@mui/material/styles/ThemeProvider";
-import OBR, { Theme } from "@owlbear-rodeo/sdk";
-import { useEffect, useState } from "react";
+import { createTheme } from "@mui/material/styles";
+import { Theme } from "@owlbear-rodeo/sdk";
 
 /**
  * Create a MUI theme based off of the current OBR theme
@@ -84,19 +82,19 @@ export function getTheme(theme?: Theme) {
  * Provide a MUI theme with the same palette as the parent OBR window
  * WARNING: Doesn't work well for popover because it creates a flash when loading
  */
-export function OBRThemeProvider({
-    children,
-}: {
-    children?: React.ReactNode;
-}) {
-    const [theme, setTheme] = useState<MuiTheme>(() => getTheme());
-    useEffect(() => {
-        const updateTheme = (theme: Theme) => {
-            setTheme(getTheme(theme));
-        };
-        OBR.theme.getTheme().then(updateTheme);
-        return OBR.theme.onChange(updateTheme);
-    }, []);
+// export function OBRThemeProvider({
+//     children,
+// }: {
+//     children?: React.ReactNode;
+// }) {
+//     const [theme, setTheme] = useState<MuiTheme>(() => getTheme());
+//     useEffect(() => {
+//         const updateTheme = (theme: Theme) => {
+//             setTheme(getTheme(theme));
+//         };
+//         OBR.theme.getTheme().then(updateTheme);
+//         return OBR.theme.onChange(updateTheme);
+//     }, []);
 
-    return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
-}
+//     return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+// }
