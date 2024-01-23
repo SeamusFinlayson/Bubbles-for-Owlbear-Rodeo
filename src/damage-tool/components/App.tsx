@@ -64,7 +64,7 @@ export default function App({
     }
 
     // State for displaying narrow UI on narrow displays
-    const checkNarrow = () => (window.innerWidth < 481) ? true : false;
+    const checkNarrow = () => (window.innerWidth < 521) ? true : false;
     const [isNarrow, setIsNarrow] = useState(checkNarrow);
 
     useEffect(() => {
