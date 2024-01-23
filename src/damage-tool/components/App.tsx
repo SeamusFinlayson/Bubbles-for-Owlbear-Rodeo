@@ -17,18 +17,23 @@ export default function App({
     // Selected tokens state
     const [selectedTokens, setSelectedTokens] = useState(initialTokens);
 
+    // State to not update UI with modified values when confirm is pressed
+    const [stopUpdates, setStopUpdates] = useState(false);
+
     // Re parse selection on scene item changes
     useEffect(
         () => OBR.scene.items.onChange(
             () => {
                 // TODO: Prevent updates after confirm is pressed
-                const updateSelectedTokens = ((tokens: Token[]) => {
-                    setSelectedTokens(tokens);
-                });
-                parseSelectedTokens().then(updateSelectedTokens);
+                if (!stopUpdates) {
+                    const updateSelectedTokens = ((tokens: Token[]) => {
+                        setSelectedTokens(tokens);
+                    });
+                    parseSelectedTokens().then(updateSelectedTokens);
+                }
             }
         ),
-        [selectedTokens]
+        [selectedTokens, stopUpdates]
     );
 
     // Health diff state
@@ -49,7 +54,7 @@ export default function App({
 
     // Initialize damage scaling options
     for (let i = 0; i < selectedTokens.length; i++) {
-        [damageScaleSettings[i], setDamageScaleSettings[i]] = useState(2);
+        [damageScaleSettings[i], setDamageScaleSettings[i]] = useState(3);
     }
 
     // Callback for updating damage scaling options
@@ -59,7 +64,7 @@ export default function App({
     }
 
     // State for displaying narrow UI on narrow displays
-    const checkNarrow = () => (window.innerWidth < 450) ? true : false;
+    const checkNarrow = () => (window.innerWidth < 481) ? true : false;
     const [isNarrow, setIsNarrow] = useState(checkNarrow);
 
     useEffect(() => {
@@ -79,6 +84,7 @@ export default function App({
                     handleCancelButton();
                 }
                 if (event.key == "Enter") {
+                    setStopUpdates(true)
                     handleConfirmButton(Math.trunc(healthDiff), damageScaleSettings, selectedTokens);
                 }
             };
@@ -134,7 +140,10 @@ export default function App({
                 <Button
                     variant="contained"
                     sx={{ flexGrow: 1 }}
-                    onClick={function () { handleConfirmButton(Math.trunc(healthDiff), damageScaleSettings, selectedTokens); }}
+                    onClick={() => { 
+                        setStopUpdates(true);
+                        handleConfirmButton(Math.trunc(healthDiff), damageScaleSettings, selectedTokens); 
+                    }}
                 >
                     {isNarrow ? "Confirm" : "Confirm (enter)"}
                 </Button>
@@ -149,7 +158,9 @@ function handleCancelButton() {
     OBR.popover.close(getPluginId("damage-tool-popover"));
 }
 
-function handleConfirmButton(healthDiff: number, damageScaleSettings: number[], tokens: Token[]) {
+function handleConfirmButton(
+    healthDiff: number, damageScaleSettings: number[], tokens: Token[]
+) {
 
     // console.log("Confirm")
     // console.log(healthDiff)

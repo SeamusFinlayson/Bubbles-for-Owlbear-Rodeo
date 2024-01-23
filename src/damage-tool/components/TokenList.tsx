@@ -45,6 +45,7 @@ export default function TokenList({
         return (
             <Box key={tokens[i].item.id} sx={{
                 display: "grid",
+                // flexWrap: "no-wrap",
                 gridTemplateColumns: "3fr 2fr",
                 gap: isNarrow ? "4px" : "8px"
             }}>
@@ -52,11 +53,12 @@ export default function TokenList({
                 <Paper elevation={2} sx={{
                     paddingY: "4px",
                     borderRadius: "8px",
-                    minWidth: paperWidth, // TODO: Determine if a min width for token elements is necessary
+                    minWidth: paperWidth,
                     display: "grid",
                     alignItems: "center",
                     justifyItems: "center",
                     gridTemplateColumns: "2fr 2fr 1fr",
+                    flex: 3,
                     ...tokenSx
                 }}>
                     <Box sx={{ gridColumn: "span 1", justifySelf: "stretch", alignSelf: "center", ...wordWrapStyle }}>
@@ -112,9 +114,10 @@ function HeaderRow({
 
     const headers: JSX.Element[] = [
         <Tooltip key={0} placement="top" title="None"><Box style={{ ...sharedStyle, paddingBottom: "2px" }}>&#x2573;</Box></Tooltip>,
-        <Tooltip key={1} placement="top" title="Half"><Box style={{ ...sharedStyle, fontSize: "x-large" }}>&#xBD;</Box></Tooltip>,
-        <Tooltip key={2} placement="top" title="Full"><Box style={{ ...sharedStyle, fontSize: "large" }}>&times;1</Box></Tooltip>,
-        <Tooltip key={3} placement="top" title="Double"><Box style={{ ...sharedStyle, fontSize: "large" }}>&times;2</Box></Tooltip>,
+        <Tooltip key={1} placement="top" title="Quarter"><Box style={{ ...sharedStyle, fontSize: "x-large" }}>&#188;</Box></Tooltip>,
+        <Tooltip key={2} placement="top" title="Half"><Box style={{ ...sharedStyle, fontSize: "x-large" }}>&#xBD;</Box></Tooltip>,
+        <Tooltip key={3} placement="top" title="Full"><Box style={{ ...sharedStyle, fontSize: "large" }}>&times;1</Box></Tooltip>,
+        <Tooltip key={4} placement="top" title="Double"><Box style={{ ...sharedStyle, fontSize: "large" }}>&times;2</Box></Tooltip>,
     ];
 
     return (
@@ -146,7 +149,7 @@ function HeaderRow({
 
             <Box sx={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr",
                 justifyItems: "center",
                 alignItems: "center"
             }}>
@@ -165,9 +168,10 @@ function DamageScaleSettingRow({
     index: number, isNarrow: boolean
 }): JSX.Element {
 
-    const columns = 4;
+    const columns = 5;
     const title: String[] = [
         "None",
+        "Quarter",
         "Half",
         "Full",
         "Double"
@@ -201,6 +205,7 @@ function DamageScaleSettingRow({
                     name={index.toString()}
                     inputProps={{ 'aria-label': 'A' }}
                     size={isNarrow ? "small" : "medium"}
+                    // title={title[n]}
                 />
             </Tooltip>
         );
@@ -209,9 +214,10 @@ function DamageScaleSettingRow({
     return (
         <Box sx={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr 1fr",
+            gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr",
             justifyItems: "center",
-            alignItems: "center"
+            alignItems: "center",
+            flex: 2
         }}>
             {radioRow}
         </Box>
