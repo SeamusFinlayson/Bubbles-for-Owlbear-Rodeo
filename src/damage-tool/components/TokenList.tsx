@@ -1,4 +1,4 @@
-import { Box, Paper, Radio, Tooltip, useTheme } from "@mui/material";
+import { Box, Fade, Paper, Radio, Tooltip, useTheme } from "@mui/material";
 import Token from "../Token";
 import HealthBar from "./HealthBar";
 import TemporaryHealthBubble from "./TemporaryHealthBubble";
@@ -184,6 +184,7 @@ function DamageScaleSettingRow({
     for (let n = 0; n < columns; n++) {
         radioRow.push(
             <Tooltip key={n} title={title[n].toString()} placement="top" disableHoverListener
+                enterDelay={0} TransitionComponent={Fade} TransitionProps={{ timeout: 0 }}
                 slotProps={{
                     popper: {
                         modifiers: [
@@ -205,7 +206,7 @@ function DamageScaleSettingRow({
                     name={index.toString()}
                     inputProps={{ 'aria-label': 'A' }}
                     size={isNarrow ? "small" : "medium"}
-                    // title={title[n]}
+                // title={title[n]}
                 />
             </Tooltip>
         );
