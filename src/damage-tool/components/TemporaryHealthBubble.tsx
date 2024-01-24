@@ -57,13 +57,6 @@ export default function TemporaryHealthBubble({
 
     return (
         <Box sx={{ display: "grid", width: elementHeightString, height: elementHeightString }}>
-            {/* <Box sx={{ //white layer below everything
-                zIndex: 0,
-                gridArea: "1/1/1/1",
-                borderRadius: borderRadius,
-                bgcolor: "rgba(255,255,255,0)",
-                display: "flex",
-            }}></Box> */}
             <TempHealthBar
                 sx={{ zIndex: 2, gridArea: "1/1/1/1" }}
                 variant="determinate"
@@ -86,7 +79,9 @@ export default function TemporaryHealthBubble({
                 alignItems: "center",
                 justifyContent: "center"
             }}>
-                {newTempHealth.toString()}
+                <Box sx={{ paddingTop: "2px", paddingBottom: "1px" }}>
+                    {newTempHealth.toString()}
+                </Box>
             </Box>
         </Box>
     );
