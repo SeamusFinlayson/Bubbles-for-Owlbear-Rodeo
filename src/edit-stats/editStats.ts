@@ -2,8 +2,6 @@ import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "../getPluginId";
 import { StatMetadataID, statInputs } from "./StatInputClass";
 
-// TODO: Restrict maximum values on the order of +-999 or 4 characters for hp, 2 characters for temp hp and ac
-
 OBR.onReady(async () => {
 
     setUpTheme();
@@ -15,7 +13,7 @@ OBR.onReady(async () => {
 });
 
 async function setUpTheme() {
-    
+
     const theme = OBR.theme.getTheme();
     if ((await theme).mode == "LIGHT") {
 
@@ -55,7 +53,7 @@ async function setUpTheme() {
 }
 
 async function setUpInputs(setListeners: boolean = false) {
-    
+
     // Get selected Items
     const selection = await OBR.player.getSelection();
     const items = await OBR.scene.items.getItems(selection);
@@ -185,9 +183,9 @@ async function handleInputChange(id: StatMetadataID, type: "TEXT" | "CHECKBOX") 
 
                 const newValue = (document.getElementById(id) as HTMLInputElement).value;
                 const newValueNumber = parseFloat(newValue);
-                let newMetadata: {[x: string]: number} = { [id]: Math.trunc(newValueNumber)};;
+                let newMetadata: StatsArray = { [id]: Math.trunc(newValueNumber)};;
 
-                let combinedMetadata: any;
+                let combinedMetadata: StatsArray;
 
                 if (item.metadata[getPluginId("metadata")]) {
 
@@ -202,7 +200,7 @@ async function handleInputChange(id: StatMetadataID, type: "TEXT" | "CHECKBOX") 
                             // Add to the previous value if both are valid
                             let previousValue: string;
                             let hasPreviousValue: boolean;
-        
+
                             try {
                                 previousValue = retrievedMetadata[id];
                                 hasPreviousValue = true;
@@ -218,7 +216,7 @@ async function handleInputChange(id: StatMetadataID, type: "TEXT" | "CHECKBOX") 
                                 const previousValueNumber = parseFloat(previousValue);
 
                                 if (!isNaN(previousValueNumber)) {
-                                    
+
                                     newMetadata = { [id]: Math.trunc(previousValueNumber) + Math.trunc(newValueNumber) };
                                 }
                             }
@@ -235,11 +233,34 @@ async function handleInputChange(id: StatMetadataID, type: "TEXT" | "CHECKBOX") 
                     combinedMetadata = newMetadata;
                 }
 
+                // console.log(combinedMetadata[id])
+
+                switch (id) {
+                    case "health":
+                    case "max health":
+                        if (combinedMetadata[id] as number > 9999) {
+                            combinedMetadata[id] = 9999;
+                        } else if (combinedMetadata[id] as number < -999) {
+                            combinedMetadata[id] = -999;
+                        }
+                        break;
+                    case "temporary health":
+                    case "armor class":
+                        if (combinedMetadata[id] as number > 999) {
+                            combinedMetadata[id] = 999;
+                        } else if (combinedMetadata[id] as number < -999) {
+                            combinedMetadata[id] = -999;
+                        }
+                        break;
+                    default: break;
+                }
+                //console.log(combinedMetadata[id])
+
                 // Write the metadata into the item
                 item.metadata[getPluginId("metadata")] = combinedMetadata;
 
-                // Write validated value back into input
-                (document.getElementById(id) as HTMLInputElement).value = String(newMetadata[id]);
+                // Write validated value back into input - handled by on change callback
+                // (document.getElementById(id) as HTMLInputElement).value = String(newMetadata[id]);
 
 
             } else {
@@ -250,8 +271,12 @@ async function handleInputChange(id: StatMetadataID, type: "TEXT" | "CHECKBOX") 
     });
 }
 
+interface StatsArray {
+    [index: string]: number | boolean;
+}
+
 // async function closePopoverOnEscapeKey() {
-    
+
 //     // attach keydown listener to close popover on escape key pressed
 //     document.addEventListener("keydown", (event) => {
 //         // var name = event.key;

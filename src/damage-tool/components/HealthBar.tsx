@@ -1,10 +1,10 @@
 import { Box, LinearProgress, linearProgressClasses, useTheme } from "@mui/material";
 import { styled } from '@mui/material/styles';
 
-export default function HealthBar({ 
-    health, newHealth, maxHealth  
+export default function HealthBar({
+    health, newHealth, maxHealth
 }: {
-    health: number, newHealth: number, maxHealth: number 
+    health: number, newHealth: number, maxHealth: number
 }): JSX.Element {
 
     // TODO: difficult to distinguish between healing and damage visually
@@ -21,7 +21,7 @@ export default function HealthBar({
     let outlineThickness = 2;
 
     const isLight = useTheme().palette.mode === "light"
-    
+
     if (isLight) {
         solidHealthColor = "hsl(0, 59%, 75%)";
         faintHealthColor = "rgb(218, 113, 113, 0.3)";
@@ -51,7 +51,7 @@ export default function HealthBar({
     } else {
         modifiedHealthFill = outlinePercent + (100 - 2 * outlinePercent) * (newHealth) / maxHealth;
     }
-     
+
     // Pick if original or new health is on top
     if (newHealth > health) {
         baseFill = modifiedHealthFill;
@@ -88,24 +88,17 @@ export default function HealthBar({
     }));
 
     return (
-        <Box sx={{ 
-                display: "grid", 
-                width:elementWidthString,
-                height:44,
+        <Box sx={{
+            display: "grid",
+            width: elementWidthString,
+            height: 44,
 
-                // justifySelf: "center", 
-                // alignSelf: "center"
-                justifyItems: "stretch",
-                alignItems: "stretch",
-            }}
+            // justifySelf: "center", 
+            // alignSelf: "center"
+            justifyItems: "stretch",
+            alignItems: "stretch",
+        }}
         >
-            {/* <Box sx={{ //white layer below everything
-                zIndex: 0,
-                gridArea: "1/1/1/1",
-                borderRadius: "12px",
-                bgcolor: "rgba(255,255,255,0)",
-                display: "flex",
-            }}></Box> */}
             <HealthBarBase
                 sx={{ zIndex: 1, gridArea: "1/1/1/1" }}
                 variant="determinate"
@@ -117,24 +110,22 @@ export default function HealthBar({
                 value={topFill}
             ></HealthBarTop >
             <Box sx={{
-                zIndex: 3,
+                zIndex: 4,
                 gridArea: "1/1/1/1",
                 outlineWidth: outlineThickness,
                 outlineColor: outlineColor,
                 outlineStyle: "solid",
                 outlineOffset: "-2px",
                 borderRadius: "12px",
-            }}></Box>
-            <Box sx={{
-                zIndex: 4,
-                gridArea: "1/1/1/1",
                 fontWeight: "bold",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 color: useTheme().palette.text.primary
             }}>
-                {(newHealth).toString() + " / " + maxHealth.toString()}
+                <Box sx={{ paddingTop: "2px", paddingBottom: "1px" }}>
+                    {(newHealth).toString() + " / " + maxHealth.toString()}
+                </Box>
             </Box>
         </Box>
     );

@@ -1,6 +1,6 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { createRoot } from 'react-dom/client';
-import { getTheme } from "./OBRThemeProvider";
+import { getTheme } from "../OBRThemeProvider";
 import { ThemeProvider } from "@mui/material";
 import App from "./components/App";
 import parseSelectedTokens from "./parseSelectedTokens";

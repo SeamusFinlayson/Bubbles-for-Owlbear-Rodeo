@@ -1,7 +1,7 @@
 // metadata object names
 export type ActionMetadataId = "offset" | "bar-at-top" | "name-tags" | "show-bars" | "segments";
 
-class ActionInput {
+export class ActionInput {
     id: ActionMetadataId;
     type: "CHECKBOX" | "NUMBER";
 
@@ -17,6 +17,7 @@ export const actionInputs: ActionInput[] = [
     new ActionInput("show-bars", "CHECKBOX"),
     new ActionInput("segments", "NUMBER"),
     new ActionInput("name-tags", "CHECKBOX"),
-];
+    // new ActionInput("always-show-ac", "CHECKBOX"),
+]; 
 
 

@@ -57,7 +57,9 @@ export default async function parseSelectedTokens(): Promise<Token[]> {
 
         // If the token has health and max health add it to the list of valid tokens
         if (hasMaxHealth) {
-            selectedTokens.push(new Token(item, health, maxHealth, tempHealth));
+            if (maxHealth !== 0) {
+                selectedTokens.push(new Token(item, health, maxHealth, tempHealth));
+            }
         }
     }
 
