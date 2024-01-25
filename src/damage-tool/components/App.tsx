@@ -24,7 +24,6 @@ export default function App({
     useEffect(
         () => OBR.scene.items.onChange(
             () => {
-                // TODO: Prevent updates after confirm is pressed
                 if (!stopUpdates) {
                     const updateSelectedTokens = ((tokens: Token[]) => {
                         setSelectedTokens(tokens);

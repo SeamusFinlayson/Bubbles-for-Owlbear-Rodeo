@@ -7,12 +7,13 @@ let tokenIds: String[] = []; // for orphan health bar management
 let itemsLast: Image[] = []; // for item change checks
 let addItemsArray: Item[] = []; // for bulk addition or changing of items  
 let deleteItemsArray: string[] = []; // for bulk deletion of scene items
-var verticalOffset: any = 0;
-var barAtTop: boolean = false;
-var nameTags: boolean = false;
-var showBars: boolean = false;
-var segments: number = 0;
-var sceneListenersSet = false;
+let verticalOffset: any = 0;
+let barAtTop: boolean = false;
+let nameTags: boolean = false;
+let showBars: boolean = false;
+let segments: number = 0;
+// let negativeArmorClass: boolean = false;
+let sceneListenersSet = false;
 let userRoleLast: "GM" | "PLAYER";
 
 
@@ -229,6 +230,7 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
         const diameter = 30;
         const font = "Lucida Console, monospace"
         const circleFontSize = diameter - 8;
+        const reducedCircleFontSize = diameter - 15;
         const circleTextHeight = diameter + 0;
         const textVerticalOffset = 1.5;
         const barHeight = 20;
@@ -288,12 +290,14 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
                 .disableHit(disableHit)
                 .build();
 
+                let armorValueText = armorClass.toString();
+
                 const armorText = buildText()
-                .position({x: armorPosition.x - diameter / 2 - 0.5, y: armorPosition.y - diameter / 2 + textVerticalOffset})
-                .plainText("" + armorClass)
+                .position({x: armorPosition.x - diameter / 2 - ((armorValueText.length >= 3)?0.2:0.5), y: armorPosition.y - diameter / 2 + textVerticalOffset})
+                .plainText((armorValueText.length > 3)? String.fromCharCode(0x2026): armorValueText)
                 .textAlign("CENTER")
                 .textAlignVertical("MIDDLE")
-                .fontSize(circleFontSize)
+                .fontSize((armorValueText.length === 3)? reducedCircleFontSize: circleFontSize)
                 .fontFamily(font)
                 .textType("PLAIN")
                 .height(circleTextHeight)
@@ -356,12 +360,14 @@ async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
                 .disableHit(disableHit)
                 .build();
 
+                let tempValueText = tempHealth.toString();
+
                 const tempHealthText = buildText()
-                .position({x: tempHealthPosition.x - diameter / 2 - 0.5, y: tempHealthPosition.y - diameter / 2 + textVerticalOffset})
-                .plainText("" + tempHealth)
+                .position({x: tempHealthPosition.x - diameter / 2 - ((tempValueText.length >= 3)?0.2:0.5), y: tempHealthPosition.y - diameter / 2 + textVerticalOffset})
+                .plainText((tempValueText.length > 3)? String.fromCharCode(0x2026): tempValueText) // set ... if longer than 3
                 .textAlign("CENTER")
                 .textAlignVertical("MIDDLE")
-                .fontSize(circleFontSize)
+                .fontSize((tempValueText.length === 3)? reducedCircleFontSize: circleFontSize) //reduce font size if longer than 3
                 .fontFamily(font)
                 .textType("PLAIN")
                 .height(circleTextHeight)
