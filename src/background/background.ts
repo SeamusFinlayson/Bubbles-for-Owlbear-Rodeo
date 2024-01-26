@@ -37,7 +37,7 @@ OBR.onReady( async () => {
     ],
     shortcut: "Shift + S",
     embed: {
-      url: "/src/edit-stats/editStatsPlayer.html",
+      url: "/src/edit-stats/editStats.html",
       height: 82,
     }
   });
@@ -63,7 +63,7 @@ OBR.onReady( async () => {
     ],
     shortcut: "Shift + S",
     embed: {
-      url: "/src/edit-stats/editStatsGm.html",
+      url: "/src/edit-stats/editStats.html",
       height: 132,
     }
   });

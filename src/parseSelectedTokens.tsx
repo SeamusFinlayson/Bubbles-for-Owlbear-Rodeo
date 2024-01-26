@@ -1,8 +1,8 @@
 import OBR from "@owlbear-rodeo/sdk";
-import { getPluginId } from "../getPluginId";
+import { getPluginId } from "./getPluginId";
 import Token from "./Token";
 
-export default async function parseSelectedTokens(): Promise<Token[]> {
+export default async function parseSelectedTokens(mustHaveMaxHealth: boolean = true): Promise<Token[]> {
 
     const selectedTokens: Token[] = [];
 
@@ -39,9 +39,11 @@ export default async function parseSelectedTokens(): Promise<Token[]> {
             hasMaxHealth = true;
         } catch (error) {
             hasMaxHealth = false;
+            maxHealth = 0;
         }
         if (isNaN(maxHealth)) {
             hasMaxHealth = false;
+            maxHealth = 0;
         }
 
         // Extract temp health metadata
@@ -55,11 +57,34 @@ export default async function parseSelectedTokens(): Promise<Token[]> {
             tempHealth = 0;
         }
 
-        // If the token has health and max health add it to the list of valid tokens
-        if (hasMaxHealth) {
-            if (maxHealth !== 0) {
-                selectedTokens.push(new Token(item, health, maxHealth, tempHealth));
+        let armorClass: number = NaN;
+        try {
+            armorClass = parseFloat(metadata["armor class"])
+        } catch (error) {
+            armorClass = 0;
+        }
+        if (isNaN(armorClass)) {
+            armorClass = 0;
+        }
+
+        let hideStats: boolean = true;
+        try {
+            hideStats = Boolean(metadata["hide"]).valueOf()
+        } catch (error) {
+            hideStats = true;
+        }
+
+        if (mustHaveMaxHealth) {
+            // If the token has health and max health add it to the list of valid tokens
+            if (hasMaxHealth && maxHealth !== 0) {
+                selectedTokens.push(
+                    new Token(item, health, maxHealth, tempHealth, armorClass, hideStats)
+                );
             }
+        } else {
+            selectedTokens.push(
+                new Token(item, health, maxHealth, tempHealth, armorClass, hideStats)
+            );
         }
     }
 

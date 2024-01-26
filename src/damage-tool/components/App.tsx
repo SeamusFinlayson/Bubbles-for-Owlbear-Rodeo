@@ -1,12 +1,12 @@
 import OBR, { Item } from "@owlbear-rodeo/sdk";
-import Token from "../Token";
+import Token from "../../Token";
 import { useEffect, useState } from "react";
 import { Box, Button, TextField, useTheme } from "@mui/material";
 import TokenList from "./TokenList";
 import { getPluginId } from "../../getPluginId";
 import { StatMetadataID } from "../../edit-stats/StatInputClass";
 import { scaleHealthDiff, calculateNewHealth } from "../healthCalculations";
-import parseSelectedTokens from "../parseSelectedTokens";
+import parseSelectedTokens from "../../parseSelectedTokens";
 
 export default function App({
     initialTokens
