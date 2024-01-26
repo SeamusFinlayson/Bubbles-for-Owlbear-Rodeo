@@ -4,13 +4,11 @@ body {
   /* font-family: Console, monospace; */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: white;
 }
 
 /* text */
 
 .label {
-  color: white;
   font-weight: 700;
   font-size: 14px;
   justify-self:center;
