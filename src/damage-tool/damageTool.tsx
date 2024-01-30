@@ -2,7 +2,7 @@ import OBR from "@owlbear-rodeo/sdk";
 import { createRoot } from 'react-dom/client';
 import { getTheme } from "../OBRThemeProvider";
 import { ThemeProvider } from "@mui/material";
-import App from "./components/App";
+import DamageToolApp from "./components/DamageToolApp";
 import parseSelectedTokens from "../parseSelectedTokens";
 
 OBR.onReady(async () => {
@@ -16,7 +16,7 @@ OBR.onReady(async () => {
     const root = createRoot(document.getElementById('app') as HTMLDivElement);
     root.render(
         <ThemeProvider theme={theme}>
-            <App initialTokens={initialTokens} />
+            <DamageToolApp initialTokens={initialTokens} />
         </ThemeProvider>
     );
 });

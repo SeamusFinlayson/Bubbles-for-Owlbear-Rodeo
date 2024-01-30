@@ -8,7 +8,7 @@ import { StatMetadataID } from "../../edit-stats/StatInputClass";
 import { scaleHealthDiff, calculateNewHealth } from "../healthCalculations";
 import parseSelectedTokens from "../../parseSelectedTokens";
 
-export default function App({
+export default function DamageToolApp({
     initialTokens
 }: {
     initialTokens: Token[];

@@ -10,11 +10,6 @@ export default async function parseSelectedTokens(mustHaveMaxHealth: boolean = f
     const selection = await OBR.player.getSelection();
     const items = await OBR.scene.items.getItems(selection);
 
-    if (items.length === 0) {
-        // OBR.popover.close()
-        throw "Error: No item selected";
-    }
-
     for (const item of items) {
 
         // Get token metadata
