@@ -73,21 +73,21 @@ body {
 }
 
 .health-flex {
-  justify-self:stretch;
+  justify-self:center;
   align-self: baseline;
   grid-column: 1;
   grid-row: 2;
-  margin: 0 8px;
+  margin: 0 0;
 
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
 }
 
 /* stat background */
 
 .health-background {
-  width: 104;
+  width: 103px;
   border-radius: 12px;
   background-color: rgba(255, 0, 0, 0.4);
 
