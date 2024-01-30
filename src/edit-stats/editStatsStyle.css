@@ -79,9 +79,8 @@ body {
   grid-row: 2;
   margin: 0 8px;
 
-  height: 44px;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
 }
 
