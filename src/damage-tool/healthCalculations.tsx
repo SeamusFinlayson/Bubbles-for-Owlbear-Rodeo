@@ -51,9 +51,9 @@ export function calculateNewHealth(health: number, maxHealth: number, tempHealth
     return [newHealth, newTempHealth];
 }
 
-export function scaleHealthDiff(damageScaleOptions: number[], healthDiff: number, tokenIndex: number) {
+export function scaleHealthDiff(damageScaleOptions: Map<string, number>, healthDiff: number, key: string) {
     let scaledHealthDiff: number;
-    switch (damageScaleOptions[tokenIndex]) {
+    switch (damageScaleOptions.get(key)) {
         case 0: scaledHealthDiff = 0; break;
         case 1: scaledHealthDiff = Math.trunc(Math.trunc(healthDiff * 0.5) * 0.5); break;
         case 2: scaledHealthDiff = Math.trunc(healthDiff * 0.5); break;

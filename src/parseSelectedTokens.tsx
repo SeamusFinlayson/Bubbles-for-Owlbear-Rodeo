@@ -1,19 +1,14 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
-import Token from "./Token";
+import Token from "./TokenClass";
 
-export default async function parseSelectedTokens(mustHaveMaxHealth: boolean = true): Promise<Token[]> {
+export default async function parseSelectedTokens(mustHaveMaxHealth: boolean = false): Promise<Token[]> {
 
     const selectedTokens: Token[] = [];
 
     // Get selected Items
     const selection = await OBR.player.getSelection();
     const items = await OBR.scene.items.getItems(selection);
-
-    if (items.length === 0) {
-        // OBR.popover.close()
-        throw "Error: No item selected";
-    }
 
     for (const item of items) {
 
@@ -67,11 +62,11 @@ export default async function parseSelectedTokens(mustHaveMaxHealth: boolean = t
             armorClass = 0;
         }
 
-        let hideStats: boolean = true;
+        let hideStats: boolean = false;
         try {
             hideStats = Boolean(metadata["hide"]).valueOf()
         } catch (error) {
-            hideStats = true;
+            hideStats = false;
         }
 
         if (mustHaveMaxHealth) {

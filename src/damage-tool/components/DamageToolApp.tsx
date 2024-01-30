@@ -1,5 +1,5 @@
 import OBR, { Item } from "@owlbear-rodeo/sdk";
-import Token from "../../Token";
+import Token from "../../TokenClass";
 import { useEffect, useState } from "react";
 import { Box, Button, TextField, useTheme } from "@mui/material";
 import TokenList from "./TokenList";
@@ -8,7 +8,7 @@ import { StatMetadataID } from "../../edit-stats/StatInputClass";
 import { scaleHealthDiff, calculateNewHealth } from "../healthCalculations";
 import parseSelectedTokens from "../../parseSelectedTokens";
 
-export default function App({
+export default function DamageToolApp({
     initialTokens
 }: {
     initialTokens: Token[];
@@ -28,11 +28,11 @@ export default function App({
                     const updateSelectedTokens = ((tokens: Token[]) => {
                         setSelectedTokens(tokens);
                     });
-                    parseSelectedTokens().then(updateSelectedTokens);
+                    parseSelectedTokens(true).then(updateSelectedTokens);
                 }
             }
         ),
-        [selectedTokens, stopUpdates]
+        [stopUpdates]
     );
 
     // Health diff state
@@ -47,32 +47,33 @@ export default function App({
         }
     }
 
-    // Damage scaling state
-    const damageScaleSettings: number[] = [];
-    const setDamageScaleSettings: React.Dispatch<React.SetStateAction<number>>[] = [];
-
-    // Initialize damage scaling options
-    for (let i = 0; i < selectedTokens.length; i++) {
-        [damageScaleSettings[i], setDamageScaleSettings[i]] = useState(3);
-    }
+    const [damageScaleSettings, setDamageScaleSettings] = useState(() => {
+        let initialSettings = new Map<string, number>();
+        for (const token of selectedTokens) {
+            initialSettings.set(token.item.id, 3);
+        }
+        return initialSettings;
+    });
 
     // Callback for updating damage scaling options
-    function updateDamageScaleSetting(name: number, value: number) {
-        // console.log("Name: " + name + " Value: " + value);
-        setDamageScaleSettings[name](value);
+    function updateDamageScaleSetting(key: string, value: number) {
+        setDamageScaleSettings(new Map(damageScaleSettings.set(key, value)));
     }
 
     // State for displaying narrow UI on narrow displays
     const checkNarrow = () => (window.innerWidth < 521) ? true : false;
     const [isNarrow, setIsNarrow] = useState(checkNarrow);
 
-    useEffect(() => {
-        const updateIsNarrow = () => setIsNarrow(checkNarrow);
-        window.addEventListener("resize", updateIsNarrow);
-        return () => {
-            window.removeEventListener("resize", updateIsNarrow);
-        };
-    }, [isNarrow]);
+    useEffect(
+        () => {
+            const updateIsNarrow = () => setIsNarrow(checkNarrow);
+            window.addEventListener("resize", updateIsNarrow);
+            return () => {
+                window.removeEventListener("resize", updateIsNarrow);
+            };
+        },
+        []
+    );
 
     // Keyboard button controls
     useEffect(
@@ -139,9 +140,9 @@ export default function App({
                 <Button
                     variant="contained"
                     sx={{ flexGrow: 1 }}
-                    onClick={() => { 
+                    onClick={() => {
                         setStopUpdates(true);
-                        handleConfirmButton(Math.trunc(healthDiff), damageScaleSettings, selectedTokens); 
+                        handleConfirmButton(Math.trunc(healthDiff), damageScaleSettings, selectedTokens);
                     }}
                 >
                     {isNarrow ? "Confirm" : "Confirm (enter)"}
@@ -158,7 +159,7 @@ function handleCancelButton() {
 }
 
 function handleConfirmButton(
-    healthDiff: number, damageScaleSettings: number[], tokens: Token[]
+    healthDiff: number, damageScaleSettings: Map<string, number>, tokens: Token[]
 ) {
 
     // console.log("Confirm")
@@ -180,7 +181,7 @@ function handleConfirmButton(
             }
 
             // Scale health diff
-            let scaledHealthDiff: number = scaleHealthDiff(damageScaleSettings, healthDiff, i);
+            let scaledHealthDiff: number = scaleHealthDiff(damageScaleSettings, healthDiff, items[i].id);
 
             // Set new health and temp health values
             let [newHealth, newTempHealth] = calculateNewHealth(

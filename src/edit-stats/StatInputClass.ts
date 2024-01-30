@@ -1,5 +1,10 @@
 export type StatMetadataID = "health" | "max health" | "temporary health" | "armor class" | "hide";
 
+const statMetadataIDs: StatMetadataID[] = ["health", "max health", "temporary health", "armor class", "hide"];
+export function isStatMetadataID(id: string): id is StatMetadataID {
+    return statMetadataIDs.includes(id as StatMetadataID);
+}
+
 class StatInput {
     id: StatMetadataID;
     type: "TEXT" | "CHECKBOX";

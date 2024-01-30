@@ -1,5 +1,5 @@
 import { Box, Fade, Paper, Radio, Tooltip, useTheme } from "@mui/material";
-import Token from "../../Token";
+import Token from "../../TokenClass";
 import HealthBar from "./HealthBar";
 import TemporaryHealthBubble from "./TemporaryHealthBubble";
 import { calculateNewHealth, scaleHealthDiff } from "../healthCalculations";
@@ -11,8 +11,8 @@ const paperWidth: number = 200;
 export default function TokenList({
     tokens, healthDiff, damageScaleOptions, updateDamageScaleSetting, isNarrow
 }: {
-    tokens: Token[], healthDiff: number, damageScaleOptions: number[],
-    updateDamageScaleSetting: (name: number, value: number) => void, isNarrow: boolean
+    tokens: Token[], healthDiff: number, damageScaleOptions: Map<string, number>,
+    updateDamageScaleSetting: (key: string, value: number) => void, isNarrow: boolean
 }): JSX.Element {
 
     let thisElementSx: object = { marginX: 1, paddingX: 1, borderRadius: 1 };
@@ -23,16 +23,16 @@ export default function TokenList({
     }
 
     // Array of list elements
-    const tokenElements = tokens.map((_token, i) => {
+    const tokenElements = tokens.map((token) => {
 
         // Scale health diff
-        let scaledHealthDiff: number = scaleHealthDiff(damageScaleOptions, healthDiff, i);
+        let scaledHealthDiff: number = scaleHealthDiff(damageScaleOptions, healthDiff, token.item.id);
 
         // Set new health and temp health values
         let [newHealth, newTempHealth] = calculateNewHealth(
-            tokens[i].health.valueOf(),
-            tokens[i].maxHealth.valueOf(),
-            tokens[i].tempHealth.valueOf(),
+            token.health.valueOf(),
+            token.maxHealth.valueOf(),
+            token.tempHealth.valueOf(),
             scaledHealthDiff
         );
 
@@ -42,8 +42,18 @@ export default function TokenList({
             wordBreak: "break-word"
         }
 
+        const getDamageScaleOptions = (key: string): number => {
+            const value = damageScaleOptions.get(key);
+            if (typeof value === "number") {
+                return value;
+            } else {
+                throw "Error: value is " + typeof value + ", expected number."
+            }
+        }
+        const damageScaleOption = getDamageScaleOptions(token.item.id);
+
         return (
-            <Box key={tokens[i].item.id} sx={{
+            <Box key={token.item.id} sx={{
                 display: "grid",
                 // flexWrap: "no-wrap",
                 gridTemplateColumns: "3fr 2fr",
@@ -62,24 +72,24 @@ export default function TokenList({
                     ...tokenSx
                 }}>
                     <Box sx={{ gridColumn: "span 1", justifySelf: "stretch", alignSelf: "center", ...wordWrapStyle }}>
-                        {(tokens[i].item.name.length > 20) ? tokens[i].item.name.substring(0, 20).trim() + String.fromCharCode(0x2026) : tokens[i].item.name}
+                        {(token.item.name.length > 20) ? token.item.name.substring(0, 20).trim() + String.fromCharCode(0x2026) : token.item.name}
                     </Box>
                     <HealthBar
-                        health={tokens[i].health.valueOf()}
+                        health={token.health.valueOf()}
                         newHealth={newHealth}
-                        maxHealth={tokens[i].maxHealth.valueOf()}
+                        maxHealth={token.maxHealth.valueOf()}
                     ></HealthBar>
                     <TemporaryHealthBubble
-                        tempHealth={tokens[i].tempHealth.valueOf()}
+                        tempHealth={token.tempHealth.valueOf()}
                         newTempHealth={newTempHealth}
                     ></TemporaryHealthBubble>
                 </Paper>
 
                 <DamageScaleSettingRow
-                    damageScaleOption={damageScaleOptions[i]}
+                    damageScaleOption={damageScaleOption}
                     updateDamageScaleOption={updateDamageScaleSetting}
-                    index={i}
-                    isNarrow={isNarrow}
+                    tokenKey={token.item.id}
+                    isNarrow={isNarrow} 
                 ></DamageScaleSettingRow>
 
             </Box>
@@ -162,10 +172,10 @@ function HeaderRow({
 }
 
 function DamageScaleSettingRow({
-    damageScaleOption, updateDamageScaleOption, index, isNarrow
+    damageScaleOption, updateDamageScaleOption, tokenKey, isNarrow
 }: {
-    damageScaleOption: number, updateDamageScaleOption: (name: number, value: number) => void,
-    index: number, isNarrow: boolean
+    damageScaleOption: number, updateDamageScaleOption: (key: string, value: number) => void,
+    tokenKey: string, isNarrow: boolean
 }): JSX.Element {
 
     const columns = 5;
@@ -201,9 +211,8 @@ function DamageScaleSettingRow({
                 <Radio
                     color={themeIsDark ? "secondary" : "primary"}
                     checked={damageScaleOption === n}
-                    onChange={evt => updateDamageScaleOption(parseFloat(evt.target.name), parseFloat(evt.target.value))}
+                    onChange={evt => updateDamageScaleOption(tokenKey, parseFloat(evt.target.value))}
                     value={n.toString()}
-                    name={index.toString()}
                     inputProps={{ 'aria-label': 'A' }}
                     size={isNarrow ? "small" : "medium"}
                 // title={title[n]}
