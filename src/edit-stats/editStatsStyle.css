@@ -82,7 +82,7 @@ body {
 
   /* width: 100px; */
   display: grid;
-  place-items: baseline center;
+  place-items: center center;
   grid-template-columns: auto 14px auto;
   /* column-gap: 14px; */
   /* align-items: baseline;
