@@ -79,15 +79,19 @@ body {
   grid-row: 2;
   margin: 0 0;
 
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+
+  /* width: 103px; */
+  display: grid;
+  place-items: baseline / center;
+  grid-template-columns: auto auto;
+  column-gap: 14px;
+  /* align-items: baseline;
+  justify-content: space-between; */
 }
 
 /* stat background */
 
 .health-background {
-  width: 103px;
   border-radius: 12px;
   background-color: rgba(255, 0, 0, 0.4);
 
