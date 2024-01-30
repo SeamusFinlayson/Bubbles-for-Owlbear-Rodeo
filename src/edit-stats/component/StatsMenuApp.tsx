@@ -96,7 +96,7 @@ export default function StatsMenuApp({
                     onBlur={calculateValue}
                     onKeyDown={handleKeyDown}
                 />
-                <div style={{placeSelf:"center"}}>
+                <div style={{placeSelf:"center", height:"44px"}}>
                     &#x2215;
                 </div>
                 <input
