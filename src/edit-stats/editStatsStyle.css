@@ -49,7 +49,7 @@ body {
 }
 
 .grid-item {
-  justify-self:center;
+  justify-self: center;
   align-self: baseline;
   margin: 0 0 0 0;
 }
