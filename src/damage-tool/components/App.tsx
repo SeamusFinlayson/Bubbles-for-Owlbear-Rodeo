@@ -47,14 +47,6 @@ export default function App({
         }
     }
 
-    // Damage scaling state
-    // const damageScaleSettings: number[] = [];
-    // const setDamageScaleSettings: React.Dispatch<React.SetStateAction<number>>[] = [];
-
-    // Initialize damage scaling options
-    // for (let i = 0; i < selectedTokens.length; i++) {
-    // }
-
     const [damageScaleSettings, setDamageScaleSettings] = useState(() => {
         let initialSettings = new Map<string, number>();
         for (const token of selectedTokens) {
