@@ -1,5 +1,5 @@
 import OBR, { Item } from "@owlbear-rodeo/sdk";
-import Token from "../../Token";
+import Token from "../../TokenClass";
 import { useEffect, useState } from "react";
 import { Box, Button, TextField, useTheme } from "@mui/material";
 import TokenList from "./TokenList";
@@ -28,7 +28,7 @@ export default function App({
                     const updateSelectedTokens = ((tokens: Token[]) => {
                         setSelectedTokens(tokens);
                     });
-                    parseSelectedTokens().then(updateSelectedTokens);
+                    parseSelectedTokens(true).then(updateSelectedTokens);
                 }
             }
         ),

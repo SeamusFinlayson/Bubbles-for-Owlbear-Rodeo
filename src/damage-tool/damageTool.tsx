@@ -7,7 +7,7 @@ import parseSelectedTokens from "../parseSelectedTokens";
 
 OBR.onReady(async () => {
 
-    const initialTokens = await parseSelectedTokens();
+    const initialTokens = await parseSelectedTokens(true);
 
     const themeObject = await OBR.theme.getTheme()
     const theme = getTheme(themeObject)

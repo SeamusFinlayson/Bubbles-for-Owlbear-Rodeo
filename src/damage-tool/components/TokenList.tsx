@@ -1,5 +1,5 @@
 import { Box, Fade, Paper, Radio, Tooltip, useTheme } from "@mui/material";
-import Token from "../../Token";
+import Token from "../../TokenClass";
 import HealthBar from "./HealthBar";
 import TemporaryHealthBubble from "./TemporaryHealthBubble";
 import { calculateNewHealth, scaleHealthDiff } from "../healthCalculations";

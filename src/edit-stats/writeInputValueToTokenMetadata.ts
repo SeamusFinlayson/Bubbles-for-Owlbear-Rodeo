@@ -2,14 +2,15 @@ import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "../getPluginId";
 import { StatMetadataID } from "./StatInputClass";
 
-export async function writeInputValueToTokenMetadata(id: StatMetadataID, value: string | boolean): Promise<number | boolean> {
+export async function writeInputValueToTokenMetadata(inputName: InputName, value: string | boolean): Promise<string | boolean> {
 
-    let returnValue: number | boolean = (typeof value === "string") ? parseFloat(value) : value;
+    let returnValue: number | boolean | string = (typeof value === "string") ? parseFloat(value) : value;
+
+    const id = convertInputNameToMetadataId(inputName);
 
     // Get selected items
     const selection = await OBR.player.getSelection();
     const selectedItems = await OBR.scene.items.getItems(selection);
-
 
     // Throw error if more than one token selected
     if (selectedItems.length > 1) {
@@ -23,9 +24,6 @@ export async function writeInputValueToTokenMetadata(id: StatMetadataID, value: 
         for (let item of items) {
 
             if (typeof value === "boolean") {
-
-                // Get new value
-                const value = (document.getElementById(id) as HTMLInputElement).checked;
 
                 // Create new metadata
                 let newMetadata = { [id]: value };
@@ -52,6 +50,7 @@ export async function writeInputValueToTokenMetadata(id: StatMetadataID, value: 
                 if (item.metadata[getPluginId("metadata")]) {
 
                     const retrievedMetadata = JSON.parse(JSON.stringify(item.metadata[getPluginId("metadata")]));
+                    // console.log(retrievedMetadata)
 
                     // Check if new value is valid
                     if (!isNaN(newValueNumber)) {
@@ -115,21 +114,39 @@ export async function writeInputValueToTokenMetadata(id: StatMetadataID, value: 
                         break;
                     default: break;
                 }
-                //console.log(combinedMetadata[id])
+
                 // Write the metadata into the item
                 item.metadata[getPluginId("metadata")] = combinedMetadata;
                 returnValue = combinedMetadata[id];
 
-                // Write validated value back into input - handled by on change callback
-                // (document.getElementById(id) as HTMLInputElement).value = String(newMetadata[id]);
             } else {
                 throw "Error: bad input type.";
             }
         }
     });
+    if (typeof returnValue === "number") {
+        returnValue = returnValue.toString()
+    }
     return returnValue;
 }
 
 interface StatsArray {
     [index: string]: number | boolean;
+}
+
+export type InputName = "health" | "maxHealth" | "tempHealth" | "armorClass" | "hideStats";
+
+const inputNames: InputName[] = ["health", "maxHealth", "tempHealth", "armorClass", "hideStats"];
+export function isInputName(id: string): id is InputName {
+    return inputNames.includes(id as InputName);
+}
+
+function convertInputNameToMetadataId(id: InputName): StatMetadataID {
+    switch(id) {
+        case "health": return ("health");
+        case "maxHealth": return ("max health");
+        case "tempHealth": return ("temporary health");
+        case "armorClass": return ("armor class");
+        case "hideStats": return ("hide");
+    }
 }
