@@ -96,6 +96,9 @@ export default function StatsMenuApp({
                     onBlur={calculateValue}
                     onKeyDown={handleKeyDown}
                 />
+                <div style={{placeSelf:"center"}}>
+                    &#x2215;
+                </div>
                 <input
                     className={"number-bubble " + mode}
                     type="text"
@@ -108,11 +111,10 @@ export default function StatsMenuApp({
                     onKeyDown={handleKeyDown}
                 />
             </div>
-            <div style={{ zIndex: 3, justifySelf: "center",alignSelf:"baseline", gridColumn:1, gridRow:2 }}>
+            {/* <div style={{ zIndex: 3, justifySelf: "center", alignSelf:"center", gridColumn:1, gridRow:2 }}>
                 <label id="divisor" style={{ fontFamily: "Lucida Console, monospace" }}>
-                    &#x2215;
                 </label>
-            </div>
+            </div> */}
             <div className={"grid-item stat-background temp-background " + mode}>
                 <input
                     className={"number-bubble " + mode}
