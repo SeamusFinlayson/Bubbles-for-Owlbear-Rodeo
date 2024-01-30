@@ -33,7 +33,7 @@ body {
 .stat-grid {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
-  grid-template-rows: 22px 44px;
+  grid-template-rows: 22px auto;
   margin: 4px 8px 0 8px;
   padding: 4px 4px 8px 4px;
 
@@ -79,6 +79,7 @@ body {
   grid-row: 2;
   margin: 0 8px;
 
+  height: 44px;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
