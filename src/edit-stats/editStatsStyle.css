@@ -50,7 +50,7 @@ body {
 
 .grid-item {
   justify-self: center;
-  align-self: baseline;
+  align-self: center;
   margin: 0 0 0 0;
 }
 
