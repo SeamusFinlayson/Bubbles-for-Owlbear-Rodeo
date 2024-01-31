@@ -1,7 +1,8 @@
 import OBR, { Item } from "@owlbear-rodeo/sdk";
 import Token from "../../TokenClass";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Box, Button, TextField, useTheme } from "@mui/material";
+import LoadingButton from '@mui/lab/LoadingButton';
 import TokenList from "./TokenList";
 import { getPluginId } from "../../getPluginId";
 import { StatMetadataID } from "../../edit-stats/StatInputClass";
@@ -14,17 +15,36 @@ export default function DamageToolApp({
     initialTokens: Token[];
 }): JSX.Element {
 
-    // Selected tokens state
+    // Determine dark or light theme
+    const themeIsDark = useTheme().palette.mode === "dark";
+
+    // State for displaying narrow UI on narrow displays
+    const checkNarrow = () => (window.innerWidth < 521) ? true : false;
+    const [isNarrow, setIsNarrow] = useState(checkNarrow);
+
+    // Keep is narrow state up to date with window width
+    useEffect(
+        () => {
+            const updateIsNarrow = () => setIsNarrow(checkNarrow);
+            window.addEventListener("resize", updateIsNarrow);
+            return () => {
+                window.removeEventListener("resize", updateIsNarrow);
+            };
+        },
+        []
+    );
+
+    // State for whether the popover is updating scene then closing
+    const [confirming, setConfirming] = useState(false);
+
+    // State for selected tokens
     const [selectedTokens, setSelectedTokens] = useState(initialTokens);
 
-    // State to not update UI with modified values when confirm is pressed
-    const [stopUpdates, setStopUpdates] = useState(false);
-
-    // Re parse selection on scene item changes
+    // Keep selectedTokens up to date with scene
     useEffect(
         () => OBR.scene.items.onChange(
             () => {
-                if (!stopUpdates) {
+                if (!confirming) {
                     const updateSelectedTokens = ((tokens: Token[]) => {
                         setSelectedTokens(tokens);
                     });
@@ -32,21 +52,10 @@ export default function DamageToolApp({
                 }
             }
         ),
-        [stopUpdates]
+        [confirming]
     );
 
-    // Health diff state
-    const [healthDiff, setHealthDiff] = useState(0);
-
-    function updateHealthDiff(value: number) {
-
-        if (isNaN(value)) {
-            setHealthDiff(0);
-        } else {
-            setHealthDiff(value);
-        }
-    }
-
+    // State for radio button scale settings
     const [damageScaleSettings, setDamageScaleSettings] = useState(() => {
         let initialSettings = new Map<string, number>();
         for (const token of selectedTokens) {
@@ -60,57 +69,69 @@ export default function DamageToolApp({
         setDamageScaleSettings(new Map(damageScaleSettings.set(key, value)));
     }
 
-    // State for displaying narrow UI on narrow displays
-    const checkNarrow = () => (window.innerWidth < 521) ? true : false;
-    const [isNarrow, setIsNarrow] = useState(checkNarrow);
+    // State for change health input
+    const [textContent, setTextContent] = useState("");
 
-    useEffect(
-        () => {
-            const updateIsNarrow = () => setIsNarrow(checkNarrow);
-            window.addEventListener("resize", updateIsNarrow);
-            return () => {
-                window.removeEventListener("resize", updateIsNarrow);
-            };
-        },
-        []
-    );
+    // Determine if health change input content is valid
+    const strictInputValid = validateContent(textContent);
+    const lenientInputValid = validateContent(textContent, false);
+
+    // Reference to health change input
+    const textRef = useRef(null);
+
+    // Determine if a validation error should be displayed 
+    const [strict, useStrict] = useState(false);
+    const contentError = strict ? !strictInputValid : !lenientInputValid;
+
+    // Determine processed value of health input
+    const healthDiff = setHealthDiff(textContent, strictInputValid);
+
+    // Determine confirm can be run, then update scene and close popover
+    function handleConfirm() {
+        useStrict(true);
+        if (strictInputValid) {
+            setConfirming(true);
+            writeUpdatedValuesToTokens(Math.trunc(healthDiff), damageScaleSettings, selectedTokens);
+            closePopover();
+        }
+    }
 
     // Keyboard button controls
     useEffect(
         () => {
-
             const handleKeydown = (event: any) => {
                 if (event.key == "Escape") {
-                    handleCancelButton();
+                    closePopover();
                 }
                 if (event.key == "Enter") {
-                    setStopUpdates(true)
-                    handleConfirmButton(Math.trunc(healthDiff), damageScaleSettings, selectedTokens);
+                    handleConfirm();
                 }
             };
             document.addEventListener('keydown', handleKeydown, false);
-
-            return () => { document.removeEventListener('keydown', handleKeydown); };
-
+            return () => document.removeEventListener('keydown', handleKeydown);
         },
         [healthDiff]
     );
-
-    const themeIsDark = useTheme().palette.mode === "dark";
 
     // App content
     return (
         <>
             <Box sx={{ paddingX: 1 }}>
                 <TextField
-                    color={themeIsDark ? "secondary" : "primary"}
-                    type="number"
+                    color={(themeIsDark ? "secondary" : "primary")}
+                    error={contentError}
+                    type="text"
                     InputProps={{ inputProps: { inputMode: "decimal" } }}
-                    label="Change health by..."
-                    onChange={evt => updateHealthDiff(parseFloat(evt.target.value))}
-                    autoFocus
+                    label={contentError ? "Enter an integer" : "Change health by..."}
+                    value={textContent}
+                    onChange={evt => {
+                        setTextContent(evt.target.value);
+                        useStrict(false);
+                    }}
+                    onBlur={_evt => useStrict(true)}
+                autoFocus
                 ></TextField>
-            </Box>
+        </Box >
 
             <TokenList
                 tokens={selectedTokens}
@@ -133,37 +154,60 @@ export default function DamageToolApp({
             }}>
                 <Button
                     variant="outlined" sx={{ flexGrow: 1 }}
-                    onClick={handleCancelButton}
+                    onClick={closePopover}
                 >
                     {isNarrow ? "Cancel" : "Cancel (escape)"}
                 </Button>
-                <Button
+                <LoadingButton
                     variant="contained"
                     sx={{ flexGrow: 1 }}
-                    onClick={() => {
-                        setStopUpdates(true);
-                        handleConfirmButton(Math.trunc(healthDiff), damageScaleSettings, selectedTokens);
-                    }}
+                    loading={confirming}
+                    onClick={handleConfirm}
                 >
-                    {isNarrow ? "Confirm" : "Confirm (enter)"}
-                </Button>
+                    <span>
+                        {isNarrow ? "Confirm" : "Confirm (enter)"}
+                    </span>
+                </LoadingButton>
             </Box>
         </>
     );
 }
 
-function handleCancelButton() {
+function validateContent(content: string, strict: boolean = true): boolean {
 
-    // Close popover
+    const isLookingLikeInt = new RegExp(/^([+|-]?[0-9]*)$/g);
+    const isInt = new RegExp(/^([+|-]?[0-9]+)$/g);
+    // const hasInvalidCharacters = new RegExp(/[^0-9+-]/);
+
+    let result: boolean;
+    if (strict) {
+        result = isInt.test(content);
+    } else {
+        result = isLookingLikeInt.test(content);
+    }
+    // console.log("update", (strict) ? "strict" : "lenient", "input valid to", result);
+    return result;
+}
+
+// Processed value of change health input
+function setHealthDiff(text: string, valid: boolean): number {
+
+    let value = parseFloat(text);
+
+    if (isNaN(value) || !valid) {
+        return (0)
+    } else {
+        return (value);
+    }
+}
+
+function closePopover() {
     OBR.popover.close(getPluginId("damage-tool-popover"));
 }
 
-function handleConfirmButton(
+function writeUpdatedValuesToTokens(
     healthDiff: number, damageScaleSettings: Map<string, number>, tokens: Token[]
 ) {
-
-    // console.log("Confirm")
-    // console.log(healthDiff)
 
     const validItems: Item[] = [];
     tokens.forEach((token) => {
@@ -204,7 +248,4 @@ function handleConfirmButton(
 
         }
     });
-
-    // Close popover
-    OBR.popover.close(getPluginId("damage-tool-popover"));
 }

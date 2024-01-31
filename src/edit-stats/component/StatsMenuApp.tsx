@@ -86,7 +86,7 @@ export default function StatsMenuApp({
                 style={{ zIndex: 2 }}
             >
                 <input
-                    className={"number-bubble grid-item " + mode}
+                    className={"number-bubble " + mode}
                     type="text"
                     // id="health"
                     name="health"
@@ -96,8 +96,11 @@ export default function StatsMenuApp({
                     onBlur={calculateValue}
                     onKeyDown={handleKeyDown}
                 />
+                <div style={{placeSelf:"center"}}>
+                    &#x2215;
+                </div>
                 <input
-                    className={"number-bubble grid-item " + mode}
+                    className={"number-bubble " + mode}
                     type="text"
                     // id="max health"
                     name="maxHealth"
@@ -107,11 +110,6 @@ export default function StatsMenuApp({
                     onBlur={calculateValue}
                     onKeyDown={handleKeyDown}
                 />
-            </div>
-            <div className="health-flex" style={{ zIndex: 3, justifySelf: "center" }}>
-                <label id="divisor" style={{ fontFamily: "Lucida Console, monospace" }}>
-                    &#x2215;
-                </label>
             </div>
             <div className={"grid-item stat-background temp-background " + mode}>
                 <input
