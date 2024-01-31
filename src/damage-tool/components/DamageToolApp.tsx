@@ -118,7 +118,7 @@ export default function DamageToolApp({
                     color={(themeIsDark ? "secondary" : "primary")}
                     error={contentError}
                     type="text"
-                    InputProps={{ inputProps: { inputMode: "decimal" } }}
+                    // InputProps={{ inputProps: { inputMode: "decimal" } }} // prevents "-" from being input on some mobile devices
                     label={contentError ? "Enter an integer" : "Change health by..."}
                     value={textContent}
                     onChange={evt => {

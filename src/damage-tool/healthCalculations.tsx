@@ -48,6 +48,20 @@ export function calculateNewHealth(health: number, maxHealth: number, tempHealth
         }
     }
 
+    // Restrict health to values within [-999, 9999]
+    if (newHealth > 9999) {
+        newHealth = 9999;
+    } else if (newHealth < -999) {
+        newHealth = -999;
+    }
+
+    // Restrict temp health to values within [-999, 999] 
+    if (newTempHealth > 999) {
+        newTempHealth = 999;
+    } else if (newTempHealth < -999) {
+        newTempHealth = -999;
+    }
+
     return [newHealth, newTempHealth];
 }
 
