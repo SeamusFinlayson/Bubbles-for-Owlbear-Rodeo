@@ -1,6 +1,6 @@
 import OBR, { Item } from "@owlbear-rodeo/sdk";
 import Token from "../../TokenClass";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Button, TextField, useTheme } from "@mui/material";
 import LoadingButton from '@mui/lab/LoadingButton';
 import TokenList from "./TokenList";
@@ -75,9 +75,6 @@ export default function DamageToolApp({
     // Determine if health change input content is valid
     const strictInputValid = validateContent(textContent);
     const lenientInputValid = validateContent(textContent, false);
-
-    // Reference to health change input
-    const textRef = useRef(null);
 
     // Determine if a validation error should be displayed 
     const [strict, useStrict] = useState(false);
