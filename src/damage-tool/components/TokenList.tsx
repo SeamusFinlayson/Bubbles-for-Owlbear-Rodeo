@@ -213,6 +213,7 @@ function DamageScaleSettingRow({
                     checked={damageScaleOption === n}
                     onChange={evt => updateDamageScaleOption(tokenKey, parseFloat(evt.target.value))}
                     value={n.toString()}
+                    name={tokenKey}
                     inputProps={{ 'aria-label': 'A' }}
                     size={isNarrow ? "small" : "medium"}
                 // title={title[n]}
