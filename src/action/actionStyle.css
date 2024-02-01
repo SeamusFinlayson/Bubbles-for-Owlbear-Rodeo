@@ -27,7 +27,7 @@ body {
   
 .action-hr {
   margin: 12px 16px;
-  min-width: 211px;
+  min-width: 200px;
   flex-shrink: 0;
   border-width: 0px 0px thin;
   border-style: solid;
@@ -36,12 +36,16 @@ body {
 
 .settings-grid {
   display: grid;
-  grid-template-columns: minmax(162px, auto) 50px;
-  grid-template-rows: repeat(5, 50px);
-  column-gap: minmax(8px, 16px);
+  grid-template-columns: auto 50px;
+  /* grid-template-rows: repeat(5, 50px); */
+  grid-auto-rows: auto;
+
+  column-gap: 8px;
+  row-gap: 20px;
   /* row-gap: 8px; */
   /* border:1px solid white; */
-  margin: 0 16px 0 16px;
+  min-width: 200px;
+  margin: 0 16px 0px 16px;
 }
 
 .settings-label {
@@ -90,6 +94,10 @@ body {
   margin: 16px 14px 0px 14px;
   margin-trim: 8;
   /* margin: 0 0 0 0; */
+}
+
+.action-container {
+  justify-self: end;
 }
 
 .action-button {
@@ -175,6 +183,52 @@ body {
 
 .action-p {
   margin: 16px;
+}
+
+/* Bottom buttons */
+
+.bottom-buttons {
+  display: flex;
+  flex-direction: row;
+  margin: 16px;
+  gap: 8px;
+}
+
+.bottom-button {
+  border-radius: 8px;
+  border-width: 0px;
+  text-decoration: none;
+
+  /* outline: solid 1px rgba(255, 255, 255, 0.1); */
+
+  background-color: rgba(0, 0, 0, 0.144);
+  text-align: center;
+  color: white;
+  font-size: medium;
+  padding: 8px;
+
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+}
+
+.bottom-button:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+  /* border-width: 1px; */
+  outline: none;
+  transition: .05s;
+}
+
+.bottom-button:active {
+  background-color: rgba(0, 0, 0, 0.4);
+  /* border-width: 1px; */
+  outline: none;
+  transform: translateY(2px);
+}
+
+.button-svg {
+  padding-bottom: 1px;
 }
 
 /* hide number input arrows */

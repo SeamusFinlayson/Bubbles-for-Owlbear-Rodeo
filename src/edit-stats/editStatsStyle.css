@@ -4,13 +4,11 @@ body {
   /* font-family: Console, monospace; */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: white;
 }
 
 /* text */
 
 .label {
-  color: white;
   font-weight: 700;
   font-size: 14px;
   justify-self:center;
@@ -51,8 +49,8 @@ body {
 }
 
 .grid-item {
-  justify-self:center;
-  align-self: baseline;
+  justify-self: center;
+  align-self: center;
   margin: 0 0 0 0;
 }
 
@@ -75,21 +73,25 @@ body {
 }
 
 .health-flex {
-  justify-self:stretch;
+  justify-self:center;
   align-self: baseline;
   grid-column: 1;
   grid-row: 2;
-  margin: 0 8px;
+  margin: 0 0;
 
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+
+  /* width: 100px; */
+  display: grid;
+  place-items: center center;
+  grid-template-columns: auto 14px auto;
+  /* column-gap: 14px; */
+  /* align-items: baseline;
+  justify-content: space-between; */
 }
 
 /* stat background */
 
 .health-background {
-  width: 104;
   border-radius: 12px;
   background-color: rgba(255, 0, 0, 0.4);
 

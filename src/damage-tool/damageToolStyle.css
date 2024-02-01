@@ -1,0 +1,383 @@
+body {
+    margin: 0;
+    font-family: Roboto, Helvetica, Arial, sans-serif;
+    /* font-family: Console, monospace; */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: white;
+}
+
+button {
+    border-radius: 8px;
+    width: 150px;
+    font-size: medium;
+}
+
+h2 {
+    margin-top: 12px;
+    margin-bottom: 4px;
+}
+
+p {
+    margin: 2px 0px;
+}
+
+/* Top Level */
+
+.mother-grid {
+    display: grid;
+    grid-template-columns: auto auto auto;
+
+    justify-items: center;
+    align-items: center;
+}
+
+.tokens-frame {
+    display: flex;
+    flex-direction: row;
+    /* gap: 10px; */
+
+    padding: 4px;
+    margin: 8px;
+    border-radius: 12px;
+
+    /* background-color: rgba(0, 0, 0, 0.425); */
+}
+
+.token-list {
+    align-self: stretch;
+
+    display: grid;
+    grid-template-rows: 40px;
+    grid-auto-rows: 1fr;
+    justify-items: stretch;
+    align-items: center;
+}
+
+.divider-arrow {
+    font-weight: bold;
+}
+
+.health-input {
+    width: 200px;
+    height: 43px;
+    padding: 1px 0 0 0;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(0, 0, 0, 0.651);
+    text-align: center;
+    /* transition: .2s; */
+    border-radius: 8px;
+    border-width: 0px;
+    outline-style: none;
+    outline-width: 2px;
+    outline-color: rgba(255, 255, 255, 0.3);
+    outline-offset: -2px;
+    font-size: medium;
+
+    /* font-family: Lucida Console, monospace; */
+}
+
+.input-row {
+    margin: 0 8px;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.bottom-row {
+    position: fixed;
+    bottom: 0;
+    /* margin: 8px 0; */
+    padding: 8px 0;
+    width: 100%;
+
+    background-color: #3d4051;
+    box-shadow: 0px -5px 20px 1px rgba(0, 0, 0, 0.3) ;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+/* Current Tokens */
+
+.current-token-list-header {
+    height: 30px;
+    padding: 0 12px;
+    margin: 4px;
+    border-radius: 12px;
+
+    display: grid;
+    grid-template-columns: 1fr repeat(3,50px);
+    align-items: center;
+    justify-items: center;
+}
+
+.current-token-element {
+    /* background-color: #3d4051; */
+    padding: 12px;
+    margin: 4px;
+    /* border-radius: 12px; */
+
+    display: grid;
+    grid-template-columns: 1fr repeat(3,50px);
+    align-items: center;
+    justify-items: center;
+}
+
+.token-name {
+    justify-self: start;
+}
+
+/* New Tokens */
+
+.new-token-list-header {
+    height: 30px;    
+    padding: 0 12px;
+    margin: 0 4px;
+    border-radius: 12px;
+
+    display: grid;
+    grid-template-columns: repeat(3,50px);
+    align-items: center;
+    justify-items: center;
+}
+
+.new-token-element {
+    /* background-color: #3d4051; */
+    padding: 12px;
+    margin: 4px;
+    border-radius: 12px;
+
+    display: grid;
+    grid-template-columns: repeat(3,50px);
+    align-items: center;
+    justify-items: center;
+}
+
+/* Settings */
+
+.setting-token-list-header {  
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.radio-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+/* 
+.radio-row:focus-within {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+} */
+
+.setting-token-input {
+    margin: 8px;
+    height: 20px;
+    width: 20px;
+
+    align-self: center;
+    justify-self: center;
+}
+
+.token-list.setting {
+    /* margin: 10px; */
+}
+
+.cancel-button {
+    display: inline-flex;
+    -webkit-box-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    justify-content: center;
+    position: relative;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    background-color: transparent;
+    outline: 0px;
+    margin: 0px;
+    cursor: pointer;
+    user-select: none;
+    vertical-align: middle;
+    appearance: none;
+    text-decoration: none;
+    font-family: Roboto, Helvetica, Arial, sans-serif;
+    font-weight: bold;
+    font-size: 0.875rem;
+    line-height: 1.75;
+    letter-spacing: 0.02857em;
+    text-transform: uppercase;
+    min-width: 64px;
+    padding: 5px 15px;
+    border-radius: 12px;
+    transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+    border: 1px solid rgba(187, 153, 255, 0.5);
+    color: rgb(187, 153, 255);
+    width: 100%;
+    margin: 0 8px;
+}
+
+.cancel-button:hover {
+    background-color: rgb(56, 57, 82);
+    border: 1px solid rgba(187, 153, 255, 1);
+}
+
+.confirm-button {
+    display: inline-flex;
+    -webkit-box-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    justify-content: center;
+    position: relative;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    outline: 0px;
+    border: 0px;
+    margin: 0px;
+    cursor: pointer;
+    user-select: none;
+    vertical-align: middle;
+    appearance: none;
+    text-decoration: none;
+    font-family: Roboto, Helvetica, Arial, sans-serif;
+    font-weight: bold;
+    font-size: 0.875rem;
+    line-height: 1.75;
+    letter-spacing: 0.02857em;
+    text-transform: uppercase;
+    min-width: 64px;
+    padding: 6px 16px;
+    border-radius: 12px;
+    transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+    color: rgba(0, 0, 0, 0.87);
+    background-color: rgb(187, 153, 255);
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 1px -2px, rgba(0, 0, 0, 0.14) 0px 2px 2px 0px, rgba(0, 0, 0, 0.12) 0px 1px 5px 0px;
+    width: 100%;
+    margin: 0 8px;
+}
+
+.confirm-button:hover {
+    background-color: #826bb2;
+}
+
+/* text */
+
+.label {
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    justify-self: center;
+    align-self: center;
+    margin: 0 0 0 0;
+    padding: 0 0 0 0;
+    /* text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;  */
+}
+
+/* Switch */
+
+.color {
+    width: 24px;
+    height: 24px;
+    /* Create a circle with a clip path to allow transition from full to hollow */
+    clip-path: path("M 12 0 A 12 12 0 0 1 12 24 A 12 12 0 0 1 12 0 M 12 12 A 0 0 0 0 0 12 12 A 0 0 0 0 0 12 12"
+        );
+    transition: all 100ms ease 0s;
+}
+
+/* Hollow out the circle when selected */
+.selected .color {
+    clip-path: path("M 12 0 A 12 12 1 1 1 12 24 A 12 12 1 1 1 12 0 M 12 3 A 9 9 0 0 0 12 21 A 9 9 0 0 0 12 3"
+        );
+}
+
+.color-button:hover .color {
+    transform: scale(1.2);
+}
+
+/* The switch - the box around the slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    justify-self: center;
+    align-self: center;
+    width: 45px;
+    height: 26px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* The slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* transform: translate(5%, -5%); */
+    background-color: rgba(0, 0, 0, 0.4);
+    transition: .15s;
+    /* border: 1px solid rgba(189, 189, 189, 0.4); */
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 4px;
+    bottom: 4px;
+    background-color: rgba(224, 224, 224, 0.5);
+    transition: .15s;
+}
+
+input:checked+.slider {
+    background-color: rgb(116, 100, 159);
+    /*better colour but transparency looks bad in light mode rgb(187, 153, 255, 0.5)*/
+    /* border: 1px solid rgb(117, 119, 128, 0); */
+}
+
+input:checked+.slider:before {
+    -webkit-transform: translateX(19px);
+    -ms-transform: translateX(19px);
+    transform: translateX(19px);
+    background-color: rgb(204, 179, 255);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* Hide number input arrows */
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
