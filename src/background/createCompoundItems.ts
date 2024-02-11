@@ -5,18 +5,24 @@ import {
 	buildText,
 } from "@owlbear-rodeo/sdk";
 
+// Constants used in multiple functions
 const FONT_SIZE = 22;
 const FONT = "Lucida Console, monospace";
 const DISABLE_HIT = true;
-const BACKGROUND_OPACITY = 0.6
+const BACKGROUND_OPACITY = 0.6;
 const DISABLE_ATTACHMENT_BEHAVIORS: AttachmentBehavior[] = [
-    "ROTATION",
-    "VISIBLE",
-    "COPY",
-    "SCALE",
+	"ROTATION",
+	"VISIBLE",
+	"COPY",
+	"SCALE",
 ];
-const DIAMETER = 30;
-const BAR_HEIGHT = 20;
+const TEXT_VERTICAL_OFFSET = 1.5;
+
+// Constants used in createStatBubble()
+export const DIAMETER = 30;
+const CIRCLE_FONT_SIZE = DIAMETER - 8;
+const REDUCED_CIRCLE_FONT_SIZE = DIAMETER - 15;
+const CIRCLE_TEXT_HEIGHT = DIAMETER + 0;
 
 /** Creates Stat Bubble component items */
 export function createStatBubble(
@@ -27,16 +33,9 @@ export function createStatBubble(
 	position: { x: number; y: number },
 	label: string,
 ): Item[] {
-	const diameter = 30;
-
-	const circleFontSize = diameter - 8;
-	const reducedCircleFontSize = diameter - 15;
-	const circleTextHeight = diameter + 0;
-	const textVerticalOffset = 1.5;
-
 	const bubbleShape = buildShape()
 		.width(bounds.width)
-		.height(diameter)
+		.height(DIAMETER)
 		.shapeType("CIRCLE")
 		.fillColor(color)
 		.fillOpacity(BACKGROUND_OPACITY)
@@ -57,17 +56,19 @@ export function createStatBubble(
 
 	const bubbleText = buildText()
 		.position({
-			x: position.x - diameter / 2 - (valueText.length >= 3 ? 0.2 : 0.5),
-			y: position.y - diameter / 2 + textVerticalOffset,
+			x: position.x - DIAMETER / 2 - (valueText.length >= 3 ? 0.2 : 0.5),
+			y: position.y - DIAMETER / 2 + TEXT_VERTICAL_OFFSET,
 		})
 		.plainText(valueText.length > 3 ? String.fromCharCode(0x2026) : valueText)
 		.textAlign("CENTER")
 		.textAlignVertical("MIDDLE")
-		.fontSize(valueText.length === 3 ? reducedCircleFontSize : circleFontSize)
+		.fontSize(
+			valueText.length === 3 ? REDUCED_CIRCLE_FONT_SIZE : CIRCLE_FONT_SIZE,
+		)
 		.fontFamily(FONT)
 		.textType("PLAIN")
-		.height(circleTextHeight)
-		.width(diameter)
+		.height(CIRCLE_TEXT_HEIGHT)
+		.width(DIAMETER)
 		.fontWeight(400)
 		//.strokeColor("black")
 		//.strokeWidth(0)
@@ -83,6 +84,12 @@ export function createStatBubble(
 	return [bubbleShape, bubbleText];
 }
 
+// Constants used in createHealthBar()
+const BAR_PADDING = 2;
+const HEALTH_OPACITY = 0.5;
+export const FULL_BAR_HEIGHT = 20;
+const SHORT_BAR_HEIGHT = 12;
+
 /** Creates health bar component items */
 export function createHealthBar(
 	item: Item,
@@ -90,21 +97,22 @@ export function createHealthBar(
 	health: number,
 	maxHealth: number,
 	statsVisible: boolean,
-	position: { x: number; y: number },
+	origin: { x: number; y: number },
 	variant: "full" | "short" = "full",
 	segments = 0,
 ): Item[] {
-	let barHeight: number;
+    let barHeight: number;
 	if (variant === "short") {
-		barHeight = 12;
+        barHeight = SHORT_BAR_HEIGHT;
 	} else {
-		barHeight = 20;
+        barHeight = FULL_BAR_HEIGHT;
 	}
-	const barPadding = 2;
-	const barWidth = bounds.width - barPadding * 2;
+    const position = {
+        x: origin.x - bounds.width / 2 + BAR_PADDING,
+        y: origin.y - barHeight - 2,
+    };
+	const barWidth = bounds.width - BAR_PADDING * 2;
 	const barTextHeight = barHeight + 0;
-	const textVerticalOffset = 1.5;
-	const healthOpacity = 0.5;
 	const setVisibilityProperty = item.visible;
 
 	let healthBackgroundColor = "#A4A4A4";
@@ -149,7 +157,7 @@ export function createHealthBar(
 		.height(barHeight)
 		.shapeType("RECTANGLE")
 		.fillColor("red")
-		.fillOpacity(healthOpacity)
+		.fillOpacity(HEALTH_OPACITY)
 		.strokeWidth(0)
 		.strokeOpacity(0)
 		.position({ x: position.x, y: position.y })
@@ -167,7 +175,7 @@ export function createHealthBar(
 	}
 
 	const healthText = buildText()
-		.position({ x: position.x, y: position.y + textVerticalOffset })
+		.position({ x: position.x, y: position.y + TEXT_VERTICAL_OFFSET })
 		.plainText("" + health + String.fromCharCode(0x2215) + maxHealth)
 		.textAlign("CENTER")
 		.textAlignVertical("MIDDLE")
@@ -192,30 +200,35 @@ export function createHealthBar(
 	return [backgroundShape, healthShape, healthText];
 }
 
+// Constants used in createNameTag()
+const LETTER_WIDTH = 14;
+const NAME_TAG_HEIGHT = 26;
+
 /** Create name tag component items */
 export function createNameTag(
 	item: Item,
-	position: { x: number; y: number },
+	origin: { x: number; y: number },
 	nameTagVisible: boolean,
 ): Item[] {
-	const letterWidth = 14;
-	const nameTagHeight = 26;
-	const nameTagWidth = letterWidth * item.name.length + 4;
+	const nameTagWidth = LETTER_WIDTH * item.name.length + 4;
 
-    const setVisibilityProperty = item.visible;
+	const setVisibilityProperty = item.visible;
 
 	let nameTagBackgroundColor = "darkgrey";
 	if (!nameTagVisible) {
 		nameTagBackgroundColor = "black";
 	}
 
-	const nameTagFontSize = FONT_SIZE;
-	const nameTagTextHeight = nameTagHeight + 0;
-    const textVerticalOffset = 1.5;
+	const nameTagTextHeight = NAME_TAG_HEIGHT + 0;
+
+	const position = {
+		x: origin.x - nameTagWidth / 2,
+		y: origin.y,
+	};
 
 	const nameTagBackground = buildShape()
 		.width(nameTagWidth)
-		.height(nameTagHeight)
+		.height(NAME_TAG_HEIGHT)
 		.shapeType("RECTANGLE")
 		.fillColor(nameTagBackgroundColor)
 		.fillOpacity(BACKGROUND_OPACITY)
@@ -231,11 +244,11 @@ export function createNameTag(
 		.build();
 
 	const nameTagText = buildText()
-		.position({ x: position.x, y: position.y + textVerticalOffset })
+		.position({ x: position.x, y: position.y + TEXT_VERTICAL_OFFSET })
 		.plainText(item.name)
 		.textAlign("CENTER")
 		.textAlignVertical("MIDDLE")
-		.fontSize(nameTagFontSize)
+		.fontSize(FONT_SIZE)
 		.fontFamily(FONT)
 		.textType("PLAIN")
 		.height(nameTagTextHeight)
@@ -253,5 +266,5 @@ export function createNameTag(
 		.disableHit(DISABLE_HIT)
 		.build();
 
-    return [nameTagBackground, nameTagText];
+	return [nameTagBackground, nameTagText];
 }

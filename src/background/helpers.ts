@@ -1,9 +1,8 @@
-import OBR, { AttachmentBehavior, Image, Item, Shape, Text, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
+import OBR, { Image, Item, isImage } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "../getPluginId";
 import nameTagIcon from "../name-tags/nameTag.svg";
 import { ActionMetadataId, actionInputs } from "../action/ActionInputClass";
-import { createHealthBar, createNameTag, createStatBubble } from "./createCompoundItems";
-import { send } from "vite";
+import { DIAMETER, FULL_BAR_HEIGHT, createHealthBar, createNameTag, createStatBubble } from "./createCompoundItems";
 
 let tokenIds: string[] = []; // for orphan health bar management
 let itemsLast: Image[] = []; // for item change checks
@@ -135,23 +134,20 @@ async function startHealthBarUpdates() {
 };
 
 async function createAttachments(item: Image, role: "PLAYER" | "GM") {
-
-    // console.log("draw")
-
     // Extract metadata from the token
     const [
         health,
         maxHealth,
         tempHealth,
         armorClass,
-        visible,
+        statsVisible,
         nameTagEnabled,
         nameTagVisible,
     ] = getTokenMetadata(item);
 
     // Explicitly delete all attachment and return early if none are assigned to this item
     const noAttachments = () => !(
-        !(role === "PLAYER" && !visible) ||
+        !(role === "PLAYER" && !statsVisible) ||
         (nameTags &&
             nameTagEnabled &&
             !(role === "PLAYER" && !nameTagVisible)) ||
@@ -162,128 +158,36 @@ async function createAttachments(item: Image, role: "PLAYER" | "GM") {
         return;
     }
 
-    //get physical token properties
+    // Determine token bounds
     const dpi = await OBR.scene.grid.getDpi();
     const bounds = getImageBounds(item, dpi);
     bounds.width = Math.abs(bounds.width);
     bounds.height = Math.abs(bounds.height);
 
-    //attachment properties
-    const diameter = 30;
-    const barHeight = 20;
-
-    let offsetBubbles = 0;
-    if (maxHealth > 0) {
-        offsetBubbles = 1;
-    }
-
-    let alignBottomMultiplier = 1;
-    if (barAtTop) {
-        alignBottomMultiplier = -1;
-    }
+    // Determine coordinate origin for drawing stats
     const origin = {
         x: item.position.x,
-        y: item.position.y + alignBottomMultiplier * bounds.height / 2 - verticalOffset,
-    }
-    if (barAtTop) {
-        origin.y += 1;
+        y: item.position.y + (barAtTop ? -1 : 1) * bounds.height / 2 
+            - verticalOffset + (barAtTop ? 1 : 0),
     }
 
-    if (!((role === "PLAYER") && !visible)) { //draw bar if 
-        let drewArmorClass = false;
-        
-        if (armorClass > 0) {
-            drewArmorClass = true;
-            
-            const armorPosition = {
-                x: origin.x + bounds.width / 2 - diameter / 2 - 2,
-                y: origin.y - diameter / 2 - 4 - barHeight * offsetBubbles,
-            }
-            if (barAtTop) {
-                armorPosition.y = origin.y + diameter / 2;
-            }
+    // Name tags
+    if (nameTags && nameTagEnabled && !((role === "PLAYER") && !nameTagVisible)) {
+        addItemsArray.push(...createNameTag(item, origin, nameTagVisible));
+    } else {
+        addNameTagItemAttachmentsToDeleteList(item.id);
+    }
 
-            addItemsArray.push(
-                ...createStatBubble(
-                    item,
-                    bounds,
-                    armorClass,
-                    "cornflowerblue", //"#5c8fdb"
-                    armorPosition,
-                    "ac",
-                ),
-            );
-        } else {
-            addArmorItemAttachmentsToDeleteList(item.id);
-        }
-
-        if (tempHealth > 0) {
-            let tempHealthPosition: { x: number; y: number };
-            if (drewArmorClass) {
-                tempHealthPosition = {
-                    x: origin.x + bounds.width / 2 - diameter * 3 / 2 - 4,
-                    y: origin.y - diameter / 2 - 4 - barHeight * offsetBubbles,
-                }
-            } else {
-                tempHealthPosition = {
-                    x: origin.x + bounds.width / 2 - diameter / 2 - 2,
-                    y: origin.y  - diameter / 2 - 4 - barHeight * offsetBubbles,
-                }
-            }
-            if (barAtTop) {
-                tempHealthPosition.y = origin.y + diameter / 2;
-            }
-
-            addItemsArray.push(
-                ...createStatBubble(
-                    item,
-                    bounds,
-                    tempHealth,
-                    "olivedrab",
-                    tempHealthPosition,
-                    "temp-hp",
-                ),
-            );
-        } else {
-            addTempHealthItemAttachmentsToDeleteList(item.id);
-        }
-
-        if (maxHealth > 0) {
-            const barPadding = 2;
-            const position = {
-                x: origin.x - bounds.width / 2 + barPadding,
-                y: origin.y - barHeight - 2,
-            };
-
-            addItemsArray.push(
-                ...createHealthBar(
-                    item,
-                    bounds,
-                    health,
-                    maxHealth,
-                    visible,
-                    position,
-                ),
-            );
-        } else { // delete health bar
-            await addHealthItemAttachmentsToDeleteList(item.id);
-        }
-    } else if (showBars && maxHealth > 0){
-        const smallBarHeight = 12;
-        const barPadding = 2;
-        const position = {
-            x: origin.x - bounds.width / 2 + barPadding,
-            y: origin.y - smallBarHeight - 2,
-        };
-
+    // Show just the health bar 
+    if (showBars && role === "PLAYER" && !statsVisible && maxHealth > 0){
         addItemsArray.push(
             ...createHealthBar(
                 item,
                 bounds,
                 health,
                 maxHealth,
-                visible,
-                position,
+                statsVisible,
+                origin,
                 "short",
                 segments,
             ),
@@ -293,24 +197,85 @@ async function createAttachments(item: Image, role: "PLAYER" | "GM") {
         deleteItemsArray.push(item.id + "health-label");
         addArmorItemAttachmentsToDeleteList(item.id);
         addTempHealthItemAttachmentsToDeleteList(item.id);
+        return;
+    }
 
-    } else { // delete health bar
+    // Remove attachments and return early if the stats are hidden and the user is a player
+    if (role === "PLAYER" && !statsVisible) {
         await addHealthItemAttachmentsToDeleteList(item.id);
         await addTempHealthItemAttachmentsToDeleteList(item.id);
         await addArmorItemAttachmentsToDeleteList(item.id);
+        return;
     }
 
-    if (nameTags && nameTagEnabled && !((role === "PLAYER") && !nameTagVisible)) {
-        const letterWidth = 14;
-        const nameTagWidth = letterWidth * item.name.length + 4;
-        const position = {
-            x: origin.x - nameTagWidth / 2,
-            y: origin.y,
-        };
+    // Health bar
+    let hasHealthBar = false;
+    if (maxHealth > 0) {
+        hasHealthBar = true;
 
-        addItemsArray.push(...createNameTag(item, position, nameTagVisible));
+        addItemsArray.push(
+            ...createHealthBar(
+                item,
+                bounds,
+                health,
+                maxHealth,
+                statsVisible,
+                origin,
+            ),
+        );
+    } else { // delete health bar
+        await addHealthItemAttachmentsToDeleteList(item.id);
+    }
+
+    // Armor class
+    let hasArmorClassBubble = false;
+    if (armorClass > 0) {
+        hasArmorClassBubble = true;
+        
+        const armorPosition = {
+            x: origin.x + bounds.width / 2 - DIAMETER / 2 - 2,
+            y: origin.y - DIAMETER / 2 - 4 - (hasHealthBar ? FULL_BAR_HEIGHT : 0),
+        }
+        if (barAtTop) {
+            armorPosition.y = origin.y + DIAMETER / 2;
+        }
+
+        addItemsArray.push(
+            ...createStatBubble(
+                item,
+                bounds,
+                armorClass,
+                "cornflowerblue", //"#5c8fdb"
+                armorPosition,
+                "ac",
+            ),
+        );
     } else {
-        addNameTagItemAttachmentsToDeleteList(item.id);
+        addArmorItemAttachmentsToDeleteList(item.id);
+    }
+
+    // Temp health
+    if (tempHealth > 0) {
+        const tempHealthPosition = {
+            x: origin.x + bounds.width / 2 - DIAMETER * (hasArmorClassBubble ? 1.5 : 0.5) - 4,
+            y: origin.y - DIAMETER / 2 - 4 - (hasHealthBar ? FULL_BAR_HEIGHT : 0),
+        }
+        if (barAtTop) {
+            tempHealthPosition.y = origin.y + DIAMETER / 2;
+        }
+
+        addItemsArray.push(
+            ...createStatBubble(
+                item,
+                bounds,
+                tempHealth,
+                "olivedrab",
+                tempHealthPosition,
+                "temp-hp",
+            ),
+        );
+    } else {
+        addTempHealthItemAttachmentsToDeleteList(item.id);
     }
 }
 
@@ -407,7 +372,6 @@ function getTokenMetadata(
 		nameTagVisible,
 	];
 }
-
 
 const getImageBounds = (item: Image, dpi: number) => {
     const dpiScale = dpi / item.grid.dpi;
