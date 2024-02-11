@@ -8,11 +8,13 @@ let tokenIds: string[] = []; // for orphan health bar management
 let itemsLast: Image[] = []; // for item change checks
 const addItemsArray: Item[] = []; // for bulk addition or changing of items  
 const deleteItemsArray: string[] = []; // for bulk deletion of scene items
-let verticalOffset = 0;
-let barAtTop = false;
-let nameTags: boolean = false;
-let showBars: boolean = false;
-let segments: number = 0;
+const settings = {
+	verticalOffset: 0,
+	barAtTop: false,
+	nameTags: false,
+	showBars: false,
+	segments: 0,
+};
 // let negativeArmorClass: boolean = false;
 let sceneListenersSet = false;
 let userRoleLast: "GM" | "PLAYER";
@@ -80,11 +82,11 @@ async function startHealthBarUpdates() {
                 } else if( //check for scaling changes
                     !((itemsLast[i+s].scale.x === imagesFromCallback[i].scale.x) &&
                     (itemsLast[i+s].scale.y === imagesFromCallback[i].scale.y) &&
-                    ((itemsLast[i+s].name === imagesFromCallback[i].name) || !nameTags))
+                    ((itemsLast[i+s].name === imagesFromCallback[i].name) || !settings.nameTags))
                 ) {
                     // Attachments must be deleted to prevent ghost selection highlight bug
-                    deleteItemsArray.push(imagesFromCallback[i].id + "health-label");
-                    deleteItemsArray.push(imagesFromCallback[i].id + "name-tag-text");
+                    deleteItemsArray.push(`${imagesFromCallback[i].id}health-label`);
+                    deleteItemsArray.push(`${imagesFromCallback[i].id}name-tag-text`);
                     changedItems.push(imagesFromCallback[i]);
                 } else if( //check position, visibility, and metadata changes
                     !((itemsLast[i+s].position.x === imagesFromCallback[i].position.x) &&
@@ -148,10 +150,10 @@ async function createAttachments(item: Image, role: "PLAYER" | "GM") {
     // Explicitly delete all attachment and return early if none are assigned to this item
     const noAttachments = () => !(
         !(role === "PLAYER" && !statsVisible) ||
-        (nameTags &&
+        (settings.nameTags &&
             nameTagEnabled &&
             !(role === "PLAYER" && !nameTagVisible)) ||
-        (showBars && maxHealth > 0)
+        (settings.showBars && maxHealth > 0)
     );
     if (noAttachments()) {
         await addAllItemAttachmentsToDeleteList(item.id);
@@ -167,19 +169,19 @@ async function createAttachments(item: Image, role: "PLAYER" | "GM") {
     // Determine coordinate origin for drawing stats
     const origin = {
         x: item.position.x,
-        y: item.position.y + (barAtTop ? -1 : 1) * bounds.height / 2 
-            - verticalOffset + (barAtTop ? 1 : 0),
+        y: item.position.y + (settings.barAtTop ? -1 : 1) * bounds.height / 2 
+            - settings.verticalOffset + (settings.barAtTop ? 1 : 0),
     }
 
     // Name tags
-    if (nameTags && nameTagEnabled && !((role === "PLAYER") && !nameTagVisible)) {
+    if (settings.nameTags && nameTagEnabled && !((role === "PLAYER") && !nameTagVisible)) {
         addItemsArray.push(...createNameTag(item, origin, nameTagVisible));
     } else {
         addNameTagItemAttachmentsToDeleteList(item.id);
     }
 
-    // Show just the health bar 
-    if (showBars && role === "PLAYER" && !statsVisible && maxHealth > 0){
+    // Show just the health bar to a player
+    if (settings.showBars && role === "PLAYER" && !statsVisible && maxHealth > 0){
         addItemsArray.push(
             ...createHealthBar(
                 item,
@@ -189,18 +191,18 @@ async function createAttachments(item: Image, role: "PLAYER" | "GM") {
                 statsVisible,
                 origin,
                 "short",
-                segments,
+                settings.segments,
             ),
         );
 
         //clear other attachments
-        deleteItemsArray.push(item.id + "health-label");
+        deleteItemsArray.push(`${item.id}health-label`);
         addArmorItemAttachmentsToDeleteList(item.id);
         addTempHealthItemAttachmentsToDeleteList(item.id);
         return;
     }
 
-    // Remove attachments and return early if the stats are hidden and the user is a player
+    // Show nothing to a player
     if (role === "PLAYER" && !statsVisible) {
         await addHealthItemAttachmentsToDeleteList(item.id);
         await addTempHealthItemAttachmentsToDeleteList(item.id);
@@ -236,7 +238,7 @@ async function createAttachments(item: Image, role: "PLAYER" | "GM") {
             x: origin.x + bounds.width / 2 - DIAMETER / 2 - 2,
             y: origin.y - DIAMETER / 2 - 4 - (hasHealthBar ? FULL_BAR_HEIGHT : 0),
         }
-        if (barAtTop) {
+        if (settings.barAtTop) {
             armorPosition.y = origin.y + DIAMETER / 2;
         }
 
@@ -260,7 +262,7 @@ async function createAttachments(item: Image, role: "PLAYER" | "GM") {
             x: origin.x + bounds.width / 2 - DIAMETER * (hasArmorClassBubble ? 1.5 : 0.5) - 4,
             y: origin.y - DIAMETER / 2 - 4 - (hasHealthBar ? FULL_BAR_HEIGHT : 0),
         }
-        if (barAtTop) {
+        if (settings.barAtTop) {
             tempHealthPosition.y = origin.y + DIAMETER / 2;
         }
 
@@ -458,46 +460,46 @@ export async function initScene() {
     }
 }
 
-async function addAllItemAttachmentsToDeleteList(itemId: String) {
+async function addAllItemAttachmentsToDeleteList(itemId: string) {
     deleteItemsArray.push(
-        itemId + "health-background", 
-        itemId + "health", 
-        itemId + "health-label",
-        itemId + "ac-background",
-        itemId + "ac-label",
-        itemId + "temp-hp-background",
-        itemId + "temp-hp-label",
-        itemId + "name-tag-background",
-        itemId + "name-tag-text"
+        `${itemId}health-background`, 
+        `${itemId}health`, 
+        `${itemId}health-label`,
+        `${itemId}ac-background`,
+        `${itemId}ac-label`,
+        `${itemId}temp-hp-background`,
+        `${itemId}temp-hp-label`,
+        `${itemId}name-tag-background`,
+        `${itemId}name-tag-text`
     );
 }
 
-async function addHealthItemAttachmentsToDeleteList(itemId: String) {
+async function addHealthItemAttachmentsToDeleteList(itemId: string) {
     deleteItemsArray.push(
-        itemId + "health-background", 
-        itemId + "health", 
-        itemId + "health-label",
+        `${itemId}health-background`, 
+        `${itemId}health`, 
+        `${itemId}health-label`,
     );
 }
 
-async function addArmorItemAttachmentsToDeleteList(itemId: String) {
+async function addArmorItemAttachmentsToDeleteList(itemId: string) {
     deleteItemsArray.push(
-        itemId + "ac-background",
-        itemId + "ac-label"
+        `${itemId}ac-background`,
+        `${itemId}ac-label`
     );
 }
 
-async function addTempHealthItemAttachmentsToDeleteList(itemId: String) {
+async function addTempHealthItemAttachmentsToDeleteList(itemId: string) {
     deleteItemsArray.push(
-        itemId + "temp-hp-background",
-        itemId + "temp-hp-label"
+        `${itemId}temp-hp-background`,
+        `${itemId}temp-hp-label`
     );
 }
 
-async function addNameTagItemAttachmentsToDeleteList(itemId: String) {
+async function addNameTagItemAttachmentsToDeleteList(itemId: string) {
     deleteItemsArray.push(
-        itemId + "name-tag-background",
-        itemId + "name-tag-text"
+        `${itemId}name-tag-background`,
+        `${itemId}name-tag-text`
     );
 }
 
@@ -579,110 +581,121 @@ async function getGlobalSettings(sceneMetadata?: any) {
     return doRefresh;
 }
 
-function updateSettingsValue (id: ActionMetadataId, value: number | boolean) {
-    if (id === "offset" && typeof value === "number") {
-        verticalOffset = value;
-    } else if (id === "bar-at-top" && typeof value === "boolean") {
-        barAtTop = value;
-    } else if (id === "show-bars" && typeof value === "boolean") {
-        showBars = value;
-    } else if (id === "segments" && typeof value === "number") {
-        segments = value;
-    } else if (id === "name-tags" && typeof value === "boolean") {
-        nameTags = value;
-        updateNameTagContextMenuIcon();
-    } else {
-        throw "Invalid update to " + id + " with value of type " + typeof value;
-    }
+function updateSettingsValue(id: ActionMetadataId, value: number | boolean) {
+	if (id === "offset" && typeof value === "number") {
+		settings.verticalOffset = value;
+	} else if (id === "bar-at-top" && typeof value === "boolean") {
+		settings.barAtTop = value;
+	} else if (id === "show-bars" && typeof value === "boolean") {
+		settings.showBars = value;
+	} else if (id === "segments" && typeof value === "number") {
+		settings.segments = value;
+	} else if (id === "name-tags" && typeof value === "boolean") {
+		settings.nameTags = value;
+		updateNameTagContextMenuIcon();
+	} else {
+		throw `Invalid update to ${id} with value of type ${typeof value}`;
+	}
 }
 
-function checkForSettingsValueChange (id: ActionMetadataId, value: number | boolean): boolean {
-    if (id === "offset" && typeof value === "number") {
-        return(verticalOffset !== value);
-    } else if (id === "bar-at-top" && typeof value === "boolean") {
-        return(barAtTop !== value);
-    } else if (id === "show-bars" && typeof value === "boolean") {
-        return(showBars !== value);
-    } else if (id === "segments" && typeof value === "number") {
-        return(segments !== value);
-    } else if (id === "name-tags" && typeof value === "boolean") {
-        return(nameTags !== value);
-    } else {
-        throw "Invalid check for " + id + " against value of type " + typeof value;
-    }
+function checkForSettingsValueChange(
+	id: ActionMetadataId,
+	value: number | boolean,
+): boolean {
+	if (id === "offset" && typeof value === "number") {
+		return settings.verticalOffset !== value;
+	}
+	if (id === "bar-at-top" && typeof value === "boolean") {
+		return settings.barAtTop !== value;
+	}
+	if (id === "show-bars" && typeof value === "boolean") {
+		return settings.showBars !== value;
+	}
+	if (id === "segments" && typeof value === "number") {
+		return settings.segments !== value;
+	}
+	if (id === "name-tags" && typeof value === "boolean") {
+		return settings.nameTags !== value;
+	}
+	throw `Invalid check for ${id} against value of type ${typeof value}`;
 }
 
 async function updateNameTagContextMenuIcon() {
-    
-    if (nameTags) {
+	if (settings.nameTags) {
+		//create name tag context menu icon
+		OBR.contextMenu.create({
+			id: getPluginId("gm-name-tag-menu"),
+			icons: [
+				{
+					icon: nameTagIcon,
+					label: "Manage Name Tag",
+					filter: {
+						every: [
+							{ key: "type", value: "IMAGE" },
+							{ key: "layer", value: "CHARACTER", coordinator: "||" },
+							{ key: "layer", value: "MOUNT", coordinator: "||" },
+							{ key: "layer", value: "PROP" },
+						],
+						roles: ["GM"],
+						//max: 1,
+					},
+				},
+			],
 
-        //create name tag context menu icon
-        OBR.contextMenu.create({
-            id: getPluginId("gm-name-tag-menu"),
-            icons: [
-            {
-                icon: nameTagIcon,
-                label: "Manage Name Tag",
-                filter: {
-                every: [
-                    { key: "type", value: "IMAGE" },
-                    { key: "layer", value: "CHARACTER", coordinator: "||" },
-                    { key: "layer", value: "MOUNT", coordinator: "||" },
-                    { key: "layer", value: "PROP" },
-                ],
-                roles: ["GM"],
-                //max: 1,
-                },
-            },
-            ],
+			onClick(_context, elementId) {
+				OBR.popover.open({
+					id: getPluginId("bubbles-name-tag"),
+					url: "/src/name-tags/nameTagPopover.html",
+					height: 100,
+					width: 226,
+					anchorElementId: elementId,
+				});
+			},
+			//shortcut: "Shift + W"
+		});
 
-            onClick(_context, elementId) {
-            OBR.popover.open({
-                id: getPluginId("bubbles-name-tag"),
-                url: "/src/name-tags/nameTagPopover.html",
-                height: 100,
-                width: 226,
-                anchorElementId: elementId,
-            });
-            },
-            //shortcut: "Shift + W"
-        });
+		OBR.contextMenu.create({
+			id: getPluginId("player-name-tag-menu"),
+			icons: [
+				{
+					icon: nameTagIcon,
+					label: "Manage Name Tag",
+					filter: {
+						every: [
+							{ key: "type", value: "IMAGE" },
+							{ key: "layer", value: "CHARACTER", coordinator: "||" },
+							{ key: "layer", value: "MOUNT", coordinator: "||" },
+							{ key: "layer", value: "PROP" },
+							{
+								key: [
+									"metadata",
+									"com.owlbear-rodeo-bubbles-extension/name-tag",
+									"hide-name-tag",
+								],
+								value: true,
+								operator: "!=",
+							},
+						],
+						permissions: ["UPDATE"],
+						roles: ["PLAYER"],
+						max: 1,
+					},
+				},
+			],
 
-        OBR.contextMenu.create({
-            id: getPluginId("player-name-tag-menu"),
-            icons: [
-            {
-                icon: nameTagIcon,
-                label: "Manage Name Tag",
-                filter: {
-                  every: [
-                    { key: "type", value: "IMAGE" },
-                    { key: "layer", value: "CHARACTER", coordinator: "||" },
-                    { key: "layer", value: "MOUNT", coordinator: "||" },
-                    { key: "layer", value: "PROP" },
-                    { key: ["metadata", "com.owlbear-rodeo-bubbles-extension/name-tag", "hide-name-tag"], value: true, operator: "!="},
-                  ],
-                  permissions: ["UPDATE"],
-                  roles: ["PLAYER"],
-                  max: 1,
-                },
-              },
-            ],
-
-            onClick(_context, elementId) {
-            OBR.popover.open({
-                id: getPluginId("bubbles-name-tag"),
-                url: "/src/name-tags/playerNameTagPopover.html",
-                height: 50,
-                width: 226,
-                anchorElementId: elementId,
-            });
-            },
-            //shortcut: "Shift + W"
-        });
-    } else {
-
-        OBR.contextMenu.remove(getPluginId("gm-name-tag-menu"));
-        OBR.contextMenu.remove(getPluginId("player-name-tag-menu"));
-    }
+			onClick(_context, elementId) {
+				OBR.popover.open({
+					id: getPluginId("bubbles-name-tag"),
+					url: "/src/name-tags/playerNameTagPopover.html",
+					height: 50,
+					width: 226,
+					anchorElementId: elementId,
+				});
+			},
+			//shortcut: "Shift + W"
+		});
+	} else {
+		OBR.contextMenu.remove(getPluginId("gm-name-tag-menu"));
+		OBR.contextMenu.remove(getPluginId("player-name-tag-menu"));
+	}
 }

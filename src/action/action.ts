@@ -67,7 +67,7 @@ async function updateActionTheme(theme: Theme) {
         (inputs[i] as HTMLInputElement).style.color = theme.text.primary;
     }
 
-    if (theme.mode == "LIGHT") {
+    if (theme.mode === "LIGHT") {
 
         const hrs = document.getElementsByClassName("action-hr");
         for (let i = 0; i < hrs.length; i++) {
@@ -295,4 +295,3 @@ async function updateSceneMetadata(newMetadata: any) {
     //write metadata into scene
     OBR.scene.setMetadata({ [getPluginId("metadata")]: combinedMetadata });
 }
-
