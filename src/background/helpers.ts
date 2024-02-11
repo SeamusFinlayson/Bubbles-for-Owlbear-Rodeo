@@ -1,17 +1,20 @@
-import OBR, { AttachmentBehavior, Image, Item, buildShape, buildText, isImage } from "@owlbear-rodeo/sdk";
+import OBR, { Image, Item, isImage } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "../getPluginId";
 import nameTagIcon from "../name-tags/nameTag.svg";
 import { ActionMetadataId, actionInputs } from "../action/ActionInputClass";
+import { DIAMETER, FULL_BAR_HEIGHT, createHealthBar, createNameTag, createStatBubble } from "./createCompoundItems";
 
-let tokenIds: String[] = []; // for orphan health bar management
+let tokenIds: string[] = []; // for orphan health bar management
 let itemsLast: Image[] = []; // for item change checks
-let addItemsArray: Item[] = []; // for bulk addition or changing of items  
-let deleteItemsArray: string[] = []; // for bulk deletion of scene items
-let verticalOffset: any = 0;
-let barAtTop: boolean = false;
-let nameTags: boolean = false;
-let showBars: boolean = false;
-let segments: number = 0;
+const addItemsArray: Item[] = []; // for bulk addition or changing of items  
+const deleteItemsArray: string[] = []; // for bulk deletion of scene items
+const settings = {
+	verticalOffset: 0,
+	barAtTop: false,
+	nameTags: false,
+	showBars: false,
+	segments: 0,
+};
 // let negativeArmorClass: boolean = false;
 let sceneListenersSet = false;
 let userRoleLast: "GM" | "PLAYER";
@@ -54,8 +57,8 @@ async function startHealthBarUpdates() {
         const unsubscribeFromItems = OBR.scene.items.onChange(async (itemsFromCallback) => {
 
             // Filter items for only images from character, mount, and prop layers
-            let imagesFromCallback: Image[] = [];
-            for (let item of itemsFromCallback) {
+            const imagesFromCallback: Image[] = [];
+            for (const item of itemsFromCallback) {
                 if ((item.layer === "CHARACTER" || item.layer === "MOUNT" || item.layer === "PROP") && isImage(item)) {
                     imagesFromCallback.push(item);
                 }
@@ -65,7 +68,7 @@ async function startHealthBarUpdates() {
             await deleteOrphanHealthBars(imagesFromCallback);
     
             //create list of modified and new items, skipping deleted items
-            var changedItems: Image[] = [];
+            const changedItems: Image[] = [];
             let s = 0; // # items skipped in itemsLast array, caused by deleted items
             //let newCount = 0;
             for (let i = 0; i < imagesFromCallback.length; i++) {
@@ -77,20 +80,20 @@ async function startHealthBarUpdates() {
                     s++; // Skip an index in itemsLast
                     i--; // Reuse the index item in imagesFromCallback
                 } else if( //check for scaling changes
-                    !((itemsLast[i+s].scale.x == imagesFromCallback[i].scale.x) &&
-                    (itemsLast[i+s].scale.y == imagesFromCallback[i].scale.y) &&
-                    ((itemsLast[i+s].name == imagesFromCallback[i].name) || !nameTags))
+                    !((itemsLast[i+s].scale.x === imagesFromCallback[i].scale.x) &&
+                    (itemsLast[i+s].scale.y === imagesFromCallback[i].scale.y) &&
+                    ((itemsLast[i+s].name === imagesFromCallback[i].name) || !settings.nameTags))
                 ) {
                     // Attachments must be deleted to prevent ghost selection highlight bug
-                    deleteItemsArray.push(imagesFromCallback[i].id + "health-label");
-                    deleteItemsArray.push(imagesFromCallback[i].id + "name-tag-text");
+                    deleteItemsArray.push(`${imagesFromCallback[i].id}health-label`);
+                    deleteItemsArray.push(`${imagesFromCallback[i].id}name-tag-text`);
                     changedItems.push(imagesFromCallback[i]);
                 } else if( //check position, visibility, and metadata changes
-                    !((itemsLast[i+s].position.x == imagesFromCallback[i].position.x) &&
-                    (itemsLast[i+s].position.y == imagesFromCallback[i].position.y) &&
-                    (itemsLast[i+s].visible == imagesFromCallback[i].visible) &&
-                    (JSON.stringify(itemsLast[i+s].metadata[getPluginId("metadata")]) == JSON.stringify(imagesFromCallback[i].metadata[getPluginId("metadata")])) &&
-                    (JSON.stringify(itemsLast[i+s].metadata[getPluginId("name-tag")]) == JSON.stringify(imagesFromCallback[i].metadata[getPluginId("name-tag")])))
+                    !((itemsLast[i+s].position.x === imagesFromCallback[i].position.x) &&
+                    (itemsLast[i+s].position.y === imagesFromCallback[i].position.y) &&
+                    (itemsLast[i+s].visible === imagesFromCallback[i].visible) &&
+                    (JSON.stringify(itemsLast[i+s].metadata[getPluginId("metadata")]) === JSON.stringify(imagesFromCallback[i].metadata[getPluginId("metadata")])) &&
+                    (JSON.stringify(itemsLast[i+s].metadata[getPluginId("name-tag")]) === JSON.stringify(imagesFromCallback[i].metadata[getPluginId("name-tag")])))
                 ) { //update items
                     changedItems.push(imagesFromCallback[i]);
                 }
@@ -105,7 +108,7 @@ async function startHealthBarUpdates() {
             //draw health bars
             const role = await OBR.player.getRole();
             for (const item of changedItems) {
-                await drawHealthBar(item, role);
+                await createAttachments(item, role);
             }
 
             //bulk delete items
@@ -132,513 +135,244 @@ async function startHealthBarUpdates() {
     }
 };
 
-async function drawHealthBar(item: Image, role: "PLAYER" | "GM") {
+async function createAttachments(item: Image, role: "PLAYER" | "GM") {
+    // Extract metadata from the token
+    const [
+        health,
+        maxHealth,
+        tempHealth,
+        armorClass,
+        statsVisible,
+        nameTagEnabled,
+        nameTagVisible,
+    ] = getTokenMetadata(item);
 
-    // console.log("draw")
-    
-    const metadata: any = item.metadata[getPluginId("metadata")];
-
-    //try to extract armor class metadata
-    let armorClass: number;
-    try {
-        armorClass = parseFloat(metadata["armor class"]);
-    } catch (error) {
-        armorClass = 0;
-    }
-    if(isNaN(armorClass)) {
-        armorClass = 0;
-    }
-
-    //try to extract temporary health metadata
-    let tempHealth: number;
-    try {
-        tempHealth = parseFloat(metadata["temporary health"]);
-    } catch (error) {
-        tempHealth = 0;
-    }
-    if(isNaN(tempHealth)) {
-        tempHealth = 0;
-    }
-
-    //try to extract health from metadata
-    var health: number;
-    var maxHealth: number;
-    try {
-        health = parseFloat(metadata["health"]);
-        maxHealth = parseFloat(metadata["max health"]);
-    } catch (error) {
-        health = 0;
-        maxHealth = 0;
-    }
-    if(isNaN(health)) {
-        health = 0;
-    }
-    if(isNaN(maxHealth)) {
-        maxHealth = 0;
-    }
-
-    //try to extract visibility from metadata
-    var visible: boolean;
-    try {
-        visible = !metadata["hide"];
-    } catch (error) { // catch type error
-        if (error instanceof TypeError) {
-            visible = true;
-        } else {
-            throw error;
-        }
-    }
-
-    const nameTagMetadata: any = item.metadata[getPluginId("name-tag")];
-
-    //try to extract armor class metadata
-    let nameTagEnabled: boolean;
-    try {
-        nameTagEnabled = nameTagMetadata["enable-name-tag"];
-    } catch (error) {
-        nameTagEnabled = false;
-    }
-
-    let nameTagVisible: boolean;
-    try {
-        nameTagVisible = !nameTagMetadata["hide-name-tag"];
-    } catch (error) {
-        nameTagVisible = false;
-    }
-
-    if (!((role === "PLAYER") && !visible) || 
-        (nameTags && nameTagEnabled && !((role === "PLAYER") && !nameTagVisible)) ||
-        (showBars && maxHealth > 0)) {
-
-        //get physical token properties
-        const dpi = await OBR.scene.grid.getDpi();
-        const bounds = getImageBounds(item, dpi);
-        bounds.width = Math.abs(bounds.width);
-        bounds.height = Math.abs(bounds.height);
-
-        //set color based on visibility
-        let healthBackgroundColor = "#A4A4A4";
-        const setVisibilityProperty = item.visible;
-        const backgroundOpacity = 0.6;
-        const healthOpacity = 0.5;
-        const bubbleOpacity = 0.6;
-        if (!visible) {
-            healthBackgroundColor = "black";
-        }
-
-        //attachment properties
-        const diameter = 30;
-        const font = "Lucida Console, monospace"
-        const circleFontSize = diameter - 8;
-        const reducedCircleFontSize = diameter - 15;
-        const circleTextHeight = diameter + 0;
-        const textVerticalOffset = 1.5;
-        const barHeight = 20;
-        const disableAttachmentBehavior: AttachmentBehavior[] = ["ROTATION", "VISIBLE", "COPY", "SCALE"];
-        const disableHit = true;
-
-        let offsetBubbles = 0;
-        if (maxHealth > 0) {
-            offsetBubbles = 1;
-        }
-
-        let alignBottomMultiplier: number = 1;
-        if (barAtTop) {
-            alignBottomMultiplier = -1;
-        }
-        let origin = {
-            x: item.position.x,
-            y: item.position.y + alignBottomMultiplier * bounds.height / 2 - verticalOffset,
-        }
-        if (barAtTop) {
-            origin.y += 1;
-        }
-    
-        if (!((role === "PLAYER") && !visible)) { //draw bar if it has max health and is visible
-
-            let drewArmorClass = false;
-            if (armorClass > 0) {
-                drewArmorClass = true;
-                
-                let armorPosition;
-                armorPosition = {
-                    x: origin.x + bounds.width / 2 - diameter / 2 - 2,
-                    y: origin.y - diameter / 2 - 4 - barHeight * offsetBubbles,
-                }
-                if (barAtTop) {
-                    armorPosition.y = origin.y + diameter / 2;
-                }
-
-                const color = "cornflowerblue" //"#5c8fdb"
-
-                const backgroundShape = buildShape()
-                .width(bounds.width)
-                .height(diameter)
-                .shapeType("CIRCLE")
-                .fillColor(color)
-                .fillOpacity(bubbleOpacity)
-                .strokeColor(color)
-                .strokeOpacity(0.5)
-                .strokeWidth(0)
-                .position({x: armorPosition.x, y: armorPosition.y})
-                .attachedTo(item.id)
-                .layer("ATTACHMENT")
-                .locked(true)
-                .id(item.id + "ac-background")
-                .visible(setVisibilityProperty)
-                .disableAttachmentBehavior(disableAttachmentBehavior)
-                .disableHit(disableHit)
-                .build();
-
-                let armorValueText = armorClass.toString();
-
-                const armorText = buildText()
-                .position({x: armorPosition.x - diameter / 2 - ((armorValueText.length >= 3)?0.2:0.5), y: armorPosition.y - diameter / 2 + textVerticalOffset})
-                .plainText((armorValueText.length > 3)? String.fromCharCode(0x2026): armorValueText)
-                .textAlign("CENTER")
-                .textAlignVertical("MIDDLE")
-                .fontSize((armorValueText.length === 3)? reducedCircleFontSize: circleFontSize)
-                .fontFamily(font)
-                .textType("PLAIN")
-                .height(circleTextHeight)
-                .width(diameter)
-                .fontWeight(400)
-                //.strokeColor("black")
-                //.strokeWidth(0)
-                .attachedTo(item.id)
-                .layer("TEXT")
-                .locked(true)
-                .id(item.id + "ac-label")
-                .visible(setVisibilityProperty)
-                .disableAttachmentBehavior(disableAttachmentBehavior)
-                .disableHit(disableHit)
-                .build();
-
-                addItemsArray.push(backgroundShape, armorText);
-            } else {
-                addArmorItemAttachmentsToDeleteList(item.id);
-            }
-
-            //let drewTempHealth = false
-            if (tempHealth > 0) {
-                //drewTempHealth = true;
-
-                const color = "olivedrab"
-
-                let tempHealthPosition;
-                if (drewArmorClass) {
-                    tempHealthPosition = {
-                        x: origin.x + bounds.width / 2 - diameter * 3 / 2 - 4,
-                        y: origin.y - diameter / 2 - 4 - barHeight * offsetBubbles,
-                    }
-                } else {
-                    tempHealthPosition = {
-                        x: origin.x + bounds.width / 2 - diameter / 2 - 2,
-                        y: origin.y  - diameter / 2 - 4 - barHeight * offsetBubbles,
-                    }
-                }
-                if (barAtTop) {
-                    tempHealthPosition.y = origin.y + diameter / 2;
-                }
-
-                const tempHealthBackgroundShape = buildShape()
-                .width(bounds.width)
-                .height(diameter)
-                .shapeType("CIRCLE")
-                .fillColor(color)
-                .fillOpacity(bubbleOpacity)
-                .strokeColor(color)
-                .strokeOpacity(0.5)
-                .strokeWidth(0)
-                .position({x: tempHealthPosition.x, y: tempHealthPosition.y})
-                .attachedTo(item.id)
-                .layer("ATTACHMENT")
-                .locked(true)
-                .id(item.id + "temp-hp-background")
-                .visible(setVisibilityProperty)
-                .disableAttachmentBehavior(disableAttachmentBehavior)
-                .disableHit(disableHit)
-                .build();
-
-                let tempValueText = tempHealth.toString();
-
-                const tempHealthText = buildText()
-                .position({x: tempHealthPosition.x - diameter / 2 - ((tempValueText.length >= 3)?0.2:0.5), y: tempHealthPosition.y - diameter / 2 + textVerticalOffset})
-                .plainText((tempValueText.length > 3)? String.fromCharCode(0x2026): tempValueText) // set ... if longer than 3
-                .textAlign("CENTER")
-                .textAlignVertical("MIDDLE")
-                .fontSize((tempValueText.length === 3)? reducedCircleFontSize: circleFontSize) //reduce font size if longer than 3
-                .fontFamily(font)
-                .textType("PLAIN")
-                .height(circleTextHeight)
-                .width(diameter)
-                .fontWeight(400)
-                //.strokeColor("black")
-                //.strokeWidth(0)
-                .attachedTo(item.id)
-                .layer("TEXT")
-                .locked(true)
-                .id(item.id + "temp-hp-label")
-                .visible(setVisibilityProperty)
-                .disableAttachmentBehavior(disableAttachmentBehavior)
-                .disableHit(disableHit)
-                .build();
-
-                addItemsArray.push(tempHealthBackgroundShape, tempHealthText);
-            } else {
-                addTempHealthItemAttachmentsToDeleteList(item.id);
-            }
-
-            if (maxHealth > 0) {
-
-                const barPadding = 2;
-                // if (drewArmorClass && drewTempHealth) {
-                //     spaceForCircles = 4 + diameter * 2;
-                // } else if (drewArmorClass || drewTempHealth) {
-                //     spaceForCircles = 2 + diameter;
-                // }
-                const position = {
-                    x: origin.x - bounds.width / 2 + barPadding,
-                    y: origin.y - barHeight - 2,
-                };
-                const barWidth = bounds.width - barPadding * 2;
-
-                const barFontSize = circleFontSize;
-                const barTextHeight = barHeight + 0;
-
-                const backgroundShape = buildShape()
-                .width(barWidth)
-                .height(barHeight)
-                .shapeType("RECTANGLE")
-                .fillColor(healthBackgroundColor)
-                .fillOpacity(backgroundOpacity)
-                .strokeWidth(0)
-                .position({x: position.x, y: position.y})
-                .attachedTo(item.id)
-                .layer("ATTACHMENT")
-                .locked(true)
-                .id(item.id + "health-background")
-                .visible(setVisibilityProperty)
-                .disableAttachmentBehavior(disableAttachmentBehavior)
-                .disableHit(disableHit)
-                .build();
-                
-                var healthPercentage = 0;
-                if (segments !== 0) {}
-                if (health <= 0) {
-                    healthPercentage = 0;
-                } else if (health < maxHealth) {
-                    healthPercentage = health / maxHealth;
-                } else if (health >= maxHealth){
-                    healthPercentage = 1;
-                } else {
-                    healthPercentage = 0;
-                }
-            
-                const healthShape = buildShape()
-                .width(healthPercentage === 0 ? 0 : (barWidth) * healthPercentage)
-                .height(barHeight)
-                .shapeType("RECTANGLE")
-                .fillColor("red")
-                .fillOpacity(healthOpacity)
-                .strokeWidth(0)
-                .strokeOpacity(0)
-                .position({ x: position.x, y: position.y})
-                .attachedTo(item.id)
-                .layer("ATTACHMENT")
-                .locked(true)
-                .id(item.id + "health")
-                .visible(setVisibilityProperty)
-                .disableAttachmentBehavior(disableAttachmentBehavior)
-                .disableHit(disableHit)
-                .build();
-
-                const healthText = buildText()
-                .position({x: position.x, y: position.y + textVerticalOffset})
-                .plainText("" + health + String.fromCharCode(0x2215) + maxHealth)
-                .textAlign("CENTER")
-                .textAlignVertical("MIDDLE")
-                .fontSize(barFontSize)
-                .fontFamily(font)
-                .textType("PLAIN")
-                .height(barTextHeight)
-                .width(barWidth)
-                .fontWeight(400)
-                //.strokeColor("black")
-                //.strokeWidth(0)
-                .attachedTo(item.id)
-                .fillOpacity(1)
-                .layer("TEXT")
-                .locked(true)
-                .id(item.id + "health-label")
-                .visible(setVisibilityProperty)
-                .disableAttachmentBehavior(disableAttachmentBehavior)
-                .disableHit(disableHit)
-                .build();
-
-                //add health bar to add array
-                addItemsArray.push(backgroundShape, healthShape, healthText);
-            } else { // delete health bar
-                await addHealthItemAttachmentsToDeleteList(item.id);
-            }
-
-            // const position = {
-            //     x: item.position.x,
-            //     y: item.position.y + bounds.height / 2 + barHeight - 2,
-            // };
-
-            // const label = buildLabel()
-            // .plainText("test")
-            // .attachedTo(item.id)
-            // .position(position)
-            // .build();
-
-            //addItemsArray.push(label);
-            
-        } else if (showBars && maxHealth > 0){
-
-            const smallBarHeight = 12;
-            const barPadding = 2;
-            const position = {
-                x: origin.x - bounds.width / 2 + barPadding,
-                y: origin.y - smallBarHeight - 2,
-            };
-            const barWidth = bounds.width - barPadding * 2;
-
-            const backgroundShape = buildShape()
-            .width(barWidth)
-            .height(smallBarHeight)
-            .shapeType("RECTANGLE")
-            .fillColor(healthBackgroundColor)
-            .fillOpacity(backgroundOpacity)
-            .strokeWidth(0)
-            .position({x: position.x, y: position.y})
-            .attachedTo(item.id)
-            .layer("ATTACHMENT")
-            .locked(true)
-            .id(item.id + "health-background")
-            .visible(setVisibilityProperty)
-            .disableAttachmentBehavior(disableAttachmentBehavior)
-            .disableHit(disableHit)
-            .build();
-            
-            let healthPercentage = 0;
-            if (health <= 0) {
-                healthPercentage = 0;
-            } else if (health < maxHealth) {
-                if (segments === 0) {
-                    healthPercentage = health / maxHealth;
-                } else {
-                    healthPercentage = Math.ceil((health / maxHealth)*segments)/segments;
-                }
-            } else if (health >= maxHealth){
-                healthPercentage = 1;
-            } else {
-                healthPercentage = 0;
-            }
-
-        
-            const healthShape = buildShape()
-            .width(healthPercentage === 0 ? 0 : (barWidth) * healthPercentage)
-            .height(smallBarHeight)
-            .shapeType("RECTANGLE")
-            .fillColor("red")
-            .fillOpacity(healthOpacity)
-            .strokeWidth(0)
-            .strokeOpacity(0)
-            .position({ x: position.x, y: position.y})
-            .attachedTo(item.id)
-            .layer("ATTACHMENT")
-            .locked(true)
-            .id(item.id + "health")
-            .visible(setVisibilityProperty)
-            .disableAttachmentBehavior(disableAttachmentBehavior)
-            .disableHit(disableHit)
-            .build();
-
-            //add health bar to add array
-            addItemsArray.push(backgroundShape, healthShape);
-
-            //clear other attachments
-            deleteItemsArray.push(item.id + "health-label");
-            addArmorItemAttachmentsToDeleteList(item.id);
-            addTempHealthItemAttachmentsToDeleteList(item.id);
-
-        } else { // delete health bar
-            await addHealthItemAttachmentsToDeleteList(item.id);
-            await addTempHealthItemAttachmentsToDeleteList(item.id);
-            await addArmorItemAttachmentsToDeleteList(item.id);
-        }
-
-        if (nameTags && nameTagEnabled && !((role === "PLAYER") && !nameTagVisible)) {
-
-            const letterWidth = 14;
-            const nameTagHeight = 26
-            let nameTagWidth = letterWidth * item.name.length + 4;
-
-            var nameTagBackgroundColor = "darkgrey";
-            if (!nameTagVisible) {
-                nameTagBackgroundColor = "black";
-            }
-
-            const position = {
-                x: origin.x - nameTagWidth / 2,
-                y: origin.y,
-            };
-
-            const nameTagFontSize = circleFontSize;
-            const nameTagTextHeight = nameTagHeight + 0;
-
-            const nameTagBackground = buildShape()
-            .width(nameTagWidth)
-            .height(nameTagHeight)
-            .shapeType("RECTANGLE")
-            .fillColor(nameTagBackgroundColor)
-            .fillOpacity(backgroundOpacity)
-            .strokeWidth(0)
-            .position({x: position.x, y: position.y})
-            .attachedTo(item.id)
-            .layer("ATTACHMENT")
-            .locked(true)
-            .id(item.id + "name-tag-background")
-            .visible(setVisibilityProperty)
-            .disableAttachmentBehavior(disableAttachmentBehavior)
-            .disableHit(disableHit)
-            .build();
-
-            const nameTagText = buildText()
-            .position({x: position.x, y: position.y + textVerticalOffset})
-            .plainText(item.name)
-            .textAlign("CENTER")
-            .textAlignVertical("MIDDLE")
-            .fontSize(nameTagFontSize)
-            .fontFamily(font)
-            .textType("PLAIN")
-            .height(nameTagTextHeight)
-            .width(nameTagWidth)
-            .fontWeight(400)
-            //.strokeColor("black")
-            //.strokeWidth(0)
-            .attachedTo(item.id)
-            .fillOpacity(1)
-            .layer("TEXT")
-            .locked(true)
-            .id(item.id + "name-tag-text")
-            .visible(setVisibilityProperty)
-            .disableAttachmentBehavior(disableAttachmentBehavior)
-            .disableHit(disableHit)
-            .build();
-
-            addItemsArray.push(nameTagBackground, nameTagText);
-
-        } else {
-            addNameTagItemAttachmentsToDeleteList(item.id);
-        }
-    } else {
+    // Explicitly delete all attachment and return early if none are assigned to this item
+    const noAttachments = () => !(
+        !(role === "PLAYER" && !statsVisible) ||
+        (settings.nameTags &&
+            nameTagEnabled &&
+            !(role === "PLAYER" && !nameTagVisible)) ||
+        (settings.showBars && maxHealth > 0)
+    );
+    if (noAttachments()) {
         await addAllItemAttachmentsToDeleteList(item.id);
+        return;
     }
 
-    return[];
+    // Determine token bounds
+    const dpi = await OBR.scene.grid.getDpi();
+    const bounds = getImageBounds(item, dpi);
+    bounds.width = Math.abs(bounds.width);
+    bounds.height = Math.abs(bounds.height);
+
+    // Determine coordinate origin for drawing stats
+    const origin = {
+        x: item.position.x,
+        y: item.position.y + (settings.barAtTop ? -1 : 1) * bounds.height / 2 
+            - settings.verticalOffset + (settings.barAtTop ? 1 : 0),
+    }
+
+    // Name tags
+    if (settings.nameTags && nameTagEnabled && !((role === "PLAYER") && !nameTagVisible)) {
+        addItemsArray.push(...createNameTag(item, origin, nameTagVisible));
+    } else {
+        addNameTagItemAttachmentsToDeleteList(item.id);
+    }
+
+    // Show just the health bar to a player
+    if (settings.showBars && role === "PLAYER" && !statsVisible && maxHealth > 0){
+        addItemsArray.push(
+            ...createHealthBar(
+                item,
+                bounds,
+                health,
+                maxHealth,
+                statsVisible,
+                origin,
+                "short",
+                settings.segments,
+            ),
+        );
+
+        //clear other attachments
+        deleteItemsArray.push(`${item.id}health-label`);
+        addArmorItemAttachmentsToDeleteList(item.id);
+        addTempHealthItemAttachmentsToDeleteList(item.id);
+        return;
+    }
+
+    // Show nothing to a player
+    if (role === "PLAYER" && !statsVisible) {
+        await addHealthItemAttachmentsToDeleteList(item.id);
+        await addTempHealthItemAttachmentsToDeleteList(item.id);
+        await addArmorItemAttachmentsToDeleteList(item.id);
+        return;
+    }
+
+    // Health bar
+    let hasHealthBar = false;
+    if (maxHealth > 0) {
+        hasHealthBar = true;
+
+        addItemsArray.push(
+            ...createHealthBar(
+                item,
+                bounds,
+                health,
+                maxHealth,
+                statsVisible,
+                origin,
+            ),
+        );
+    } else { // delete health bar
+        await addHealthItemAttachmentsToDeleteList(item.id);
+    }
+
+    // Armor class
+    let hasArmorClassBubble = false;
+    if (armorClass > 0) {
+        hasArmorClassBubble = true;
+        
+        const armorPosition = {
+            x: origin.x + bounds.width / 2 - DIAMETER / 2 - 2,
+            y: origin.y - DIAMETER / 2 - 4 - (hasHealthBar ? FULL_BAR_HEIGHT : 0),
+        }
+        if (settings.barAtTop) {
+            armorPosition.y = origin.y + DIAMETER / 2;
+        }
+
+        addItemsArray.push(
+            ...createStatBubble(
+                item,
+                bounds,
+                armorClass,
+                "cornflowerblue", //"#5c8fdb"
+                armorPosition,
+                "ac",
+            ),
+        );
+    } else {
+        addArmorItemAttachmentsToDeleteList(item.id);
+    }
+
+    // Temp health
+    if (tempHealth > 0) {
+        const tempHealthPosition = {
+            x: origin.x + bounds.width / 2 - DIAMETER * (hasArmorClassBubble ? 1.5 : 0.5) - 4,
+            y: origin.y - DIAMETER / 2 - 4 - (hasHealthBar ? FULL_BAR_HEIGHT : 0),
+        }
+        if (settings.barAtTop) {
+            tempHealthPosition.y = origin.y + DIAMETER / 2;
+        }
+
+        addItemsArray.push(
+            ...createStatBubble(
+                item,
+                bounds,
+                tempHealth,
+                "olivedrab",
+                tempHealthPosition,
+                "temp-hp",
+            ),
+        );
+    } else {
+        addTempHealthItemAttachmentsToDeleteList(item.id);
+    }
+}
+
+function getTokenMetadata(
+	item: Item,
+): [
+	health: number,
+	maxHealth: number,
+	tempHealth: number,
+	armorClass: number,
+	statsVisible: boolean,
+	nameTagEnabled: boolean,
+	nameTagVisible: boolean,
+] {
+
+    const  metadata: any = item.metadata[getPluginId("metadata")];
+
+	//try to extract armor class metadata
+	let armorClass: number;
+	try {
+		armorClass = parseFloat(metadata["armor class"]);
+	} catch (error) {
+		armorClass = 0;
+	}
+	if (Number.isNaN(armorClass)) {
+		armorClass = 0;
+	}
+
+	//try to extract temporary health metadata
+	let tempHealth: number;
+	try {
+		tempHealth = parseFloat(metadata["temporary health"]);
+	} catch (error) {
+		tempHealth = 0;
+	}
+	if (Number.isNaN(tempHealth)) {
+		tempHealth = 0;
+	}
+
+	//try to extract health from metadata
+	let health: number;
+	let maxHealth: number;
+	try {
+		health = parseFloat(metadata["health"]);
+		maxHealth = parseFloat(metadata["max health"]);
+	} catch (error) {
+		health = 0;
+		maxHealth = 0;
+	}
+	if (Number.isNaN(health)) {
+		health = 0;
+	}
+	if (Number.isNaN(maxHealth)) {
+		maxHealth = 0;
+	}
+
+	//try to extract visibility from metadata
+	let statsVisible: boolean;
+	try {
+		statsVisible = !metadata["hide"];
+	} catch (error) {
+		// catch type error
+		if (error instanceof TypeError) {
+			statsVisible = true;
+		} else {
+			throw error;
+		}
+	}
+
+	const nameTagMetadata: any = item.metadata[getPluginId("name-tag")];
+
+	//try to extract armor class metadata
+	let nameTagEnabled: boolean;
+	try {
+		nameTagEnabled = nameTagMetadata["enable-name-tag"];
+	} catch (error) {
+		nameTagEnabled = false;
+	}
+
+	let nameTagVisible: boolean;
+	try {
+		nameTagVisible = !nameTagMetadata["hide-name-tag"];
+	} catch (error) {
+		nameTagVisible = false;
+	}
+
+	return [
+		health,
+		maxHealth,
+		tempHealth,
+		armorClass,
+		statsVisible,
+		nameTagEnabled,
+		nameTagVisible,
+	];
 }
 
 const getImageBounds = (item: Image, dpi: number) => {
@@ -657,7 +391,7 @@ async function deleteOrphanHealthBars(newItems?: Image[]) {
         );
     }
     
-    var newItemIds: String[] = [];
+    const newItemIds: string[] = [];
     for(const item of newItems) {
         newItemIds.push(item.id);
     }
@@ -690,7 +424,7 @@ async function refreshAllHealthBars() {
     //draw health bars
     const roll = await OBR.player.getRole();
     for (const item of items) {
-        await drawHealthBar(item, roll);
+        await createAttachments(item, roll);
     }
     OBR.scene.local.addItems(addItemsArray); //bulk add items 
     OBR.scene.local.deleteItems(deleteItemsArray); //bulk delete items
@@ -699,7 +433,7 @@ async function refreshAllHealthBars() {
     deleteItemsArray.length = 0;
 
     //update global item id list for orphaned health bar monitoring
-    var itemIds: String[] = [];
+    const itemIds: string[] = [];
     for(const item of items) {
         itemIds.push(item.id);
     }
@@ -726,46 +460,46 @@ export async function initScene() {
     }
 }
 
-async function addAllItemAttachmentsToDeleteList(itemId: String) {
+async function addAllItemAttachmentsToDeleteList(itemId: string) {
     deleteItemsArray.push(
-        itemId + "health-background", 
-        itemId + "health", 
-        itemId + "health-label",
-        itemId + "ac-background",
-        itemId + "ac-label",
-        itemId + "temp-hp-background",
-        itemId + "temp-hp-label",
-        itemId + "name-tag-background",
-        itemId + "name-tag-text"
+        `${itemId}health-background`, 
+        `${itemId}health`, 
+        `${itemId}health-label`,
+        `${itemId}ac-background`,
+        `${itemId}ac-label`,
+        `${itemId}temp-hp-background`,
+        `${itemId}temp-hp-label`,
+        `${itemId}name-tag-background`,
+        `${itemId}name-tag-text`
     );
 }
 
-async function addHealthItemAttachmentsToDeleteList(itemId: String) {
+async function addHealthItemAttachmentsToDeleteList(itemId: string) {
     deleteItemsArray.push(
-        itemId + "health-background", 
-        itemId + "health", 
-        itemId + "health-label",
+        `${itemId}health-background`, 
+        `${itemId}health`, 
+        `${itemId}health-label`,
     );
 }
 
-async function addArmorItemAttachmentsToDeleteList(itemId: String) {
+async function addArmorItemAttachmentsToDeleteList(itemId: string) {
     deleteItemsArray.push(
-        itemId + "ac-background",
-        itemId + "ac-label"
+        `${itemId}ac-background`,
+        `${itemId}ac-label`
     );
 }
 
-async function addTempHealthItemAttachmentsToDeleteList(itemId: String) {
+async function addTempHealthItemAttachmentsToDeleteList(itemId: string) {
     deleteItemsArray.push(
-        itemId + "temp-hp-background",
-        itemId + "temp-hp-label"
+        `${itemId}temp-hp-background`,
+        `${itemId}temp-hp-label`
     );
 }
 
-async function addNameTagItemAttachmentsToDeleteList(itemId: String) {
+async function addNameTagItemAttachmentsToDeleteList(itemId: string) {
     deleteItemsArray.push(
-        itemId + "name-tag-background",
-        itemId + "name-tag-text"
+        `${itemId}name-tag-background`,
+        `${itemId}name-tag-text`
     );
 }
 
@@ -847,110 +581,121 @@ async function getGlobalSettings(sceneMetadata?: any) {
     return doRefresh;
 }
 
-function updateSettingsValue (id: ActionMetadataId, value: number | boolean) {
-    if (id === "offset" && typeof value === "number") {
-        verticalOffset = value;
-    } else if (id === "bar-at-top" && typeof value === "boolean") {
-        barAtTop = value;
-    } else if (id === "show-bars" && typeof value === "boolean") {
-        showBars = value;
-    } else if (id === "segments" && typeof value === "number") {
-        segments = value;
-    } else if (id === "name-tags" && typeof value === "boolean") {
-        nameTags = value;
-        updateNameTagContextMenuIcon();
-    } else {
-        throw "Invalid update to " + id + " with value of type " + typeof value;
-    }
+function updateSettingsValue(id: ActionMetadataId, value: number | boolean) {
+	if (id === "offset" && typeof value === "number") {
+		settings.verticalOffset = value;
+	} else if (id === "bar-at-top" && typeof value === "boolean") {
+		settings.barAtTop = value;
+	} else if (id === "show-bars" && typeof value === "boolean") {
+		settings.showBars = value;
+	} else if (id === "segments" && typeof value === "number") {
+		settings.segments = value;
+	} else if (id === "name-tags" && typeof value === "boolean") {
+		settings.nameTags = value;
+		updateNameTagContextMenuIcon();
+	} else {
+		throw `Invalid update to ${id} with value of type ${typeof value}`;
+	}
 }
 
-function checkForSettingsValueChange (id: ActionMetadataId, value: number | boolean): boolean {
-    if (id === "offset" && typeof value === "number") {
-        return(verticalOffset !== value);
-    } else if (id === "bar-at-top" && typeof value === "boolean") {
-        return(barAtTop !== value);
-    } else if (id === "show-bars" && typeof value === "boolean") {
-        return(showBars !== value);
-    } else if (id === "segments" && typeof value === "number") {
-        return(segments !== value);
-    } else if (id === "name-tags" && typeof value === "boolean") {
-        return(nameTags !== value);
-    } else {
-        throw "Invalid check for " + id + " against value of type " + typeof value;
-    }
+function checkForSettingsValueChange(
+	id: ActionMetadataId,
+	value: number | boolean,
+): boolean {
+	if (id === "offset" && typeof value === "number") {
+		return settings.verticalOffset !== value;
+	}
+	if (id === "bar-at-top" && typeof value === "boolean") {
+		return settings.barAtTop !== value;
+	}
+	if (id === "show-bars" && typeof value === "boolean") {
+		return settings.showBars !== value;
+	}
+	if (id === "segments" && typeof value === "number") {
+		return settings.segments !== value;
+	}
+	if (id === "name-tags" && typeof value === "boolean") {
+		return settings.nameTags !== value;
+	}
+	throw `Invalid check for ${id} against value of type ${typeof value}`;
 }
 
 async function updateNameTagContextMenuIcon() {
-    
-    if (nameTags) {
+	if (settings.nameTags) {
+		//create name tag context menu icon
+		OBR.contextMenu.create({
+			id: getPluginId("gm-name-tag-menu"),
+			icons: [
+				{
+					icon: nameTagIcon,
+					label: "Manage Name Tag",
+					filter: {
+						every: [
+							{ key: "type", value: "IMAGE" },
+							{ key: "layer", value: "CHARACTER", coordinator: "||" },
+							{ key: "layer", value: "MOUNT", coordinator: "||" },
+							{ key: "layer", value: "PROP" },
+						],
+						roles: ["GM"],
+						//max: 1,
+					},
+				},
+			],
 
-        //create name tag context menu icon
-        OBR.contextMenu.create({
-            id: getPluginId("gm-name-tag-menu"),
-            icons: [
-            {
-                icon: nameTagIcon,
-                label: "Manage Name Tag",
-                filter: {
-                every: [
-                    { key: "type", value: "IMAGE" },
-                    { key: "layer", value: "CHARACTER", coordinator: "||" },
-                    { key: "layer", value: "MOUNT", coordinator: "||" },
-                    { key: "layer", value: "PROP" },
-                ],
-                roles: ["GM"],
-                //max: 1,
-                },
-            },
-            ],
+			onClick(_context, elementId) {
+				OBR.popover.open({
+					id: getPluginId("bubbles-name-tag"),
+					url: "/src/name-tags/nameTagPopover.html",
+					height: 100,
+					width: 226,
+					anchorElementId: elementId,
+				});
+			},
+			//shortcut: "Shift + W"
+		});
 
-            onClick(_context, elementId) {
-            OBR.popover.open({
-                id: getPluginId("bubbles-name-tag"),
-                url: "/src/name-tags/nameTagPopover.html",
-                height: 100,
-                width: 226,
-                anchorElementId: elementId,
-            });
-            },
-            //shortcut: "Shift + W"
-        });
+		OBR.contextMenu.create({
+			id: getPluginId("player-name-tag-menu"),
+			icons: [
+				{
+					icon: nameTagIcon,
+					label: "Manage Name Tag",
+					filter: {
+						every: [
+							{ key: "type", value: "IMAGE" },
+							{ key: "layer", value: "CHARACTER", coordinator: "||" },
+							{ key: "layer", value: "MOUNT", coordinator: "||" },
+							{ key: "layer", value: "PROP" },
+							{
+								key: [
+									"metadata",
+									"com.owlbear-rodeo-bubbles-extension/name-tag",
+									"hide-name-tag",
+								],
+								value: true,
+								operator: "!=",
+							},
+						],
+						permissions: ["UPDATE"],
+						roles: ["PLAYER"],
+						max: 1,
+					},
+				},
+			],
 
-        OBR.contextMenu.create({
-            id: getPluginId("player-name-tag-menu"),
-            icons: [
-            {
-                icon: nameTagIcon,
-                label: "Manage Name Tag",
-                filter: {
-                  every: [
-                    { key: "type", value: "IMAGE" },
-                    { key: "layer", value: "CHARACTER", coordinator: "||" },
-                    { key: "layer", value: "MOUNT", coordinator: "||" },
-                    { key: "layer", value: "PROP" },
-                    { key: ["metadata", "com.owlbear-rodeo-bubbles-extension/name-tag", "hide-name-tag"], value: true, operator: "!="},
-                  ],
-                  permissions: ["UPDATE"],
-                  roles: ["PLAYER"],
-                  max: 1,
-                },
-              },
-            ],
-
-            onClick(_context, elementId) {
-            OBR.popover.open({
-                id: getPluginId("bubbles-name-tag"),
-                url: "/src/name-tags/playerNameTagPopover.html",
-                height: 50,
-                width: 226,
-                anchorElementId: elementId,
-            });
-            },
-            //shortcut: "Shift + W"
-        });
-    } else {
-
-        OBR.contextMenu.remove(getPluginId("gm-name-tag-menu"));
-        OBR.contextMenu.remove(getPluginId("player-name-tag-menu"));
-    }
+			onClick(_context, elementId) {
+				OBR.popover.open({
+					id: getPluginId("bubbles-name-tag"),
+					url: "/src/name-tags/playerNameTagPopover.html",
+					height: 50,
+					width: 226,
+					anchorElementId: elementId,
+				});
+			},
+			//shortcut: "Shift + W"
+		});
+	} else {
+		OBR.contextMenu.remove(getPluginId("gm-name-tag-menu"));
+		OBR.contextMenu.remove(getPluginId("player-name-tag-menu"));
+	}
 }
