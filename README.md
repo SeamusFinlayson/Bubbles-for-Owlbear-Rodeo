@@ -85,19 +85,19 @@ If you like using this extension consider [supporting me on Patreon](https://www
 
 ## Building
 
-This project uses [Yarn](https://yarnpkg.com/) as a package manager.
+This project uses [PNPm](https://pnpm.io/) as a package manager.
 
 To install all the dependencies run:
 
-`yarn`
+`pnpm install`
 
 To run in a development mode run:
 
-`yarn dev`
+`pnpm dev`
 
 To make a production build run:
 
-`yarn build`
+`pnpm build`
 
 ## License
 
