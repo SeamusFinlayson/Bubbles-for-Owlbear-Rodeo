@@ -2,7 +2,7 @@ import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "../getPluginId";
 import { initScene } from "./helpers";
 
-const menuIcon = new URL("../status.svgsvg#icon", import.meta.url).toString();
+const menuIcon = new URL("../status.svg#icon", import.meta.url).toString();
 
 /**
  * This file represents the background script run when the plugin loads.
