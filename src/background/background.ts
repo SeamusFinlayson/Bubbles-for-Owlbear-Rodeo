@@ -1,18 +1,20 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "../getPluginId";
-import menuIcon from "../status.svg";
 import { initScene } from "./helpers";
+
+const menuIcon = new URL("../status.svgsvg#icon", import.meta.url).toString();
 
 /**
  * This file represents the background script run when the plugin loads.
  * It creates the context menu items.
-*/
+ */
 
-OBR.onReady( async () => {
-
+OBR.onReady(async () => {
   fetch("/manifest.json")
-  .then((response) => response.json())
-  .then((json) => console.log(json["name"] + " - version: " + json["version"]));
+    .then((response) => response.json())
+    .then((json) =>
+      console.log(json["name"] + " - version: " + json["version"]),
+    );
 
   //create player context menu icon
   OBR.contextMenu.create({
@@ -27,7 +29,15 @@ OBR.onReady( async () => {
             { key: "layer", value: "CHARACTER", coordinator: "||" },
             { key: "layer", value: "MOUNT", coordinator: "||" },
             { key: "layer", value: "PROP" },
-            { key: ["metadata", "com.owlbear-rodeo-bubbles-extension/metadata", "hide"], value: true, operator: "!="},
+            {
+              key: [
+                "metadata",
+                "com.owlbear-rodeo-bubbles-extension/metadata",
+                "hide",
+              ],
+              value: true,
+              operator: "!=",
+            },
           ],
           permissions: ["UPDATE"],
           roles: ["PLAYER"],
@@ -39,7 +49,7 @@ OBR.onReady( async () => {
     embed: {
       url: "/src/edit-stats/editStats.html",
       height: 82,
-    }
+    },
   });
 
   //create GM context menu icon
@@ -65,7 +75,7 @@ OBR.onReady( async () => {
     embed: {
       url: "/src/edit-stats/editStats.html",
       height: 132,
-    }
+    },
   });
 
   OBR.contextMenu.create({
@@ -88,9 +98,8 @@ OBR.onReady( async () => {
         height: 522,
         width: 600,
         anchorElementId: elementId,
-      })
-
-    }
+      });
+    },
   });
 
   //startHealthBars(await OBR.scene.isReady());
