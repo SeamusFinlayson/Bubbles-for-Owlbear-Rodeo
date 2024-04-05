@@ -11,6 +11,7 @@ import BarInput from "../../components/BarInput";
 import "../../index.css";
 import BubbleInput from "../../components/BubbleInput";
 import ToggleButton from "../../components/ToggleButton";
+import "../editStatsStyle.css";
 
 export default function StatsMenuApp({
   initialToken,

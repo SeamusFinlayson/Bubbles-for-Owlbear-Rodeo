@@ -14,8 +14,8 @@ export default function BarInput({
   parentValue: number;
   parentMax: number;
   color: number;
-  valueUpdateHandler: (target: HTMLInputElement) => void;
-  maxUpdateHandler: (target: HTMLInputElement) => void;
+  valueUpdateHandler: (target: HTMLInputElement) => Promise<void>;
+  maxUpdateHandler: (target: HTMLInputElement) => Promise<void>;
   valueInputProps?: InputHTMLAttributes<HTMLInputElement>;
   maxInputProps?: InputHTMLAttributes<HTMLInputElement>;
   animateOnlyWhenRootActive?: boolean;
@@ -51,11 +51,14 @@ export default function BarInput({
     field: "value" | "max",
   ) => {
     if (field === "value") {
-      valueUpdateHandler(e.target as HTMLInputElement);
+      valueUpdateHandler(e.target as HTMLInputElement).then(() =>
+        setValueInputUpdateFlag(true),
+      );
     } else {
-      maxUpdateHandler(e.target as HTMLInputElement);
+      maxUpdateHandler(e.target as HTMLInputElement).then(() =>
+        setValueInputUpdateFlag(true),
+      );
     }
-    setValueInputUpdateFlag(true);
   };
 
   const animationDuration75 = animateOnlyWhenRootActive
@@ -78,7 +81,10 @@ export default function BarInput({
           onChange={(e) => setValue(e.target.value)}
           onBlur={(e) => runUpdateHandler(e, "value")}
           onKeyDown={(e) => {
-            if (e.key === "Enter") runUpdateHandler(e, "value");
+            if (e.key === "Enter") {
+              (e.target as HTMLInputElement).blur();
+              runUpdateHandler(e, "value");
+            }
           }}
           onFocus={handleFocus}
           className={`${animationDuration100} size-[44px] rounded-xl bg-transparent text-center font-medium text-text-primary outline-none hover:bg-white/10 focus:bg-white/15 dark:text-text-primary-dark dark:hover:bg-black/10 dark:focus:bg-black/15`}
@@ -93,7 +99,10 @@ export default function BarInput({
           onChange={(e) => setMax(e.target.value)}
           onBlur={(e) => runUpdateHandler(e, "max")}
           onKeyDown={(e) => {
-            if (e.key === "Enter") runUpdateHandler(e, "max");
+            if (e.key === "Enter") {
+              (e.target as HTMLInputElement).blur();
+              runUpdateHandler(e, "max");
+            }
           }}
           onFocus={handleFocus}
           className={`${animationDuration100} size-[44px] rounded-xl bg-transparent text-center font-medium text-text-primary outline-none hover:bg-white/10 focus:bg-white/15 dark:text-text-primary-dark dark:hover:bg-black/10 dark:focus:bg-black/15`}

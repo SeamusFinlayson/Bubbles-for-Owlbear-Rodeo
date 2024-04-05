@@ -60,7 +60,10 @@ export default function BubbleInput({
           onChange={(e) => setValue(e.target.value)}
           onBlur={(e) => runUpdateHandler(e)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") runUpdateHandler(e);
+            if (e.key === "Enter") {
+              (e.target as HTMLInputElement).blur();
+              runUpdateHandler(e);
+            }
           }}
           onFocus={selectText}
           className={`${animationDuration100} size-[44px] rounded-full bg-transparent text-center font-medium text-text-primary outline-none hover:bg-white/10 focus:bg-white/15 dark:text-text-primary-dark dark:hover:bg-black/10 dark:focus:bg-black/15`}

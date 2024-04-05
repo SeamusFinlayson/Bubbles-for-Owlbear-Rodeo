@@ -379,7 +379,7 @@ function createRoundRectangle(
 /** Draw a portion of a circle.
  * @param center Center coordinates of the circle.
  * @param startAngle Angle from standard position to start at in radians.
- * @param arcAngle  Angle from standard position to end at in radians.
+ * @param arcAngle Angle from the start angle that the arc is generated over.
  * @param points Number of points along the arc to generate.
  */
 function drawCircle(
