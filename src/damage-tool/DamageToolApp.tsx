@@ -1,13 +1,13 @@
 import OBR, { Item } from "@owlbear-rodeo/sdk";
-import Token from "../../TokenClass";
+import Token from "../TokenClass";
 import { useEffect, useState } from "react";
 import { Box, Button, TextField, useTheme } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
-import TokenList from "./TokenList";
-import { getPluginId } from "../../getPluginId";
-import { StatMetadataID } from "../../edit-stats/StatInputClass";
-import { scaleHealthDiff, calculateNewHealth } from "../healthCalculations";
-import { parseSelectedTokens } from "../../itemHelpers";
+import TokenList from "./components/TokenList";
+import { getPluginId } from "../getPluginId";
+import { StatMetadataID } from "../edit-stats/StatInputClass";
+import { scaleHealthDiff, calculateNewHealth } from "./healthCalculations";
+import { parseSelectedTokens } from "../itemHelpers";
 
 export default function DamageToolApp({
   initialTokens,

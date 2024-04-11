@@ -2,7 +2,7 @@ import OBR from "@owlbear-rodeo/sdk";
 import { ThemeProvider } from "@mui/material";
 import { getTheme } from "../OBRThemeProvider";
 import { createRoot } from "react-dom/client";
-import StatsMenuApp from "./component/StatsMenuApp";
+import StatsMenuApp from "./StatsMenuApp";
 import { getName, getSelectedItems, parseSelectedTokens } from "../itemHelpers";
 
 OBR.onReady(async () => {

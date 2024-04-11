@@ -1,9 +1,9 @@
-import Token, { StatsObject } from "../../TokenClass";
+import Token, { StatsObject } from "../TokenClass";
 import { useEffect, useState } from "react";
 import {
   isInputName,
   writeInputValueToTokenMetadata,
-} from "../writeInputValueToTokenMetadata";
+} from "./writeInputValueToTokenMetadata";
 import { useTheme } from "@mui/material";
 import OBR from "@owlbear-rodeo/sdk";
 import {
@@ -12,13 +12,13 @@ import {
   getSelectedItems,
   parseSelectedTokens,
   writeStringToItem,
-} from "../../itemHelpers";
-import BarInput from "../../components/BarInput";
-import "../../index.css";
-import BubbleInput from "../../components/BubbleInput";
-import ToggleButton from "../../components/ToggleButton";
-import "../editStatsStyle.css";
-import TextField from "../../components/TextField";
+} from "../itemHelpers";
+import BarInput from "../components/BarInput";
+import "../index.css";
+import BubbleInput from "../components/BubbleInput";
+import ToggleButton from "../components/ToggleButton";
+import "./editStatsStyle.css";
+import TextField from "../components/TextField";
 
 export default function StatsMenuApp({
   initialToken,
@@ -186,6 +186,11 @@ export default function StatsMenuApp({
       </div>
     );
   } else {
-    return <>{StatsMenu}</>;
+    return (
+      <div className={mode}>
+        {NameField}
+        {StatsMenu}
+      </div>
+    );
   }
 }
