@@ -1,4 +1,5 @@
-import { Vector2 } from "@owlbear-rodeo/sdk";
+import { Vector2, Image } from "@owlbear-rodeo/sdk";
+import { Settings } from "./getGlobalSettings";
 
 /**
  * Calculate the fill of a bar tracker to display.
@@ -186,4 +187,33 @@ function drawArc(
     angle += angleBetweenPoints;
   }
   return pointsArray;
+}
+
+export function getOriginAndBounds(
+  settings: Settings,
+  item: Image,
+  dpi: number,
+) {
+  // Determine bounds
+  const bounds = getImageBounds(item, dpi);
+  bounds.width = Math.abs(bounds.width);
+  bounds.height = Math.abs(bounds.height);
+
+  // Determine coordinate origin for drawing stats
+  const origin = {
+    x: item.position.x,
+    y:
+      item.position.y +
+      ((settings.barAtTop ? -1 : 1) * bounds.height) / 2 -
+      settings.verticalOffset +
+      (settings.barAtTop ? 1 : 0),
+  };
+  return { origin, bounds };
+}
+
+function getImageBounds(item: Image, dpi: number) {
+  const dpiScale = dpi / item.grid.dpi;
+  const width = item.image.width * dpiScale * item.scale.x;
+  const height = item.image.height * dpiScale * item.scale.y;
+  return { width, height };
 }

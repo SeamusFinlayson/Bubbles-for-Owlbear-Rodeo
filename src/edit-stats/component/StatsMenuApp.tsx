@@ -6,18 +6,27 @@ import {
 } from "../writeInputValueToTokenMetadata";
 import { useTheme } from "@mui/material";
 import OBR from "@owlbear-rodeo/sdk";
-import parseSelectedTokens from "../../parseSelectedTokens";
+import {
+  NAME_METADATA_ID,
+  getName,
+  getSelectedItems,
+  parseSelectedTokens,
+  writeStringToItem,
+} from "../../itemHelpers";
 import BarInput from "../../components/BarInput";
 import "../../index.css";
 import BubbleInput from "../../components/BubbleInput";
 import ToggleButton from "../../components/ToggleButton";
 import "../editStatsStyle.css";
+import TextField from "../../components/TextField";
 
 export default function StatsMenuApp({
   initialToken,
+  initialTokenName,
   role,
 }: {
   initialToken: Token;
+  initialTokenName: string;
   role: "GM" | "PLAYER";
 }): JSX.Element {
   const mode = useTheme().palette.mode;
@@ -34,7 +43,12 @@ export default function StatsMenuApp({
           let currentToken = tokens[0];
           setToken(currentToken.returnStatsAsObject());
         };
-        parseSelectedTokens().then((tokens) => updateStats(tokens));
+        getSelectedItems().then((selectedItems) => {
+          parseSelectedTokens(false, selectedItems).then((tokens) =>
+            updateStats(tokens),
+          );
+          setTokenName(getName(selectedItems[0]));
+        });
       }),
     [],
   );
@@ -90,7 +104,29 @@ export default function StatsMenuApp({
     writeInputValueToTokenMetadata(name, value);
   }
 
-  const statsMenu: JSX.Element = (
+  const [tokenName, setTokenName] = useState(initialTokenName);
+
+  const NameField: JSX.Element = (
+    <div className="flex flex-row justify-center pt-1">
+      <div className="w-[144px]">
+        <TextField
+          updateHandler={(target) => {
+            writeStringToItem(target.value, NAME_METADATA_ID);
+          }}
+          inputProps={{
+            placeholder: "Name",
+            value: tokenName,
+            onChange: (e) => {
+              setTokenName(e.target.value);
+            },
+          }}
+          animateOnlyWhenRootActive={true}
+        ></TextField>
+      </div>
+    </div>
+  );
+
+  const StatsMenu: JSX.Element = (
     <div className={"stat-grid " + mode} style={{ color: textColor }}>
       <div className="grid-item">
         <label className="label">HP</label>
@@ -128,7 +164,7 @@ export default function StatsMenuApp({
     </div>
   );
 
-  const hideRow: JSX.Element = (
+  const HideRow: JSX.Element = (
     <div className={"hide-switch-row " + mode} style={{ color: textColor }}>
       <label htmlFor="hide" className="label" style={{ margin: 0 }}>
         Hide stats from players
@@ -143,12 +179,13 @@ export default function StatsMenuApp({
 
   if (role === "GM") {
     return (
-      <>
-        {statsMenu}
-        {hideRow}
-      </>
+      <div className={mode}>
+        {NameField}
+        {StatsMenu}
+        {HideRow}
+      </div>
     );
   } else {
-    return <>{statsMenu}</>;
+    return <>{StatsMenu}</>;
   }
 }

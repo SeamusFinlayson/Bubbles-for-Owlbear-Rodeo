@@ -6,10 +6,7 @@ import {
   buildShape,
   buildText,
 } from "@owlbear-rodeo/sdk";
-import {
-  createRoundedRectangle,
-  getFillPortion,
-} from "./compoundItemMathHelpers";
+import { createRoundedRectangle, getFillPortion } from "./mathHelpers";
 
 // Constants used in multiple functions
 const FONT_SIZE = 22;
@@ -209,16 +206,11 @@ const NAME_TAG_HEIGHT = 26;
 export function createNameTag(
   item: Item,
   origin: { x: number; y: number },
-  nameTagVisible: boolean,
+  name: string,
 ): Item[] {
-  const nameTagWidth = LETTER_WIDTH * item.name.length;
+  const nameTagWidth = LETTER_WIDTH * name.length;
 
   const setVisibilityProperty = item.visible;
-
-  let nameTagBackgroundColor = "darkgrey";
-  if (!nameTagVisible) {
-    nameTagBackgroundColor = "black";
-  }
 
   const nameTagTextHeight = NAME_TAG_HEIGHT + 0;
 
@@ -232,17 +224,14 @@ export function createNameTag(
       x: position.x - nameTagWidth * 0.5,
       y: position.y + 4 + 2,
     })
-    .plainText(item.name)
+    .plainText(name)
     .textAlign("CENTER")
     .textAlignVertical("MIDDLE")
     .fontSize(FONT_SIZE)
     .fontFamily(FONT)
     .textType("PLAIN")
     .height(nameTagTextHeight)
-    // .width(nameTagWidth)
     .fontWeight(400)
-    //.strokeColor("black")
-    //.strokeWidth(0)
     .attachedTo(item.id)
     .fillOpacity(0.87)
     .layer("TEXT")
@@ -253,26 +242,11 @@ export function createNameTag(
     .disableHit(DISABLE_HIT)
     .build();
 
-  // const nameTagBackground = buildShape()
-  //   .width(nameTagWidth)
-  //   .height(NAME_TAG_HEIGHT)
-  //   .shapeType("RECTANGLE")
-  //   .fillColor(nameTagBackgroundColor)
-  //   .fillOpacity(BACKGROUND_OPACITY)
-  //   .strokeWidth(0)
-  //   .position({ x: position.x, y: position.y })
-  //   .attachedTo(item.id)
-  //   .layer("ATTACHMENT")
-  //   .locked(true)
-  //   .id(`${item.id}name-tag-background`)
-  //   .visible(setVisibilityProperty)
-  //   .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
-  //   .disableHit(DISABLE_HIT)
-  //   .build();
-
   return [nameTagText];
 }
+
 const TEXT_BG_PADDING = 4;
+
 /** Create name tag component items */
 export function createNameTagBackground(
   item: Item,
@@ -315,4 +289,34 @@ export function getNameTagTextId(itemId: string) {
 
 export function getNameTagBackgroundId(itemId: string) {
   return `${itemId}name-tag-background`;
+}
+
+export function addAllExtensionAttachmentsToArray(
+  array: any[],
+  itemId: string,
+) {
+  addHealthAttachmentsToArray(array, itemId);
+  addArmorAttachmentsToArray(array, itemId);
+  addTempHealthAttachmentsToArray(array, itemId);
+  addNameTagAttachmentsToArray(array, itemId);
+}
+
+export function addHealthAttachmentsToArray(array: any[], itemId: string) {
+  array.push(
+    `${itemId}health-background`,
+    `${itemId}health`,
+    `${itemId}health-label`,
+  );
+}
+
+export function addArmorAttachmentsToArray(array: any[], itemId: string) {
+  array.push(`${itemId}ac-background`, `${itemId}ac-label`);
+}
+
+export function addTempHealthAttachmentsToArray(array: any[], itemId: string) {
+  array.push(`${itemId}temp-hp-background`, `${itemId}temp-hp-label`);
+}
+
+export function addNameTagAttachmentsToArray(array: any[], itemId: string) {
+  array.push(`${itemId}name-tag-background`, `${itemId}name-tag-text`);
 }

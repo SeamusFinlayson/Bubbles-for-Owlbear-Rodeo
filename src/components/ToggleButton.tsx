@@ -8,7 +8,7 @@ export default function ToggleButton({
 }: {
   isChecked: boolean;
   changeHandler: (target: HTMLInputElement) => void;
-  inputProps: InputHTMLAttributes<HTMLInputElement>;
+  inputProps?: InputHTMLAttributes<HTMLInputElement>;
 }) {
   return (
     <>

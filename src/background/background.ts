@@ -1,6 +1,6 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "../getPluginId";
-import { initScene } from "./helpers";
+import { startStatAttachments } from "./statAttachments";
 
 const menuIcon = new URL("../status.svg#icon", import.meta.url).toString();
 
@@ -74,7 +74,7 @@ OBR.onReady(async () => {
     shortcut: "Shift + S",
     embed: {
       url: "/src/edit-stats/editStats.html",
-      height: 132,
+      height: 180,
     },
   });
 
@@ -102,6 +102,5 @@ OBR.onReady(async () => {
     },
   });
 
-  //startHealthBars(await OBR.scene.isReady());
-  initScene();
+  startStatAttachments();
 });
