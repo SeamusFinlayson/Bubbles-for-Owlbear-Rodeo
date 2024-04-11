@@ -24,6 +24,7 @@ export default {
             armor: "rgba(100, 148, 237, 0.4)",
           },
         },
+        //background
         default: {
           DEFAULT: "#dde1ee",
           dark: "#222639",
@@ -45,6 +46,10 @@ export default {
             DEFAULT: "rgba(0, 0, 0, 0.38)",
             dark: "rgb(255, 255, 255, 0.5)",
           },
+        },
+        primary: {
+          DEFAULT: "#9966ff",
+          dark: "#bb99ff",
         },
       },
     },

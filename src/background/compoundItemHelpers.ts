@@ -1,11 +1,12 @@
 import {
   AttachmentBehavior,
+  BoundingBox,
   Item,
-  Vector2,
   buildCurve,
   buildShape,
   buildText,
 } from "@owlbear-rodeo/sdk";
+import { createRoundedRectangle, getFillPortion } from "./mathHelpers";
 
 // Constants used in multiple functions
 const FONT_SIZE = 22;
@@ -91,6 +92,7 @@ const BAR_PADDING = 2;
 const HEALTH_OPACITY = 0.5;
 export const FULL_BAR_HEIGHT = 20;
 const SHORT_BAR_HEIGHT = 12;
+const CORNER_RADIUS = 8;
 
 /** Creates health bar component items */
 export function createHealthBar(
@@ -122,8 +124,6 @@ export function createHealthBar(
     healthBackgroundColor = "black";
   }
 
-  const backgroundPoints: Vector2[] = createRoundRectangle(barWidth, barHeight);
-
   const backgroundShape = buildCurve()
     .fillColor(healthBackgroundColor)
     .fillOpacity(BACKGROUND_OPACITY)
@@ -138,29 +138,10 @@ export function createHealthBar(
     .disableHit(DISABLE_HIT)
     .tension(0)
     .closed(true)
-    .points(backgroundPoints)
+    .points(createRoundedRectangle(barWidth, barHeight, CORNER_RADIUS))
     .build();
 
-  let healthPercentage: number;
-  if (health <= 0) {
-    healthPercentage = 0;
-  } else if (health < maxHealth) {
-    if (segments === 0) {
-      healthPercentage = health / maxHealth;
-    } else {
-      healthPercentage = Math.ceil((health / maxHealth) * segments) / segments;
-    }
-  } else if (health >= maxHealth) {
-    healthPercentage = 1;
-  } else {
-    healthPercentage = 0;
-  }
-
-  const healthFillPoints: Vector2[] = createRoundRectangle(
-    barWidth,
-    barHeight,
-    healthPercentage,
-  );
+  const healthFillPortion = getFillPortion(health, maxHealth, segments);
 
   const healthShape = buildCurve()
     .fillColor("red")
@@ -177,7 +158,14 @@ export function createHealthBar(
     .disableHit(DISABLE_HIT)
     .tension(0)
     .closed(true)
-    .points(healthFillPoints)
+    .points(
+      createRoundedRectangle(
+        barWidth,
+        barHeight,
+        CORNER_RADIUS,
+        healthFillPortion,
+      ),
+    )
     .build();
 
   if (variant === "short") {
@@ -211,63 +199,41 @@ export function createHealthBar(
 }
 
 // Constants used in createNameTag()
-const LETTER_WIDTH = 14;
+const LETTER_WIDTH = 11;
 const NAME_TAG_HEIGHT = 26;
 
 /** Create name tag component items */
 export function createNameTag(
   item: Item,
   origin: { x: number; y: number },
-  nameTagVisible: boolean,
+  name: string,
 ): Item[] {
-  const nameTagWidth = LETTER_WIDTH * item.name.length + 4;
+  const nameTagWidth = LETTER_WIDTH * name.length;
 
   const setVisibilityProperty = item.visible;
-
-  let nameTagBackgroundColor = "darkgrey";
-  if (!nameTagVisible) {
-    nameTagBackgroundColor = "black";
-  }
 
   const nameTagTextHeight = NAME_TAG_HEIGHT + 0;
 
   const position = {
-    x: origin.x - nameTagWidth / 2,
+    x: origin.x,
     y: origin.y,
   };
 
-  const nameTagBackground = buildShape()
-    .width(nameTagWidth)
-    .height(NAME_TAG_HEIGHT)
-    .shapeType("RECTANGLE")
-    .fillColor(nameTagBackgroundColor)
-    .fillOpacity(BACKGROUND_OPACITY)
-    .strokeWidth(0)
-    .position({ x: position.x, y: position.y })
-    .attachedTo(item.id)
-    .layer("ATTACHMENT")
-    .locked(true)
-    .id(`${item.id}name-tag-background`)
-    .visible(setVisibilityProperty)
-    .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
-    .disableHit(DISABLE_HIT)
-    .build();
-
   const nameTagText = buildText()
-    .position({ x: position.x, y: position.y + TEXT_VERTICAL_OFFSET })
-    .plainText(item.name)
+    .position({
+      x: position.x - nameTagWidth * 0.5,
+      y: position.y + 4 + 2,
+    })
+    .plainText(name)
     .textAlign("CENTER")
     .textAlignVertical("MIDDLE")
     .fontSize(FONT_SIZE)
     .fontFamily(FONT)
     .textType("PLAIN")
     .height(nameTagTextHeight)
-    .width(nameTagWidth)
     .fontWeight(400)
-    //.strokeColor("black")
-    //.strokeWidth(0)
     .attachedTo(item.id)
-    .fillOpacity(1)
+    .fillOpacity(0.87)
     .layer("TEXT")
     .locked(true)
     .id(`${item.id}name-tag-text`)
@@ -276,126 +242,81 @@ export function createNameTag(
     .disableHit(DISABLE_HIT)
     .build();
 
-  return [nameTagBackground, nameTagText];
+  return [nameTagText];
 }
 
-function createRoundRectangle(
-  maxLength: number,
-  height: number,
-  fill: number = 1,
-): Vector2[] {
-  const radius = height / 2;
+const TEXT_BG_PADDING = 4;
 
-  if (fill === 1) {
-    // Draw full shape
-    return [
-      { x: radius, y: 0 },
-      { x: maxLength - radius, y: 0 },
-      ...drawCircle(
-        { x: maxLength - radius, y: height / 2 },
-        radius,
-        Math.PI / 2,
-        -Math.PI,
-        30,
-      ),
-      { x: maxLength - radius, y: height },
-      { x: 0 + radius, y: height },
-      ...drawCircle(
-        { x: radius, y: height / 2 },
-        radius,
-        -Math.PI / 2,
-        -Math.PI,
-        30,
-      ),
-    ];
-  }
+/** Create name tag component items */
+export function createNameTagBackground(
+  item: Item,
+  boundingBox: BoundingBox,
+): Item[] {
+  const setVisibilityProperty = item.visible;
 
-  const barLength = fill * maxLength;
-  if (barLength < radius) {
-    // Draw only the first end
-    const referenceAngle = Math.acos((radius - barLength) / radius);
-
-    return [
-      ...drawCircle(
-        { x: radius, y: height / 2 },
-        radius,
-        Math.PI - referenceAngle,
-        referenceAngle * 2,
-        16,
+  const nameTagBackground = buildCurve()
+    .fillColor("#3a3c4d")
+    .fillOpacity(0.6)
+    .strokeWidth(0)
+    .position({
+      x: boundingBox.min.x - TEXT_BG_PADDING,
+      y: boundingBox.min.y - TEXT_BG_PADDING - TEXT_VERTICAL_OFFSET,
+    })
+    .attachedTo(item.id)
+    .layer("ATTACHMENT")
+    .locked(true)
+    .id(`${item.id}name-tag-background`)
+    .visible(setVisibilityProperty)
+    .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
+    .disableHit(DISABLE_HIT)
+    .tension(0)
+    .closed(true)
+    .points(
+      createRoundedRectangle(
+        boundingBox.width + TEXT_BG_PADDING * 2,
+        boundingBox.height + TEXT_BG_PADDING * 2,
+        CORNER_RADIUS + 4,
       ),
-    ];
-  }
+    )
+    .build();
 
-  const remainingBarLength = maxLength - barLength;
-  if (remainingBarLength < radius) {
-    // Draw the first end the middle and part of the second end
-    const referenceAngle = Math.acos((radius - remainingBarLength) / radius);
-
-    return [
-      { x: radius, y: 0 },
-      { x: maxLength - radius, y: 0 },
-      ...drawCircle(
-        { x: maxLength - radius, y: height / 2 },
-        radius,
-        Math.PI / 2,
-        -Math.PI / 2 + referenceAngle,
-        8,
-      ),
-      ...drawCircle(
-        { x: maxLength - radius, y: height / 2 },
-        radius,
-        -referenceAngle,
-        -Math.PI / 2 + referenceAngle,
-        8,
-      ),
-      { x: maxLength - radius, y: height },
-      { x: radius, y: height },
-      ...drawCircle(
-        { x: radius, y: height / 2 },
-        radius,
-        -Math.PI / 2,
-        -Math.PI,
-        30,
-      ),
-    ];
-  }
-
-  // Draw the first end and the middle
-  return [
-    { x: radius, y: 0 },
-    { x: barLength, y: 0 },
-    { x: barLength, y: height },
-    { x: radius, y: height },
-    ...drawCircle(
-      { x: radius, y: height / 2 },
-      radius,
-      -Math.PI / 2,
-      -Math.PI,
-      30,
-    ),
-  ];
+  return [nameTagBackground];
 }
 
-/** Draw a portion of a circle.
- * @param center Center coordinates of the circle.
- * @param startAngle Angle from standard position to start at in radians.
- * @param arcAngle Angle from the start angle that the arc is generated over.
- * @param points Number of points along the arc to generate.
- */
-function drawCircle(
-  center: Vector2,
-  radius: number,
-  startAngle: number,
-  arcAngle: number,
-  arcPoints: number,
-): Vector2[] {
-  const pointsArray: Vector2[] = [];
-  for (let i = 1; i < arcPoints; i++) {
-    const angle = startAngle + (arcAngle * i) / arcPoints;
-    pointsArray.push({
-      x: center.x + radius * Math.cos(angle),
-      y: center.y - radius * Math.sin(angle),
-    });
-  }
-  return pointsArray;
+export function getNameTagTextId(itemId: string) {
+  return `${itemId}name-tag-text`;
+}
+
+export function getNameTagBackgroundId(itemId: string) {
+  return `${itemId}name-tag-background`;
+}
+
+export function addAllExtensionAttachmentsToArray(
+  array: any[],
+  itemId: string,
+) {
+  addHealthAttachmentsToArray(array, itemId);
+  addArmorAttachmentsToArray(array, itemId);
+  addTempHealthAttachmentsToArray(array, itemId);
+  addNameTagAttachmentsToArray(array, itemId);
+}
+
+export function addHealthAttachmentsToArray(array: any[], itemId: string) {
+  array.push(
+    `${itemId}health-background`,
+    `${itemId}health`,
+    `${itemId}health-label`,
+  );
+}
+
+export function addArmorAttachmentsToArray(array: any[], itemId: string) {
+  array.push(`${itemId}ac-background`, `${itemId}ac-label`);
+}
+
+export function addTempHealthAttachmentsToArray(array: any[], itemId: string) {
+  array.push(`${itemId}temp-hp-background`, `${itemId}temp-hp-label`);
+}
+
+export function addNameTagAttachmentsToArray(array: any[], itemId: string) {
+  array.push(`${itemId}name-tag-background`, `${itemId}name-tag-text`);
 }
