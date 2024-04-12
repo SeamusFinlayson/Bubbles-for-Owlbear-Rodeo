@@ -4,17 +4,23 @@ import { getTheme } from "../OBRThemeProvider";
 import { createRoot } from "react-dom/client";
 import StatsMenuApp from "./StatsMenuApp";
 import { getName, getSelectedItems, parseSelectedTokens } from "../itemHelpers";
+import { getPluginId } from "../getPluginId";
 
 OBR.onReady(async () => {
-  const [selectedItems, role, themeObject] = await Promise.all([
+  const [selectedItems, role, themeObject, sceneMetadata] = await Promise.all([
     getSelectedItems(),
     OBR.player.getRole(),
     OBR.theme.getTheme(),
+    OBR.scene.getMetadata(),
   ]);
 
   const theme = getTheme(themeObject);
   const initialTokens = await parseSelectedTokens(false, selectedItems);
   const initialName = getName(selectedItems[0]);
+
+  let initialNameTagsEnabled: unknown = (sceneMetadata as any)[
+    getPluginId("metadata")
+  ]?.["name-tags"];
 
   if (selectedItems.length !== 1) {
     throw "Error: Invalid Tokens Selection";
@@ -28,6 +34,11 @@ OBR.onReady(async () => {
         <StatsMenuApp
           initialToken={initialTokens[0]}
           initialTokenName={initialName}
+          initialNameTagsEnabled={
+            typeof initialNameTagsEnabled === "boolean"
+              ? initialNameTagsEnabled
+              : false
+          }
           role={role}
         />
       </ThemeProvider>,

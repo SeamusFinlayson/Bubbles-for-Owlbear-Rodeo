@@ -92,7 +92,7 @@ const BAR_PADDING = 2;
 const HEALTH_OPACITY = 0.5;
 export const FULL_BAR_HEIGHT = 20;
 const SHORT_BAR_HEIGHT = 12;
-const CORNER_RADIUS = 8;
+const BAR_CORNER_RADIUS = FULL_BAR_HEIGHT / 2;
 
 /** Creates health bar component items */
 export function createHealthBar(
@@ -138,7 +138,7 @@ export function createHealthBar(
     .disableHit(DISABLE_HIT)
     .tension(0)
     .closed(true)
-    .points(createRoundedRectangle(barWidth, barHeight, CORNER_RADIUS))
+    .points(createRoundedRectangle(barWidth, barHeight, BAR_CORNER_RADIUS))
     .build();
 
   const healthFillPortion = getFillPortion(health, maxHealth, segments);
@@ -162,7 +162,7 @@ export function createHealthBar(
       createRoundedRectangle(
         barWidth,
         barHeight,
-        CORNER_RADIUS,
+        BAR_CORNER_RADIUS,
         healthFillPortion,
       ),
     )
@@ -246,6 +246,7 @@ export function createNameTag(
 }
 
 const TEXT_BG_PADDING = 4;
+const TEXT_BG_CORNER_RADIUS = 12;
 
 /** Create name tag component items */
 export function createNameTagBackground(
@@ -275,7 +276,7 @@ export function createNameTagBackground(
       createRoundedRectangle(
         boundingBox.width + TEXT_BG_PADDING * 2,
         boundingBox.height + TEXT_BG_PADDING * 2,
-        CORNER_RADIUS + 4,
+        TEXT_BG_CORNER_RADIUS,
       ),
     )
     .build();
