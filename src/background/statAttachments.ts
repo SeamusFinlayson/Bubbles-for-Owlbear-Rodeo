@@ -254,6 +254,7 @@ function getChangedItems(imagesFromCallback: Image[]) {
 }
 
 async function createNameTagBackgrounds(items: Item[]) {
+  //TODO: fix text positioning
   const nameTagBackgrounds: Item[] = [];
   if (await OBR.scene.isReady()) {
     for (let i = 0; i < items.length; i++) {
@@ -293,6 +294,7 @@ async function createAttachments(
   }
 
   // Create name tags
+  // TODO: Use better placement for stats above token
   const name = getName(item);
   if (settings.nameTags && name !== "") {
     addItemsArray.push(...createNameTag(item, origin, name));

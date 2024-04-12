@@ -166,13 +166,12 @@ export function getTokenMetadata(
 
 export const NAME_METADATA_ID = "name";
 
-export async function writeStringToItem(string: string, id: string) {
+export async function writeStringToSelectedItem(string: string, id: string) {
   // Get selected items
-  const selection = await OBR.player.getSelection();
-  const selectedItems = await OBR.scene.items.getItems(selection);
+  const selectedItems = await getSelectedItems();
 
   // Throw error if more than one token selected
-  if (selectedItems.length > 1) {
+  if (selectedItems.length !== 1) {
     throw (
       "Selection exceeded max length, expected 1, got: " + selectedItems.length
     );
@@ -191,4 +190,34 @@ export function getName(item: Item, useDefaultAsFallback = false): string {
     return item.name;
   if (typeof name !== "string") return "";
   return name;
+}
+
+export async function getSelectedItemNameProperty() {
+  const selectedItems = await getSelectedItems();
+
+  // Throw error if more than one token selected
+  if (selectedItems.length !== 1) {
+    throw (
+      "Selection exceeded max length, expected 1, got: " + selectedItems.length
+    );
+  }
+
+  return selectedItems[0].name;
+}
+
+export async function setSelectedItemNameProperty(name: string) {
+  const selectedItems = await getSelectedItems();
+
+  // Throw error if more than one token selected
+  if (selectedItems.length !== 1) {
+    throw (
+      "Selection exceeded max length, expected 1, got: " + selectedItems.length
+    );
+  }
+
+  OBR.scene.items.updateItems(selectedItems, (items) => {
+    for (const item of items) {
+      item.name = name;
+    }
+  });
 }

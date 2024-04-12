@@ -9,9 +9,11 @@ import OBR from "@owlbear-rodeo/sdk";
 import {
   NAME_METADATA_ID,
   getName,
+  getSelectedItemNameProperty,
   getSelectedItems,
   parseSelectedTokens,
-  writeStringToItem,
+  setSelectedItemNameProperty,
+  writeStringToSelectedItem,
 } from "../itemHelpers";
 import BarInput from "../components/BarInput";
 import "../index.css";
@@ -19,14 +21,19 @@ import BubbleInput from "../components/BubbleInput";
 import ToggleButton from "../components/ToggleButton";
 import "./editStatsStyle.css";
 import TextField from "../components/TextField";
+import IconButton from "../components/IconButton";
+import MagicIcon from "../components/MagicIcon";
+import { getPluginId } from "../getPluginId";
 
 export default function StatsMenuApp({
   initialToken,
   initialTokenName,
+  initialNameTagsEnabled,
   role,
 }: {
   initialToken: Token;
   initialTokenName: string;
+  initialNameTagsEnabled: boolean;
   role: "GM" | "PLAYER";
 }): JSX.Element {
   const mode = useTheme().palette.mode;
@@ -106,12 +113,29 @@ export default function StatsMenuApp({
 
   const [tokenName, setTokenName] = useState(initialTokenName);
 
+  const [nameTagsEnabled, setNameTagsEnabled] = useState(
+    initialNameTagsEnabled,
+  );
+  useEffect(() =>
+    OBR.scene.onMetadataChange((metadata) => {
+      const nameTagsEnabled = (
+        metadata[getPluginId("metadata")] as {
+          "name-tags": boolean | undefined;
+        }
+      )["name-tags"];
+      if (nameTagsEnabled !== undefined) setNameTagsEnabled(nameTagsEnabled);
+    }),
+  );
+
   const NameField: JSX.Element = (
-    <div className="flex flex-row justify-center pt-1">
+    <div className="grid grid-cols-[1fr,auto,1fr] place-items-center px-2 pt-1">
+      <div></div>
       <div className="w-[144px]">
         <TextField
           updateHandler={(target) => {
-            writeStringToItem(target.value, NAME_METADATA_ID);
+            writeStringToSelectedItem(target.value, NAME_METADATA_ID);
+            if (target.value.replaceAll(" ", "") !== "")
+              setSelectedItemNameProperty(target.value);
           }}
           inputProps={{
             placeholder: "Name",
@@ -123,6 +147,21 @@ export default function StatsMenuApp({
           animateOnlyWhenRootActive={true}
         ></TextField>
       </div>
+      {tokenName === "" && (
+        <div className=" right-0 top-0 ">
+          <IconButton
+            Icon={MagicIcon}
+            onClick={() => {
+              getSelectedItemNameProperty().then((name) => {
+                setTokenName(name);
+                writeStringToSelectedItem(name, NAME_METADATA_ID);
+              });
+            }}
+            padding=""
+            animateOnlyWhenRootActive={true}
+          ></IconButton>
+        </div>
+      )}
     </div>
   );
 
@@ -180,7 +219,7 @@ export default function StatsMenuApp({
   if (role === "GM") {
     return (
       <div className={mode}>
-        {NameField}
+        {nameTagsEnabled && NameField}
         {StatsMenu}
         {HideRow}
       </div>
@@ -188,7 +227,7 @@ export default function StatsMenuApp({
   } else {
     return (
       <div className={mode}>
-        {NameField}
+        {nameTagsEnabled && NameField}
         {StatsMenu}
       </div>
     );
