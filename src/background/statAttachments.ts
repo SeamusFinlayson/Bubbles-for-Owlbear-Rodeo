@@ -3,6 +3,7 @@ import { getPluginId } from "../getPluginId";
 import {
   DIAMETER,
   FULL_BAR_HEIGHT,
+  NAME_TAG_HEIGHT,
   addAllExtensionAttachmentsToArray,
   addArmorAttachmentsToArray,
   addHealthAttachmentsToArray,
@@ -17,6 +18,7 @@ import {
 import { getOriginAndBounds } from "./mathHelpers";
 import { NAME_METADATA_ID, getName, getTokenMetadata } from "../itemHelpers";
 import { Settings, getGlobalSettings } from "./getGlobalSettings";
+import createContextMenuItems from "./contextMenuItems";
 
 let tokenIds: string[] = []; // for orphan health bar management
 let itemsLast: Image[] = []; // for item change checks
@@ -30,27 +32,25 @@ const settings: Settings = {
   showBars: false,
   segments: 0,
 };
-// let negativeArmorClass: boolean = false;
-let sceneListenersSet = false;
+let callbacksStarted = false;
 let userRoleLast: "GM" | "PLAYER";
 
-export async function startStatAttachments() {
+export default async function startBackground() {
+  const start = async () => {
+    await getGlobalSettings(settings);
+    createContextMenuItems(settings);
+    await refreshAllHealthBars();
+    await startCallbacks();
+  };
+
   // Handle when the scene is either changed or made ready after extension load
   OBR.scene.onReadyChange(async (isReady) => {
-    if (isReady) {
-      await getGlobalSettings(settings);
-      await refreshAllHealthBars();
-      await startHealthBarUpdates();
-    }
+    if (isReady) start();
   });
 
   // Check if the scene is already ready once the extension loads
   const isReady = await OBR.scene.isReady();
-  if (isReady) {
-    await getGlobalSettings(settings);
-    await refreshAllHealthBars();
-    await startHealthBarUpdates();
-  }
+  if (isReady) start();
 }
 
 async function refreshAllHealthBars() {
@@ -89,15 +89,13 @@ async function refreshAllHealthBars() {
   globalItemsWithNameTags.length = 0;
 }
 
-async function startHealthBarUpdates() {
-  if (!sceneListenersSet) {
+async function startCallbacks() {
+  if (!callbacksStarted) {
     // Don't run this again unless the listeners have been unsubscribed
-    sceneListenersSet = true;
-
-    // Initialize previous user role
-    userRoleLast = await OBR.player.getRole();
+    callbacksStarted = true;
 
     // Handle role changes
+    userRoleLast = await OBR.player.getRole();
     const unSubscribeFromPlayer = OBR.player.onChange(async () => {
       // Do a refresh if player role change is detected
       const userRole = await OBR.player.getRole();
@@ -112,6 +110,7 @@ async function startHealthBarUpdates() {
       async (metadata) => {
         // Do a refresh if an item change is detected
         if (await getGlobalSettings(settings, metadata)) {
+          createContextMenuItems(settings);
           refreshAllHealthBars();
         }
       },
@@ -169,7 +168,7 @@ async function startHealthBarUpdates() {
         unsubscribeFromSceneMetadata();
         unsubscribeFromItems();
         unsubscribeFromScene();
-        sceneListenersSet = false;
+        callbacksStarted = false;
       }
     });
   }
@@ -254,23 +253,33 @@ function getChangedItems(imagesFromCallback: Image[]) {
 }
 
 async function createNameTagBackgrounds(items: Item[]) {
-  //TODO: fix text positioning
-  const nameTagBackgrounds: Item[] = [];
-  if (await OBR.scene.isReady()) {
-    for (let i = 0; i < items.length; i++) {
-      if (getName(items[i]) !== "")
-        nameTagBackgrounds.push(
-          ...createNameTagBackground(
-            items[i],
-            await OBR.scene.local.getItemBounds([
-              getNameTagTextId(items[i].id),
-            ]),
-          ),
-        );
-    }
+  if (!(await OBR.scene.isReady())) throw "Error: Scene not available";
 
-    await OBR.scene.local.addItems(nameTagBackgrounds);
+  const nameTags: Item[] = [];
+  const nameTagBackgrounds: Item[] = [];
+
+  for (let i = 0; i < items.length; i++) {
+    if (getName(items[i]) !== "") {
+      nameTags.push(items[i]);
+      try {
+        const bounds = await OBR.scene.local.getItemBounds([
+          getNameTagTextId(items[i].id),
+        ]);
+        nameTagBackgrounds.push(...createNameTagBackground(items[i], bounds));
+      } catch (error) {
+        addNameTagAttachmentsToArray(deleteItemsArray, items[i].id);
+      }
+    }
   }
+
+  OBR.scene.local.deleteItems(deleteItemsArray);
+  deleteItemsArray.length = 0;
+
+  //TODO: fix text positioning
+  // OBR.scene.local.updateItems(nameTags, () => {})
+  if (nameTagBackgrounds.length > 0)
+    await OBR.scene.local.addItems(nameTagBackgrounds);
+  globalItemsWithNameTags.length = 0;
 }
 
 async function createAttachments(
@@ -283,7 +292,12 @@ async function createAttachments(
   // Create stats
   const [health, maxHealth, tempHealth, armorClass, statsVisible] =
     getTokenMetadata(item);
-  if (role === "PLAYER" && !statsVisible && settings.showBars) {
+  if (role === "PLAYER" && !statsVisible && !settings.showBars) {
+    // Display nothing, explicitly remove all attachments
+    addHealthAttachmentsToArray(deleteItemsArray, item.id);
+    addArmorAttachmentsToArray(deleteItemsArray, item.id);
+    addTempHealthAttachmentsToArray(deleteItemsArray, item.id);
+  } else if (role === "PLAYER" && !statsVisible && settings.showBars) {
     // Display limited stats depending on GM configuration
     createLimitedHealthBar();
   } else {
@@ -294,10 +308,20 @@ async function createAttachments(
   }
 
   // Create name tags
-  // TODO: Use better placement for stats above token
   const name = getName(item);
   if (settings.nameTags && name !== "") {
-    addItemsArray.push(...createNameTag(item, origin, name));
+    addItemsArray.push(
+      ...createNameTag(
+        item,
+        settings.barAtTop
+          ? {
+              x: origin.x,
+              y: origin.y - NAME_TAG_HEIGHT - FULL_BAR_HEIGHT - 12.4,
+            }
+          : origin,
+        name,
+      ),
+    );
     globalItemsWithNameTags.push(item);
   } else {
     addNameTagAttachmentsToArray(deleteItemsArray, item.id);

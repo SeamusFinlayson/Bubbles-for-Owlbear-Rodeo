@@ -199,8 +199,8 @@ export function createHealthBar(
 }
 
 // Constants used in createNameTag()
-const LETTER_WIDTH = 11;
-const NAME_TAG_HEIGHT = 26;
+const APPROXIMATE_LETTER_WIDTH = 11;
+export const NAME_TAG_HEIGHT = 26;
 
 /** Create name tag component items */
 export function createNameTag(
@@ -208,12 +208,7 @@ export function createNameTag(
   origin: { x: number; y: number },
   name: string,
 ): Item[] {
-  const nameTagWidth = LETTER_WIDTH * name.length;
-
-  const setVisibilityProperty = item.visible;
-
-  const nameTagTextHeight = NAME_TAG_HEIGHT + 0;
-
+  const approximateNameTagWidth = APPROXIMATE_LETTER_WIDTH * name.length;
   const position = {
     x: origin.x,
     y: origin.y,
@@ -221,7 +216,7 @@ export function createNameTag(
 
   const nameTagText = buildText()
     .position({
-      x: position.x - nameTagWidth * 0.5,
+      x: position.x - approximateNameTagWidth * 0.5,
       y: position.y + 4 + 2,
     })
     .plainText(name)
@@ -230,14 +225,14 @@ export function createNameTag(
     .fontSize(FONT_SIZE)
     .fontFamily(FONT)
     .textType("PLAIN")
-    .height(nameTagTextHeight)
+    .height(NAME_TAG_HEIGHT)
     .fontWeight(400)
     .attachedTo(item.id)
     .fillOpacity(0.87)
     .layer("TEXT")
     .locked(true)
     .id(`${item.id}name-tag-text`)
-    .visible(setVisibilityProperty)
+    .visible(item.visible)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
     .disableHit(DISABLE_HIT)
     .build();
@@ -245,7 +240,7 @@ export function createNameTag(
   return [nameTagText];
 }
 
-const TEXT_BG_PADDING = 4;
+export const TEXT_BG_PADDING = 4;
 const TEXT_BG_CORNER_RADIUS = 12;
 
 /** Create name tag component items */
@@ -253,8 +248,6 @@ export function createNameTagBackground(
   item: Item,
   boundingBox: BoundingBox,
 ): Item[] {
-  const setVisibilityProperty = item.visible;
-
   const nameTagBackground = buildCurve()
     .fillColor("#3a3c4d")
     .fillOpacity(0.6)
@@ -267,7 +260,7 @@ export function createNameTagBackground(
     .layer("ATTACHMENT")
     .locked(true)
     .id(`${item.id}name-tag-background`)
-    .visible(setVisibilityProperty)
+    .visible(item.visible)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
     .disableHit(DISABLE_HIT)
     .tension(0)
