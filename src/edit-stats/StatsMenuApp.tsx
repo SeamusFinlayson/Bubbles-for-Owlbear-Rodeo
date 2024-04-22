@@ -7,13 +7,11 @@ import {
 import { useTheme } from "@mui/material";
 import OBR from "@owlbear-rodeo/sdk";
 import {
-  NAME_METADATA_ID,
   getName,
   getSelectedItemNameProperty,
   getSelectedItems,
   parseSelectedTokens,
-  setSelectedItemNameProperty,
-  writeStringToSelectedItem,
+  writeNameToSelectedItem,
 } from "../itemHelpers";
 import BarInput from "../components/BarInput";
 import "../index.css";
@@ -133,9 +131,8 @@ export default function StatsMenuApp({
       <div className="w-[144px]">
         <TextField
           updateHandler={(target) => {
-            writeStringToSelectedItem(target.value, NAME_METADATA_ID);
-            if (target.value.replaceAll(" ", "") !== "")
-              setSelectedItemNameProperty(target.value);
+            const updateName = target.value.replaceAll(" ", "") !== "";
+            writeNameToSelectedItem(target.value, updateName);
           }}
           inputProps={{
             placeholder: "Name",
@@ -154,7 +151,7 @@ export default function StatsMenuApp({
             onClick={() => {
               getSelectedItemNameProperty().then((name) => {
                 setTokenName(name);
-                writeStringToSelectedItem(name, NAME_METADATA_ID);
+                writeNameToSelectedItem(name);
               });
             }}
             padding=""

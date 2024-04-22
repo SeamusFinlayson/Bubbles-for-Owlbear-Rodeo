@@ -15,6 +15,7 @@ export default function BubbleInput({
   animateOnlyWhenRootActive?: boolean;
 }): JSX.Element {
   const [value, setValue] = useState<string>(parentValue.toString());
+  let ignoreBlur = false;
 
   // Update value when the tracker value changes in parent
   const [valueInputUpdateFlag, setValueInputUpdateFlag] = useState(false);
@@ -58,11 +59,17 @@ export default function BubbleInput({
           {...inputProps}
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          onBlur={(e) => runUpdateHandler(e)}
+          onBlur={(e) => {
+            if (!ignoreBlur) runUpdateHandler(e);
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               (e.target as HTMLInputElement).blur();
-              runUpdateHandler(e);
+            } else if (e.key === "Escape") {
+              ignoreBlur = true;
+              (e.target as HTMLInputElement).blur();
+              ignoreBlur = false;
+              setValue(parentValue.toString());
             }
           }}
           onFocus={selectText}

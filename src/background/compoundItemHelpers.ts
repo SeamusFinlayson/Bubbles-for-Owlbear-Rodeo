@@ -1,6 +1,5 @@
 import {
   AttachmentBehavior,
-  BoundingBox,
   Item,
   buildCurve,
   buildShape,
@@ -19,7 +18,7 @@ const DISABLE_ATTACHMENT_BEHAVIORS: AttachmentBehavior[] = [
   "COPY",
   "SCALE",
 ];
-const TEXT_VERTICAL_OFFSET = 2;
+export const TEXT_VERTICAL_OFFSET = 2;
 
 // Constants used in createStatBubble()
 export const DIAMETER = 30;
@@ -199,27 +198,19 @@ export function createHealthBar(
 }
 
 // Constants used in createNameTag()
-const APPROXIMATE_LETTER_WIDTH = 11;
+export const APPROXIMATE_LETTER_WIDTH = 12;
 export const NAME_TAG_HEIGHT = 26;
 
 /** Create name tag component items */
-export function createNameTag(
+export function createNameTagText(
   item: Item,
-  origin: { x: number; y: number },
-  name: string,
+  plainText: string,
+  position: { x: number; y: number },
+  invisible = false,
 ): Item[] {
-  const approximateNameTagWidth = APPROXIMATE_LETTER_WIDTH * name.length;
-  const position = {
-    x: origin.x,
-    y: origin.y,
-  };
-
   const nameTagText = buildText()
-    .position({
-      x: position.x - approximateNameTagWidth * 0.5,
-      y: position.y + 4 + 2,
-    })
-    .plainText(name)
+    .position(position)
+    .plainText(plainText)
     .textAlign("CENTER")
     .textAlignVertical("MIDDLE")
     .fontSize(FONT_SIZE)
@@ -227,11 +218,11 @@ export function createNameTag(
     .textType("PLAIN")
     .height(NAME_TAG_HEIGHT)
     .fontWeight(400)
-    .attachedTo(item.id)
-    .fillOpacity(0.87)
+    .attachedTo(invisible ? "none" : item.id)
+    .fillOpacity(invisible ? 0 : 0.87)
     .layer("TEXT")
     .locked(true)
-    .id(`${item.id}name-tag-text`)
+    .id(invisible ? `${item.id}name-tag-text-test` : `${item.id}name-tag-text`)
     .visible(item.visible)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
     .disableHit(DISABLE_HIT)
@@ -246,16 +237,14 @@ const TEXT_BG_CORNER_RADIUS = 12;
 /** Create name tag component items */
 export function createNameTagBackground(
   item: Item,
-  boundingBox: BoundingBox,
-): Item[] {
+  position: { x: number; y: number },
+  size: { width: number; height: number },
+): Item {
   const nameTagBackground = buildCurve()
     .fillColor("#3a3c4d")
     .fillOpacity(0.6)
     .strokeWidth(0)
-    .position({
-      x: boundingBox.min.x - TEXT_BG_PADDING,
-      y: boundingBox.min.y - TEXT_BG_PADDING - TEXT_VERTICAL_OFFSET,
-    })
+    .position(position)
     .attachedTo(item.id)
     .layer("ATTACHMENT")
     .locked(true)
@@ -267,18 +256,22 @@ export function createNameTagBackground(
     .closed(true)
     .points(
       createRoundedRectangle(
-        boundingBox.width + TEXT_BG_PADDING * 2,
-        boundingBox.height + TEXT_BG_PADDING * 2,
+        size.width + TEXT_BG_PADDING * 2,
+        size.height + TEXT_BG_PADDING * 2,
         TEXT_BG_CORNER_RADIUS,
       ),
     )
     .build();
 
-  return [nameTagBackground];
+  return nameTagBackground;
 }
 
 export function getNameTagTextId(itemId: string) {
   return `${itemId}name-tag-text`;
+}
+
+export function getNameTagTextTestId(itemId: string) {
+  return `${itemId}name-tag-text-test`;
 }
 
 export function getNameTagBackgroundId(itemId: string) {
@@ -312,5 +305,13 @@ export function addTempHealthAttachmentsToArray(array: any[], itemId: string) {
 }
 
 export function addNameTagAttachmentsToArray(array: any[], itemId: string) {
-  array.push(`${itemId}name-tag-background`, `${itemId}name-tag-text`);
+  array.push(
+    `${itemId}name-tag-background`,
+    `${itemId}name-tag-text`,
+    `${itemId}name-tag-text-test`,
+  );
+}
+
+export function addNameTagTestAttachmentsToArray(array: any[], itemId: string) {
+  array.push(`${itemId}name-tag-text-test`);
 }

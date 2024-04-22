@@ -163,10 +163,11 @@ export function getTokenMetadata(
 }
 
 // For name
-
 export const NAME_METADATA_ID = "name";
-
-export async function writeStringToSelectedItem(string: string, id: string) {
+export async function writeNameToSelectedItem(
+  name: string,
+  updateName = false,
+) {
   // Get selected items
   const selectedItems = await getSelectedItems();
 
@@ -179,7 +180,8 @@ export async function writeStringToSelectedItem(string: string, id: string) {
 
   await OBR.scene.items.updateItems(selectedItems, (items) => {
     for (let item of items) {
-      item.metadata[getPluginId(id)] = string;
+      item.metadata[getPluginId(NAME_METADATA_ID)] = name;
+      if (updateName) item.name = name;
     }
   });
 }
@@ -203,21 +205,4 @@ export async function getSelectedItemNameProperty() {
   }
 
   return selectedItems[0].name;
-}
-
-export async function setSelectedItemNameProperty(name: string) {
-  const selectedItems = await getSelectedItems();
-
-  // Throw error if more than one token selected
-  if (selectedItems.length !== 1) {
-    throw (
-      "Selection exceeded max length, expected 1, got: " + selectedItems.length
-    );
-  }
-
-  OBR.scene.items.updateItems(selectedItems, (items) => {
-    for (const item of items) {
-      item.name = name;
-    }
-  });
 }
