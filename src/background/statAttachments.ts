@@ -10,10 +10,14 @@ import {
   addNameTagAttachmentsToArray,
   addTempHealthAttachmentsToArray,
   createHealthBar,
-  createNameTag,
+  createNameTagText,
   createNameTagBackground,
   createStatBubble,
-  getNameTagTextId,
+  TEXT_BG_PADDING,
+  TEXT_VERTICAL_OFFSET,
+  addNameTagTestAttachmentsToArray,
+  APPROXIMATE_LETTER_WIDTH,
+  getNameTagTextTestId,
 } from "./compoundItemHelpers";
 import { getOriginAndBounds } from "./mathHelpers";
 import { NAME_METADATA_ID, getName, getTokenMetadata } from "../itemHelpers";
@@ -24,13 +28,13 @@ let tokenIds: string[] = []; // for orphan health bar management
 let itemsLast: Image[] = []; // for item change checks
 const addItemsArray: Item[] = []; // for bulk addition or changing of items
 const deleteItemsArray: string[] = []; // for bulk deletion of scene items
-const globalItemsWithNameTags: Item[] = [];
+const globalItemsWithNameTags: Image[] = [];
 const settings: Settings = {
   verticalOffset: 0,
   barAtTop: false,
-  nameTags: false,
   showBars: false,
   segments: 0,
+  nameTags: false,
 };
 let callbacksStarted = false;
 let userRoleLast: "GM" | "PLAYER";
@@ -68,15 +72,12 @@ async function refreshAllHealthBars() {
 
   //draw health bars
   const roll = await OBR.player.getRole();
-  const dpi = await OBR.scene.grid.getDpi();
+  const sceneDpi = await OBR.scene.grid.getDpi();
   for (const item of items) {
-    await createAttachments(item, roll, dpi);
+    createAttachments(item, roll, sceneDpi);
   }
-  await OBR.scene.local.addItems(addItemsArray); //bulk add items
-  await OBR.scene.local.deleteItems(deleteItemsArray); //bulk delete items
-  //clear add and delete arrays arrays
-  addItemsArray.length = 0;
-  deleteItemsArray.length = 0;
+
+  await sendItemsToScene(addItemsArray, deleteItemsArray);
 
   //update global item id list for orphaned health bar monitoring
   const itemIds: string[] = [];
@@ -85,7 +86,7 @@ async function refreshAllHealthBars() {
   }
   tokenIds = itemIds;
 
-  await createNameTagBackgrounds(globalItemsWithNameTags);
+  await createNameTags(globalItemsWithNameTags, sceneDpi);
   globalItemsWithNameTags.length = 0;
 }
 
@@ -143,21 +144,15 @@ async function startCallbacks() {
 
         //draw health bars
         const role = await OBR.player.getRole();
-        const dpi = await OBR.scene.grid.getDpi();
+        const sceneDpi = await OBR.scene.grid.getDpi();
         for (const item of changedItems) {
-          await createAttachments(item, role, dpi);
+          createAttachments(item, role, sceneDpi);
         }
 
-        //bulk delete and add items
-        await OBR.scene.local.deleteItems(deleteItemsArray);
-        await OBR.scene.local.addItems(addItemsArray);
-
-        //clear add and delete arrays arrays
-        addItemsArray.length = 0;
-        deleteItemsArray.length = 0;
+        await sendItemsToScene(addItemsArray, deleteItemsArray);
 
         // Create name tag backgrounds
-        if (settings.nameTags) await createNameTagBackgrounds(changedItems);
+        if (settings.nameTags) await createNameTags(changedItems, sceneDpi);
       },
     );
 
@@ -174,33 +169,22 @@ async function startCallbacks() {
   }
 }
 
-async function deleteOrphanHealthBars(newItems?: Image[]) {
-  //get ids of all items on map that could have health bars
-  if (typeof newItems === "undefined") {
-    newItems = await OBR.scene.items.getItems(
-      (item) =>
-        (item.layer === "CHARACTER" ||
-          item.layer === "MOUNT" ||
-          item.layer === "PROP") &&
-        isImage(item),
-    );
-  }
-
-  const newItemIds: string[] = [];
-  for (const item of newItems) {
-    newItemIds.push(item.id);
+async function deleteOrphanHealthBars(currentItems: Image[]) {
+  const currentItemIds: string[] = [];
+  for (const item of currentItems) {
+    currentItemIds.push(item.id);
   }
 
   //check for orphaned health bars
   for (const oldId of tokenIds) {
-    if (!newItemIds.includes(oldId)) {
+    if (!currentItemIds.includes(oldId)) {
       // delete orphaned health bar
       addAllExtensionAttachmentsToArray(deleteItemsArray, oldId);
     }
   }
 
   // update item list with current values
-  tokenIds = newItemIds;
+  tokenIds = currentItemIds;
 }
 
 function getChangedItems(imagesFromCallback: Image[]) {
@@ -252,41 +236,86 @@ function getChangedItems(imagesFromCallback: Image[]) {
   return changedItems;
 }
 
-async function createNameTagBackgrounds(items: Item[]) {
+async function createNameTags(items: Image[], sceneDpi: number) {
   if (!(await OBR.scene.isReady())) throw "Error: Scene not available";
 
-  const nameTags: Item[] = [];
-  const nameTagBackgrounds: Item[] = [];
+  interface NameTag {
+    parent: Image;
+    dimensions: { width: number; height: number };
+  }
 
+  // Get bounds of name tags and test name tag items
+  const nameTags: NameTag[] = [];
   for (let i = 0; i < items.length; i++) {
-    if (getName(items[i]) !== "") {
-      nameTags.push(items[i]);
-      try {
-        const bounds = await OBR.scene.local.getItemBounds([
-          getNameTagTextId(items[i].id),
-        ]);
-        nameTagBackgrounds.push(...createNameTagBackground(items[i], bounds));
-      } catch (error) {
-        addNameTagAttachmentsToArray(deleteItemsArray, items[i].id);
+    const name = getName(items[i]);
+    // Check if token should have name tag
+    if (name === "") {
+      // Remove all name tag attachments
+      addNameTagAttachmentsToArray(deleteItemsArray, items[i].id);
+    } else {
+      // Determine bounds of test name tag
+      const testTextId = getNameTagTextTestId(items[i].id);
+      let testTextBounds = await OBR.scene.local.getItemBounds([testTextId]);
+
+      // Check if test name tag was retrieved
+      if (testTextBounds === undefined) {
+        // Use fallback value
+        nameTags.push({
+          parent: items[i],
+          dimensions: {
+            width: name.length * APPROXIMATE_LETTER_WIDTH,
+            height: (26 / 150) * sceneDpi,
+          },
+        });
+        console.log("Using fallback");
+      } else {
+        nameTags.push({
+          parent: items[i],
+          dimensions: {
+            width: testTextBounds.width,
+            height: testTextBounds.height,
+          },
+        });
       }
     }
   }
 
-  OBR.scene.local.deleteItems(deleteItemsArray);
-  deleteItemsArray.length = 0;
+  //create new name tags and remove invisible test name tags
+  nameTags.forEach((nameTag) => {
+    const { origin } = getOriginAndBounds(settings, nameTag.parent, sceneDpi);
+    const position = {
+      x: nameTag.parent.position.x - nameTag.dimensions.width * 0.5,
+      y: getNameTagPosition(origin, getName(nameTag.parent)).y,
+    };
 
-  //TODO: fix text positioning
-  // OBR.scene.local.updateItems(nameTags, () => {})
-  if (nameTagBackgrounds.length > 0)
-    await OBR.scene.local.addItems(nameTagBackgrounds);
+    addItemsArray.push(
+      ...createNameTagText(nameTag.parent, getName(nameTag.parent), position),
+    );
+    addItemsArray.push(
+      createNameTagBackground(
+        nameTag.parent,
+        {
+          x: position.x - TEXT_BG_PADDING,
+          y: position.y - TEXT_BG_PADDING - TEXT_VERTICAL_OFFSET,
+        },
+        {
+          height: nameTag.dimensions.height,
+          width: nameTag.dimensions.width,
+        },
+      ),
+    );
+
+    // delete invisible test name tags
+    addNameTagTestAttachmentsToArray(deleteItemsArray, nameTag.parent.id);
+  });
+
+  // Actually remove and create name items
+  await sendItemsToScene(addItemsArray, deleteItemsArray);
+
   globalItemsWithNameTags.length = 0;
 }
 
-async function createAttachments(
-  item: Image,
-  role: "PLAYER" | "GM",
-  dpi: number,
-) {
+function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
   const { origin, bounds } = getOriginAndBounds(settings, item, dpi);
 
   // Create stats
@@ -307,19 +336,15 @@ async function createAttachments(
     createTempHealth(hasHealthBar, hasArmorClassBubble);
   }
 
-  // Create name tags
-  const name = getName(item);
-  if (settings.nameTags && name !== "") {
+  // Create invisible test name tag text items to measure name tag width
+  const plainText = getName(item);
+  if (settings.nameTags && plainText !== "") {
     addItemsArray.push(
-      ...createNameTag(
+      ...createNameTagText(
         item,
-        settings.barAtTop
-          ? {
-              x: origin.x,
-              y: origin.y - NAME_TAG_HEIGHT - FULL_BAR_HEIGHT - 12.4,
-            }
-          : origin,
-        name,
+        plainText,
+        getNameTagPosition(origin, plainText),
+        true,
       ),
     );
     globalItemsWithNameTags.push(item);
@@ -436,4 +461,32 @@ async function createAttachments(
       ),
     );
   }
+}
+
+function getNameTagPosition(
+  origin: { x: number; y: number },
+  plainText: string,
+) {
+  const approximateNameTagWidth = APPROXIMATE_LETTER_WIDTH * plainText.length;
+  let position = settings.barAtTop
+    ? {
+        x: origin.x,
+        y: origin.y - NAME_TAG_HEIGHT - FULL_BAR_HEIGHT - 12.4,
+      }
+    : origin;
+  position = {
+    x: position.x - approximateNameTagWidth * 0.5,
+    y: position.y + 4 + 2,
+  };
+  return position;
+}
+
+async function sendItemsToScene(
+  addItemsArray: Item[],
+  deleteItemsArray: string[],
+) {
+  await OBR.scene.local.deleteItems(deleteItemsArray);
+  await OBR.scene.local.addItems(addItemsArray);
+  deleteItemsArray.length = 0;
+  addItemsArray.length = 0;
 }

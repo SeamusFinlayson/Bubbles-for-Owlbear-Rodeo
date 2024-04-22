@@ -11,15 +11,15 @@
     "build-preview": "tsc && vite build && vite preview"
   },
   "devDependencies": {
-    "@types/react": "^18.2.77",
+    "@types/react": "^18.2.79",
     "@types/react-dom": "^18.2.25",
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
     "prettier": "^3.2.5",
-    "prettier-plugin-tailwindcss": "^0.5.13",
+    "prettier-plugin-tailwindcss": "^0.5.14",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.4.5",
-    "vite": "^5.2.8"
+    "vite": "^5.2.9"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
@@ -27,7 +27,7 @@
     "@fontsource/roboto": "^5.0.8",
     "@mui/lab": "5.0.0-alpha.169",
     "@mui/material": "^5.15.15",
-    "@owlbear-rodeo/sdk": "^2.1.0",
+    "@owlbear-rodeo/sdk": "^2.4.0",
     "@vitejs/plugin-react": "^4.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

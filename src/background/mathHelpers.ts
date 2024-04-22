@@ -191,19 +191,19 @@ function drawArc(
 
 export function getOriginAndBounds(
   settings: Settings,
-  item: Image,
+  image: Image,
   dpi: number,
 ) {
   // Determine bounds
-  const bounds = getImageBounds(item, dpi);
+  const bounds = getImageBounds(image, dpi);
   bounds.width = Math.abs(bounds.width);
   bounds.height = Math.abs(bounds.height);
 
   // Determine coordinate origin for drawing stats
   const origin = {
-    x: item.position.x,
+    x: image.position.x,
     y:
-      item.position.y +
+      image.position.y +
       ((settings.barAtTop ? -1 : 1) * bounds.height) / 2 -
       settings.verticalOffset +
       (settings.barAtTop ? 1 : 0),

@@ -22,6 +22,7 @@ export default function BarInput({
 }): JSX.Element {
   const [value, setValue] = useState<string>(parentValue.toString());
   const [valueInputUpdateFlag, setValueInputUpdateFlag] = useState(false);
+  let ignoreBlur = false;
 
   if (valueInputUpdateFlag) {
     setValue(parentValue.toString());
@@ -79,11 +80,17 @@ export default function BarInput({
           {...valueInputProps}
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          onBlur={(e) => runUpdateHandler(e, "value")}
+          onBlur={(e) => {
+            if (!ignoreBlur) runUpdateHandler(e, "value");
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               (e.target as HTMLInputElement).blur();
-              runUpdateHandler(e, "value");
+            } else if (e.key === "Escape") {
+              ignoreBlur = true;
+              (e.target as HTMLInputElement).blur();
+              ignoreBlur = false;
+              setValue(parentValue.toString());
             }
           }}
           onFocus={handleFocus}
@@ -97,11 +104,17 @@ export default function BarInput({
           {...maxInputProps}
           value={max}
           onChange={(e) => setMax(e.target.value)}
-          onBlur={(e) => runUpdateHandler(e, "max")}
+          onBlur={(e) => {
+            if (!ignoreBlur) runUpdateHandler(e, "max");
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               (e.target as HTMLInputElement).blur();
-              runUpdateHandler(e, "max");
+            } else if (e.key === "Escape") {
+              ignoreBlur = true;
+              (e.target as HTMLInputElement).blur();
+              ignoreBlur = false;
+              setMax(parentMax.toString());
             }
           }}
           onFocus={handleFocus}
