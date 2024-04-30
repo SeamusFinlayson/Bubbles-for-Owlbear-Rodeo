@@ -28,7 +28,6 @@ let tokenIds: string[] = []; // for orphan health bar management
 let itemsLast: Image[] = []; // for item change checks
 const addItemsArray: Item[] = []; // for bulk addition or changing of items
 const deleteItemsArray: string[] = []; // for bulk deletion of scene items
-const globalItemsWithNameTags: Image[] = [];
 const settings: Settings = {
   verticalOffset: 0,
   barAtTop: false,
@@ -86,8 +85,9 @@ async function refreshAllHealthBars() {
   }
   tokenIds = itemIds;
 
-  await createNameTags(globalItemsWithNameTags, sceneDpi);
-  globalItemsWithNameTags.length = 0;
+  // Create name tag backgrounds
+  // console.log(globalItemsWithNameTags.length);
+  if (settings.nameTags) await createNameTags(items, sceneDpi);
 }
 
 async function startCallbacks() {
@@ -255,11 +255,9 @@ async function createNameTags(items: Image[], sceneDpi: number) {
     } else {
       // Determine bounds of test name tag
       const testTextId = getNameTagTextTestId(items[i].id);
-      let testTextBounds = await OBR.scene.local.getItemBounds([testTextId]);
 
-      // Check if test name tag was retrieved
-      if (testTextBounds === undefined) {
-        // Use fallback value
+      const pushWithFallbackDimensions = () => {
+        console.log("Using fallback approximate width");
         nameTags.push({
           parent: items[i],
           dimensions: {
@@ -267,15 +265,28 @@ async function createNameTags(items: Image[], sceneDpi: number) {
             height: (26 / 150) * sceneDpi,
           },
         });
-        console.log("Using fallback");
-      } else {
-        nameTags.push({
-          parent: items[i],
-          dimensions: {
-            width: testTextBounds.width,
-            height: testTextBounds.height,
-          },
-        });
+      };
+      try {
+        let testTextBounds = await OBR.scene.local.getItemBounds([testTextId]);
+
+        // Check if test name tag was retrieved
+        if (testTextBounds === undefined) {
+          // Use fallback value
+          pushWithFallbackDimensions();
+        } else {
+          nameTags.push({
+            parent: items[i],
+            dimensions: {
+              width: testTextBounds.width,
+              height: testTextBounds.height,
+            },
+          });
+        }
+      } catch (error) {
+        pushWithFallbackDimensions();
+
+        // console.log(name, `${i} of ${items.length}`, testTextId);
+        console.log(error);
       }
     }
   }
@@ -311,8 +322,6 @@ async function createNameTags(items: Image[], sceneDpi: number) {
 
   // Actually remove and create name items
   await sendItemsToScene(addItemsArray, deleteItemsArray);
-
-  globalItemsWithNameTags.length = 0;
 }
 
 function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
@@ -347,7 +356,7 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
         true,
       ),
     );
-    globalItemsWithNameTags.push(item);
+    // globalItemsWithNameTags.push(item);
   } else {
     addNameTagAttachmentsToArray(deleteItemsArray, item.id);
   }

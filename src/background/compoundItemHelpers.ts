@@ -222,7 +222,7 @@ export function createNameTagText(
     .fillOpacity(invisible ? 0 : 0.87)
     .layer("TEXT")
     .locked(true)
-    .id(invisible ? `${item.id}name-tag-text-test` : `${item.id}name-tag-text`)
+    .id(invisible ? getNameTagTextTestId(item.id) : `${item.id}name-tag-text`)
     .visible(item.visible)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
     .disableHit(DISABLE_HIT)
