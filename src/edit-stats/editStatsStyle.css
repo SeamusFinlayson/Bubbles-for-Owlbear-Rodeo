@@ -11,7 +11,7 @@ body {
 .label {
   font-weight: 700;
   font-size: 14px;
-  justify-self:center;
+  justify-self: center;
   align-self: center;
   margin: 0 0 0 0;
   padding: 0 0 0 0;
@@ -27,14 +27,13 @@ body {
 .mother-flex {
   display: flex;
   flex-direction: column;
-
 }
 
 .stat-grid {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
   grid-template-rows: 22px auto;
-  margin: 4px 8px 0 8px;
+  margin: 6px 8px 0 8px;
   padding: 4px 4px 8px 4px;
 
   border-radius: 8px;
@@ -73,12 +72,11 @@ body {
 }
 
 .health-flex {
-  justify-self:center;
+  justify-self: center;
   align-self: baseline;
   grid-column: 1;
   grid-row: 2;
   margin: 0 0;
-
 
   /* width: 100px; */
   display: grid;
@@ -95,7 +93,7 @@ body {
   border-radius: 12px;
   background-color: rgba(255, 0, 0, 0.4);
 
-  outline-style:none;
+  outline-style: none;
   outline-color: rgba(255, 0, 0, 0.4) !important;
 }
 
@@ -103,7 +101,7 @@ body {
   background-color: rgba(106, 142, 35, 0.4);
   border-radius: 50%;
 
-  outline-style:solid;
+  outline-style: solid;
   outline-color: rgba(106, 142, 35, 0.4) !important;
 }
 
@@ -111,7 +109,7 @@ body {
   background-color: rgba(100, 148, 237, 0.4);
   border-radius: 50%;
 
-  outline-style:solid;
+  outline-style: solid;
   outline-color: rgba(100, 148, 237, 0.4) !important;
 }
 
@@ -130,13 +128,13 @@ body {
 }
 
 .stat-background.dark:focus-within {
-  outline-style:solid;
+  outline-style: solid;
   outline-width: 2px;
   outline-offset: 0px;
 }
 
 .stat-background.light:focus-within {
-  outline-style:solid;
+  outline-style: solid;
   outline-width: 4px;
   outline-offset: 0px;
 }
@@ -164,12 +162,14 @@ body {
   outline-offset: -2px;
 
   font-size: medium;
-  font-family: Lucida Console, monospace;
+  font-family:
+    Lucida Console,
+    monospace;
 }
 
 .number-bubble.dark:focus {
   /* box-shadow: 0 0 2px #ffffff; */
-  background-color: rgba(0, 0, 0, 0.2)  !important;
+  background-color: rgba(0, 0, 0, 0.2) !important;
 }
 
 .number-bubble.dark:hover {
@@ -204,12 +204,14 @@ body {
   outline-offset: -2px;
 
   font-size: medium;
-  font-family: Lucida Console, monospace;
+  font-family:
+    Lucida Console,
+    monospace;
 }
 
 .number-bubble.light:focus {
   /* box-shadow: 0 0 2px #ffffff; */
-  background-color: rgba(255, 255, 255, 0.2)  !important;
+  background-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 .number-bubble.light:hover {
@@ -217,8 +219,8 @@ body {
 }
 
 .number-bubble.light::selection {
-  color: rgb(0, 0, 0);  
-  background-color: rgba(255, 255, 255, 0.8 );
+  color: rgb(0, 0, 0);
+  background-color: rgba(255, 255, 255, 0.8);
 }
 
 /* .number-bubble.light:focus {
@@ -276,7 +278,7 @@ body {
   bottom: 0;
   /* transform: translate(5%, -5%); */
   background-color: rgba(0, 0, 0, 0.4);
-  transition: .15s;
+  transition: 0.15s;
   /* border: 1px solid rgba(189, 189, 189, 0.4); */
 }
 
@@ -288,11 +290,15 @@ body {
   left: 4px;
   bottom: 4px;
   background-color: rgba(224, 224, 224, 0.5);
-  transition: .15s;
+  transition: 0.15s;
 }
 
 input:checked + .slider {
-  background-color: rgb(116, 100, 159); /*better colour but transparency looks bad in light mode rgb(187, 153, 255, 0.5)*/
+  background-color: rgb(
+    116,
+    100,
+    159
+  ); /*better colour but transparency looks bad in light mode rgb(187, 153, 255, 0.5)*/
   /* border: 1px solid rgb(117, 119, 128, 0); */
 }
 
@@ -300,7 +306,7 @@ input:checked + .slider:before {
   -webkit-transform: translateX(19px);
   -ms-transform: translateX(19px);
   transform: translateX(19px);
-  background-color: 	rgb(204, 179, 255);
+  background-color: rgb(204, 179, 255);
 }
 
 /* Rounded sliders */
