@@ -2,7 +2,7 @@
 title: Stat Bubbles for D&D
 description: Health Bars and Armor Class for your D&D adventures!
 author: Seamus Finlayson
-image: https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/c8871bc3-b27c-424e-b15b-5fd44a8f53ec
+image: https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/6e2bcd42-d59e-4482-8fc9-c514bfd3a1c5
 icon: https://owlbear-rodeo-bubbles-extension.onrender.com/logo.png
 tags:
   - combat
