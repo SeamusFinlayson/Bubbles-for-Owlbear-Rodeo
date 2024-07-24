@@ -5,9 +5,12 @@ import { Box, Button, TextField, useTheme } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
 import TokenList from "./components/TokenList";
 import { getPluginId } from "../getPluginId";
-import { StatMetadataID } from "../edit-stats/StatInputClass";
 import { scaleHealthDiff, calculateNewHealth } from "./healthCalculations";
 import { parseSelectedTokens } from "../itemHelpers";
+import {
+  HEALTH_METADATA_ID,
+  TEMP_HEALTH_METADATA_ID,
+} from "../itemMetadataIds";
 
 export default function DamageToolApp({
   initialTokens,
@@ -203,9 +206,6 @@ function writeUpdatedValuesToTokens(
     validItems.push(token.item);
   });
 
-  const healthId: StatMetadataID = "health";
-  const tempHealthId: StatMetadataID = "temporary health";
-
   OBR.scene.items.updateItems(validItems, (items) => {
     for (let i = 0; i < items.length; i++) {
       if (items[i].id !== tokens[i].item.id) {
@@ -228,8 +228,8 @@ function writeUpdatedValuesToTokens(
       );
 
       const newMetadata = {
-        [healthId]: newHealth,
-        [tempHealthId]: newTempHealth,
+        [HEALTH_METADATA_ID]: newHealth,
+        [TEMP_HEALTH_METADATA_ID]: newTempHealth,
       };
 
       let retrievedMetadata: any;

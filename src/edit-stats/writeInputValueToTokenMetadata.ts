@@ -1,6 +1,13 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "../getPluginId";
-import { StatMetadataID } from "./StatInputClass";
+import {
+  ARMOR_CLASS_METADATA_ID,
+  HEALTH_METADATA_ID,
+  HIDE_METADATA_ID,
+  MAX_HEALTH_METADATA_ID,
+  StatMetadataID,
+  TEMP_HEALTH_METADATA_ID,
+} from "../itemMetadataIds";
 
 export async function writeInputValueToTokenMetadata(
   inputName: InputName,
@@ -49,74 +56,50 @@ export async function writeInputValueToTokenMetadata(
 
         let combinedMetadata: StatsArray;
 
-        if (item.metadata[getPluginId("metadata")]) {
+        if (!item.metadata[getPluginId("metadata")]) {
+          // Handle no previous metadata
+          combinedMetadata = newMetadata;
+        } else {
           const retrievedMetadata = JSON.parse(
             JSON.stringify(item.metadata[getPluginId("metadata")]),
           );
-          // console.log(retrievedMetadata)
 
-          // Check if new value is valid
-          if (!isNaN(newValueNumber)) {
-            // Check if new value starts with addition or subtraction operator
-            if (newValue.startsWith("+") || newValue.startsWith("-")) {
-              // Add to the previous value if both are valid
-              let previousValue: string;
-              let hasPreviousValue: boolean;
-
-              try {
-                previousValue = retrievedMetadata[id];
-                hasPreviousValue = true;
-              } catch (error) {
-                if (error instanceof TypeError) {
-                  previousValue = "";
-                  hasPreviousValue = false;
-                } else {
-                  throw error;
-                }
-              }
-
-              if (hasPreviousValue) {
-                const previousValueNumber = parseFloat(previousValue);
-
-                if (!isNaN(previousValueNumber)) {
-                  newMetadata = {
-                    [id]:
-                      Math.trunc(previousValueNumber) +
-                      Math.trunc(newValueNumber),
-                  };
-                }
-              }
-            }
-          } else {
+          if (isNaN(newValueNumber)) {
+            // Handle invalid entry
             newMetadata = { [id]: 0 };
+            console.log(inputName, value);
+          }
+          // Check if new value starts with addition or subtraction operator
+          else if (newValue.startsWith("+") || newValue.startsWith("-")) {
+            // Add to the previous value if both are valid
+            let previousValue: unknown;
+            try {
+              previousValue = retrievedMetadata[id];
+            } catch (error) {
+              if (!(error instanceof TypeError)) throw error;
+              previousValue = undefined;
+            }
+            console.log(previousValue);
+
+            // Previous version erroneously stored some values as strings
+            if (typeof previousValue === "string") {
+              previousValue = parseFloat(previousValue);
+            }
+
+            if (typeof previousValue === "number" && !isNaN(previousValue)) {
+              newMetadata = {
+                [id]: Math.trunc(previousValue + Math.trunc(newValueNumber)),
+              };
+            }
           }
 
           combinedMetadata = { ...retrievedMetadata, ...newMetadata }; //overwrite only the updated item
-        } else {
-          combinedMetadata = newMetadata;
         }
 
-        // console.log(combinedMetadata[id])
-        switch (id) {
-          case "health":
-          case "max health":
-            if ((combinedMetadata[id] as number) > 9999) {
-              combinedMetadata[id] = 9999;
-            } else if ((combinedMetadata[id] as number) < -999) {
-              combinedMetadata[id] = -999;
-            }
-            break;
-          case "temporary health":
-          case "armor class":
-            if ((combinedMetadata[id] as number) > 999) {
-              combinedMetadata[id] = 999;
-            } else if ((combinedMetadata[id] as number) < -999) {
-              combinedMetadata[id] = -999;
-            }
-            break;
-          default:
-            break;
-        }
+        combinedMetadata[id] = restrictValueRange(
+          id,
+          combinedMetadata[id] as number,
+        );
 
         // Write the metadata into the item
         item.metadata[getPluginId("metadata")] = combinedMetadata;
@@ -126,6 +109,7 @@ export async function writeInputValueToTokenMetadata(
       }
     }
   });
+
   if (typeof returnValue === "number") {
     returnValue = returnValue.toString();
   }
@@ -150,6 +134,31 @@ const inputNames: InputName[] = [
   "armorClass",
   "hideStats",
 ];
+
+function restrictValueRange(id: string, value: number): number {
+  switch (id) {
+    case HEALTH_METADATA_ID:
+    case MAX_HEALTH_METADATA_ID:
+      if (value > 9999) {
+        value = 9999;
+      } else if (value < -999) {
+        value = -999;
+      }
+      break;
+    case TEMP_HEALTH_METADATA_ID:
+    case ARMOR_CLASS_METADATA_ID:
+      if (value > 999) {
+        value = 999;
+      } else if (value < -999) {
+        value = -999;
+      }
+      break;
+    default:
+      break;
+  }
+  return value;
+}
+
 export function isInputName(id: string): id is InputName {
   return inputNames.includes(id as InputName);
 }
@@ -157,14 +166,14 @@ export function isInputName(id: string): id is InputName {
 function convertInputNameToMetadataId(id: InputName): StatMetadataID {
   switch (id) {
     case "health":
-      return "health";
+      return HEALTH_METADATA_ID;
     case "maxHealth":
-      return "max health";
+      return MAX_HEALTH_METADATA_ID;
     case "tempHealth":
-      return "temporary health";
+      return TEMP_HEALTH_METADATA_ID;
     case "armorClass":
-      return "armor class";
+      return ARMOR_CLASS_METADATA_ID;
     case "hideStats":
-      return "hide";
+      return HIDE_METADATA_ID;
   }
 }

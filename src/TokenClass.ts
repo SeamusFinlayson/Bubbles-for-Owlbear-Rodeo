@@ -1,5 +1,12 @@
 import { Item } from "@owlbear-rodeo/sdk";
-import { StatMetadataID } from "./edit-stats/StatInputClass";
+import {
+  ARMOR_CLASS_METADATA_ID,
+  HEALTH_METADATA_ID,
+  HIDE_METADATA_ID,
+  MAX_HEALTH_METADATA_ID,
+  StatMetadataID,
+  TEMP_HEALTH_METADATA_ID,
+} from "./itemMetadataIds";
 
 export default class Token {
   item: Item;
@@ -34,22 +41,22 @@ export default class Token {
   ) {
     if (typeof value === "string") {
       switch (statId) {
-        case "health":
+        case HEALTH_METADATA_ID:
           this.health = parseFloat(value);
           return this;
-        case "max health":
+        case MAX_HEALTH_METADATA_ID:
           this.maxHealth = parseFloat(value);
           return;
-        case "temporary health":
+        case TEMP_HEALTH_METADATA_ID:
           this.tempHealth = parseFloat(value);
           return;
-        case "armor class":
+        case ARMOR_CLASS_METADATA_ID:
           this.armorClass = parseFloat(value);
           return;
         default:
           throw "Error invalid stat Id";
       }
-    } else if (typeof value === "boolean" && statId === "hide") {
+    } else if (typeof value === "boolean" && statId === HIDE_METADATA_ID) {
       this.hideStats = value;
       return;
     } else {

@@ -57,7 +57,7 @@ export default function BarInput({
       );
     } else {
       maxUpdateHandler(e.target as HTMLInputElement).then(() =>
-        setValueInputUpdateFlag(true),
+        setMaxInputUpdateFlag(true),
       );
     }
   };
