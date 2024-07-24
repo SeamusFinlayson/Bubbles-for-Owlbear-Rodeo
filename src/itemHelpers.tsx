@@ -1,6 +1,13 @@
 import OBR, { Item } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 import Token from "./TokenClass";
+import {
+  HEALTH_METADATA_ID,
+  MAX_HEALTH_METADATA_ID,
+  TEMP_HEALTH_METADATA_ID,
+  ARMOR_CLASS_METADATA_ID,
+  HIDE_METADATA_ID,
+} from "./itemMetadataIds";
 
 // parse stats
 
@@ -28,7 +35,7 @@ export async function parseSelectedTokens(
     // Extract health metadata
     let health: number = NaN;
     try {
-      health = parseFloat(metadata["health"]);
+      health = parseFloat(metadata[HEALTH_METADATA_ID]);
     } catch (error) {
       health = 0;
     }
@@ -40,7 +47,7 @@ export async function parseSelectedTokens(
     let maxHealth: number = NaN;
     let hasMaxHealth: boolean;
     try {
-      maxHealth = parseFloat(metadata["max health"]);
+      maxHealth = parseFloat(metadata[MAX_HEALTH_METADATA_ID]);
       hasMaxHealth = true;
     } catch (error) {
       hasMaxHealth = false;
@@ -54,7 +61,7 @@ export async function parseSelectedTokens(
     // Extract temp health metadata
     let tempHealth: number = NaN;
     try {
-      tempHealth = parseFloat(metadata["temporary health"]);
+      tempHealth = parseFloat(metadata[TEMP_HEALTH_METADATA_ID]);
     } catch (error) {
       tempHealth = 0;
     }
@@ -64,7 +71,7 @@ export async function parseSelectedTokens(
 
     let armorClass: number = NaN;
     try {
-      armorClass = parseFloat(metadata["armor class"]);
+      armorClass = parseFloat(metadata[ARMOR_CLASS_METADATA_ID]);
     } catch (error) {
       armorClass = 0;
     }
@@ -74,7 +81,7 @@ export async function parseSelectedTokens(
 
     let hideStats = false;
     try {
-      hideStats = Boolean(metadata["hide"]).valueOf();
+      hideStats = Boolean(metadata[HIDE_METADATA_ID]).valueOf();
     } catch (error) {
       hideStats = false;
     }
@@ -110,7 +117,7 @@ export function getTokenMetadata(
   //try to extract armor class metadata
   let armorClass: number;
   try {
-    armorClass = parseFloat(metadata["armor class"]);
+    armorClass = parseFloat(metadata[ARMOR_CLASS_METADATA_ID]);
   } catch (error) {
     armorClass = 0;
   }
@@ -121,7 +128,7 @@ export function getTokenMetadata(
   //try to extract temporary health metadata
   let tempHealth: number;
   try {
-    tempHealth = parseFloat(metadata["temporary health"]);
+    tempHealth = parseFloat(metadata[TEMP_HEALTH_METADATA_ID]);
   } catch (error) {
     tempHealth = 0;
   }
@@ -133,8 +140,8 @@ export function getTokenMetadata(
   let health: number;
   let maxHealth: number;
   try {
-    health = parseFloat(metadata["health"]);
-    maxHealth = parseFloat(metadata["max health"]);
+    health = parseFloat(metadata[HEALTH_METADATA_ID]);
+    maxHealth = parseFloat(metadata[MAX_HEALTH_METADATA_ID]);
   } catch (error) {
     health = 0;
     maxHealth = 0;
@@ -149,7 +156,7 @@ export function getTokenMetadata(
   //try to extract visibility from metadata
   let statsVisible: boolean;
   try {
-    statsVisible = !metadata["hide"];
+    statsVisible = !metadata[HIDE_METADATA_ID];
   } catch (error) {
     // catch type error
     if (error instanceof TypeError) {
