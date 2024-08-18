@@ -33,7 +33,7 @@ export function createStatBubble(
   value: number,
   color: string,
   position: { x: number; y: number },
-  label: string,
+  label: string
 ): Item[] {
   const bubbleShape = buildShape()
     .width(bounds.width)
@@ -65,7 +65,7 @@ export function createStatBubble(
     .textAlign("CENTER")
     .textAlignVertical("MIDDLE")
     .fontSize(
-      valueText.length === 3 ? REDUCED_CIRCLE_FONT_SIZE : CIRCLE_FONT_SIZE,
+      valueText.length === 3 ? REDUCED_CIRCLE_FONT_SIZE : CIRCLE_FONT_SIZE
     )
     .fontFamily(FONT)
     .textType("PLAIN")
@@ -103,6 +103,7 @@ export function createHealthBar(
   origin: { x: number; y: number },
   variant: "full" | "short" = "full",
   segments = 0,
+  showPercentage = false
 ): Item[] {
   let barHeight: number;
   if (variant === "short") {
@@ -162,18 +163,26 @@ export function createHealthBar(
         barWidth,
         barHeight,
         BAR_CORNER_RADIUS,
-        healthFillPortion,
-      ),
+        healthFillPortion
+      )
     )
     .build();
 
   if (variant === "short") {
     return [backgroundShape, healthShape];
   }
-
+  var healthPlainText;
+  if (!showPercentage) {
+    healthPlainText = `${health}/${maxHealth}`;
+  } else {
+    const healthPercentage = Math.round(
+      Math.min(Math.max((health / maxHealth) * 100, 0), 100)
+    );
+    healthPlainText = `${healthPercentage} %`;
+  }
   const healthText = buildText()
     .position({ x: position.x, y: position.y + TEXT_VERTICAL_OFFSET })
-    .plainText(`${health}/${maxHealth}`)
+    .plainText(healthPlainText)
     .textAlign("CENTER")
     .textAlignVertical("MIDDLE")
     .fontSize(FONT_SIZE)
@@ -206,7 +215,7 @@ export function createNameTagText(
   item: Item,
   plainText: string,
   position: { x: number; y: number },
-  invisible = false,
+  invisible = false
 ): Item[] {
   const nameTagText = buildText()
     .position(position)
@@ -238,7 +247,7 @@ const TEXT_BG_CORNER_RADIUS = 12;
 export function createNameTagBackground(
   item: Item,
   position: { x: number; y: number },
-  size: { width: number; height: number },
+  size: { width: number; height: number }
 ): Item {
   const nameTagBackground = buildCurve()
     .fillColor("#3a3c4d")
@@ -258,8 +267,8 @@ export function createNameTagBackground(
       createRoundedRectangle(
         size.width + TEXT_BG_PADDING * 2,
         size.height + TEXT_BG_PADDING * 2,
-        TEXT_BG_CORNER_RADIUS,
-      ),
+        TEXT_BG_CORNER_RADIUS
+      )
     )
     .build();
 
@@ -280,7 +289,7 @@ export function getNameTagBackgroundId(itemId: string) {
 
 export function addAllExtensionAttachmentsToArray(
   array: any[],
-  itemId: string,
+  itemId: string
 ) {
   addHealthAttachmentsToArray(array, itemId);
   addArmorAttachmentsToArray(array, itemId);
@@ -292,7 +301,7 @@ export function addHealthAttachmentsToArray(array: any[], itemId: string) {
   array.push(
     `${itemId}health-background`,
     `${itemId}health`,
-    `${itemId}health-label`,
+    `${itemId}health-label`
   );
 }
 
@@ -308,7 +317,7 @@ export function addNameTagAttachmentsToArray(array: any[], itemId: string) {
   array.push(
     `${itemId}name-tag-background`,
     `${itemId}name-tag-text`,
-    `${itemId}name-tag-text-test`,
+    `${itemId}name-tag-text-test`
   );
 }
 

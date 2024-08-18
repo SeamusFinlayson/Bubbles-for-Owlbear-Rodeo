@@ -7,6 +7,7 @@ import {
   TEMP_HEALTH_METADATA_ID,
   ARMOR_CLASS_METADATA_ID,
   HIDE_METADATA_ID,
+  SHOW_RAW_METADATA_ID,
 } from "./itemMetadataIds";
 
 // parse stats
@@ -80,22 +81,28 @@ export async function parseSelectedTokens(
     }
 
     let hideStats = false;
+    let showRaw = false;
     try {
       hideStats = Boolean(metadata[HIDE_METADATA_ID]).valueOf();
     } catch (error) {
       hideStats = false;
+    }
+    try {
+      showRaw = Boolean(metadata[SHOW_RAW_METADATA_ID]).valueOf();
+    } catch (error) {
+      showRaw = false;
     }
 
     if (mustHaveMaxHealth) {
       // If the token has health and max health add it to the list of valid tokens
       if (hasMaxHealth && maxHealth !== 0) {
         selectedTokens.push(
-          new Token(item, health, maxHealth, tempHealth, armorClass, hideStats),
+          new Token(item, health, maxHealth, tempHealth, armorClass, hideStats, showRaw),
         );
       }
     } else {
       selectedTokens.push(
-        new Token(item, health, maxHealth, tempHealth, armorClass, hideStats),
+        new Token(item, health, maxHealth, tempHealth, armorClass, hideStats, showRaw),
       );
     }
   }
@@ -111,6 +118,7 @@ export function getTokenMetadata(
   tempHealth: number,
   armorClass: number,
   statsVisible: boolean,
+  showRaw: boolean,
 ] {
   const metadata: any = item.metadata[getPluginId("metadata")];
 
@@ -166,7 +174,19 @@ export function getTokenMetadata(
     }
   }
 
-  return [health, maxHealth, tempHealth, armorClass, statsVisible];
+  //try to extract showing raw hp from metadata
+  let showRaw: boolean;
+  try {
+    showRaw = !metadata[SHOW_RAW_METADATA_ID];
+  } catch (error) {
+    // catch type error
+    if (error instanceof TypeError) {
+      showRaw = false;
+    } else {
+      throw error;
+    }
+  }
+  return [health, maxHealth, tempHealth, armorClass, statsVisible, showRaw];
 }
 
 // For name

@@ -4,6 +4,7 @@ import {
   HEALTH_METADATA_ID,
   HIDE_METADATA_ID,
   MAX_HEALTH_METADATA_ID,
+  SHOW_RAW_METADATA_ID,
   StatMetadataID,
   TEMP_HEALTH_METADATA_ID,
 } from "./itemMetadataIds";
@@ -15,6 +16,7 @@ export default class Token {
   tempHealth: number;
   armorClass: number;
   hideStats: boolean;
+  showRaw: boolean;
 
   constructor(
     item: Item,
@@ -23,6 +25,7 @@ export default class Token {
     tempHealth: number,
     armorClass: number,
     hideStats: boolean,
+    showRaw: boolean,
   ) {
     this.item = item;
     this.health = health;
@@ -30,6 +33,7 @@ export default class Token {
     this.tempHealth = tempHealth;
     this.armorClass = armorClass;
     this.hideStats = hideStats;
+    this.showRaw = showRaw;
   }
 
   /**
@@ -59,6 +63,9 @@ export default class Token {
     } else if (typeof value === "boolean" && statId === HIDE_METADATA_ID) {
       this.hideStats = value;
       return;
+    } else if (typeof value === "boolean" && statId === SHOW_RAW_METADATA_ID) {
+      this.showRaw = value;
+      return;
     } else {
       throw "Error invalid stat Id";
     }
@@ -74,6 +81,7 @@ export default class Token {
       tempHealth: this.tempHealth,
       armorClass: this.armorClass,
       hideStats: this.hideStats,
+      showRaw: this.showRaw,
     };
   }
 }
@@ -84,4 +92,5 @@ export type StatsObject = {
   tempHealth: number;
   armorClass: number;
   hideStats: boolean;
+  showRaw: boolean;
 };

@@ -5,6 +5,7 @@ import {
   HEALTH_METADATA_ID,
   HIDE_METADATA_ID,
   MAX_HEALTH_METADATA_ID,
+  SHOW_RAW_METADATA_ID,
   StatMetadataID,
   TEMP_HEALTH_METADATA_ID,
 } from "../itemMetadataIds";
@@ -113,6 +114,7 @@ export async function writeInputValueToTokenMetadata(
   if (typeof returnValue === "number") {
     returnValue = returnValue.toString();
   }
+
   return returnValue;
 }
 
@@ -125,7 +127,8 @@ export type InputName =
   | "maxHealth"
   | "tempHealth"
   | "armorClass"
-  | "hideStats";
+  | "hideStats"
+  | "showRaw";
 
 const inputNames: InputName[] = [
   "health",
@@ -133,6 +136,7 @@ const inputNames: InputName[] = [
   "tempHealth",
   "armorClass",
   "hideStats",
+  "showRaw",
 ];
 
 function restrictValueRange(id: string, value: number): number {
@@ -175,5 +179,7 @@ function convertInputNameToMetadataId(id: InputName): StatMetadataID {
       return ARMOR_CLASS_METADATA_ID;
     case "hideStats":
       return HIDE_METADATA_ID;
+    case "showRaw":
+      return SHOW_RAW_METADATA_ID;
   }
 }

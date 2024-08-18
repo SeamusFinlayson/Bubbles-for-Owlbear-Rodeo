@@ -106,6 +106,7 @@ export default function StatsMenuApp({
       return { ...prev, [name]: value };
     });
 
+
     writeInputValueToTokenMetadata(name, value);
   }
 
@@ -213,11 +214,25 @@ export default function StatsMenuApp({
     </div>
   );
 
+  const ShowRaw: JSX.Element = (
+    <div className={"hide-switch-row " + mode} style={{ color: textColor }}>
+      <label htmlFor="raw" className="label" style={{ margin: 0 }}>
+        Show total hit points 
+      </label>
+      <ToggleButton
+        isChecked={token.showRaw}
+        changeHandler={updateHide}
+        inputProps={{ name: "showRaw" }}
+      ></ToggleButton>
+    </div>
+  );
+
   if (role === "GM") {
     return (
       <div className={mode}>
         {nameTagsEnabled && NameField}
         {StatsMenu}
+        {ShowRaw}
         {HideRow}
       </div>
     );
@@ -226,6 +241,7 @@ export default function StatsMenuApp({
       <div className={mode}>
         {nameTagsEnabled && NameField}
         {StatsMenu}
+        {ShowRaw}
       </div>
     );
   }

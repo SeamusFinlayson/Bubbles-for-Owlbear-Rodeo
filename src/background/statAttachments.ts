@@ -328,7 +328,7 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
   const { origin, bounds } = getOriginAndBounds(settings, item, dpi);
 
   // Create stats
-  const [health, maxHealth, tempHealth, armorClass, statsVisible] =
+  const [health, maxHealth, tempHealth, armorClass, statsVisible, showRaw] =
     getTokenMetadata(item);
   if (role === "PLAYER" && !statsVisible && !settings.showBars) {
     // Display nothing, explicitly remove all attachments
@@ -383,6 +383,7 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
         origin,
         "short",
         settings.segments,
+        showRaw,
       ),
     );
   }
@@ -399,7 +400,7 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
     }
 
     addItemsArray.push(
-      ...createHealthBar(item, bounds, health, maxHealth, statsVisible, origin),
+      ...createHealthBar(item, bounds, health, maxHealth, statsVisible, origin,"full", 0, showRaw),
     );
     return true;
   }
