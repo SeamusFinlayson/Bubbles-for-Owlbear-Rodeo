@@ -57,6 +57,7 @@ export default async function startBackground() {
 }
 
 async function refreshAllHealthBars() {
+  console.log("refresh");
   //get shapes from scene
   const items: Image[] = await OBR.scene.items.getItems(
     (item) =>
@@ -214,29 +215,33 @@ function getChangedItems(imagesFromCallback: Image[]) {
     } else if (
       //check position, visibility, and metadata changes
       !(
-        itemsLast[i + s].position.x === imagesFromCallback[i].position.x &&
-        itemsLast[i + s].position.y === imagesFromCallback[i].position.y &&
-        itemsLast[i + s].visible === imagesFromCallback[i].visible &&
-        JSON.stringify(itemsLast[i + s].metadata[getPluginId("metadata")]) ===
+        // itemsLast[i + s].position.x === imagesFromCallback[i].position.x &&
+        // itemsLast[i + s].position.y === imagesFromCallback[i].position.y &&
+        (
+          itemsLast[i + s].visible === imagesFromCallback[i].visible &&
+          JSON.stringify(itemsLast[i + s].metadata[getPluginId("metadata")]) ===
+            JSON.stringify(
+              imagesFromCallback[i].metadata[getPluginId("metadata")],
+            ) &&
           JSON.stringify(
-            imagesFromCallback[i].metadata[getPluginId("metadata")],
-          ) &&
-        JSON.stringify(
-          itemsLast[i + s].metadata[getPluginId(NAME_METADATA_ID)],
-        ) ===
-          JSON.stringify(
-            imagesFromCallback[i].metadata[getPluginId(NAME_METADATA_ID)],
-          )
+            itemsLast[i + s].metadata[getPluginId(NAME_METADATA_ID)],
+          ) ===
+            JSON.stringify(
+              imagesFromCallback[i].metadata[getPluginId(NAME_METADATA_ID)],
+            )
+        )
       )
     ) {
       //update items
       changedItems.push(imagesFromCallback[i]);
     }
   }
+  // console.log("changed items", changedItems);
   return changedItems;
 }
 
 async function createNameTags(items: Image[], sceneDpi: number) {
+  console.log("create name tag");
   if (!(await OBR.scene.isReady())) throw "Error: Scene not available";
 
   interface NameTag {
@@ -494,6 +499,8 @@ async function sendItemsToScene(
   addItemsArray: Item[],
   deleteItemsArray: string[],
 ) {
+  console.log("added items length", addItemsArray.length);
+  console.log("deleted items length", deleteItemsArray.length);
   await OBR.scene.local.deleteItems(deleteItemsArray);
   await OBR.scene.local.addItems(addItemsArray);
   deleteItemsArray.length = 0;

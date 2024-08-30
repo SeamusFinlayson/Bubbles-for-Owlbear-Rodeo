@@ -1,7 +1,8 @@
-import {
+import OBR, {
   AttachmentBehavior,
   Item,
   buildCurve,
+  buildLight,
   buildShape,
   buildText,
 } from "@owlbear-rodeo/sdk";
@@ -10,15 +11,17 @@ import { createRoundedRectangle, getFillPortion } from "./mathHelpers";
 // Constants used in multiple functions
 const FONT_SIZE = 22;
 const FONT = "Roboto, sans-serif";
-const DISABLE_HIT = true;
+const DISABLE_HIT = false;
 const BACKGROUND_OPACITY = 0.6;
 const DISABLE_ATTACHMENT_BEHAVIORS: AttachmentBehavior[] = [
   "ROTATION",
   "VISIBLE",
-  "COPY",
+  // "COPY",
   "SCALE",
+  // "POSITION",
 ];
-export const TEXT_VERTICAL_OFFSET = 2;
+export const TEXT_VERTICAL_OFFSET = 1.5;
+const LINE_HEIGHT = 0.8;
 
 // Constants used in createStatBubble()
 export const DIAMETER = 30;
@@ -36,7 +39,7 @@ export function createStatBubble(
   label: string,
 ): Item[] {
   const bubbleShape = buildShape()
-    .width(bounds.width)
+    .width(DIAMETER)
     .height(DIAMETER)
     .shapeType("CIRCLE")
     .fillColor(color)
@@ -59,7 +62,7 @@ export function createStatBubble(
   const bubbleText = buildText()
     .position({
       x: position.x - DIAMETER / 2,
-      y: position.y - DIAMETER / 2 + TEXT_VERTICAL_OFFSET + 0.3,
+      y: position.y - DIAMETER / 2 + TEXT_VERTICAL_OFFSET - 0.7,
     })
     .plainText(valueText.length > 3 ? String.fromCharCode(0x2026) : valueText)
     .textAlign("CENTER")
@@ -77,6 +80,7 @@ export function createStatBubble(
     .attachedTo(item.id)
     .layer("TEXT")
     .locked(true)
+    .lineHeight(LINE_HEIGHT)
     .id(`${item.id + label}-label`)
     .visible(item.visible)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
@@ -175,7 +179,7 @@ export function createHealthBar(
     .position({ x: position.x, y: position.y + TEXT_VERTICAL_OFFSET })
     .plainText(`${health}/${maxHealth}`)
     .textAlign("CENTER")
-    .textAlignVertical("MIDDLE")
+    .textAlignVertical("TOP")
     .fontSize(FONT_SIZE)
     .fontFamily(FONT)
     .textType("PLAIN")
@@ -187,6 +191,7 @@ export function createHealthBar(
     .attachedTo(item.id)
     .fillOpacity(1)
     .layer("TEXT")
+    .lineHeight(LINE_HEIGHT)
     .locked(true)
     .id(`${item.id}health-label`)
     .visible(setVisibilityProperty)

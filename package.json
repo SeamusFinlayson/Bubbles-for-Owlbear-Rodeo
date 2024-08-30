@@ -27,7 +27,7 @@
     "@fontsource/roboto": "^5.0.8",
     "@mui/lab": "5.0.0-alpha.169",
     "@mui/material": "^5.15.15",
-    "@owlbear-rodeo/sdk": "^2.4.0",
+    "@owlbear-rodeo/sdk": "github:owlbear-rodeo/sdk#beta",
     "@vitejs/plugin-react": "^4.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
