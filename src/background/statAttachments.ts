@@ -431,7 +431,6 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
     addItemsArray.push(
       ...createStatBubble(
         item,
-        bounds,
         armorClass,
         "cornflowerblue", //"#5c8fdb"
         armorPosition,
@@ -467,7 +466,6 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
     addItemsArray.push(
       ...createStatBubble(
         item,
-        bounds,
         tempHealth,
         "olivedrab",
         tempHealthPosition,

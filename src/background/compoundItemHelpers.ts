@@ -1,8 +1,7 @@
-import OBR, {
+import {
   AttachmentBehavior,
   Item,
   buildCurve,
-  buildLight,
   buildShape,
   buildText,
 } from "@owlbear-rodeo/sdk";
@@ -32,7 +31,6 @@ const CIRCLE_TEXT_HEIGHT = DIAMETER + 0;
 /** Creates Stat Bubble component items */
 export function createStatBubble(
   item: Item,
-  bounds: { width: number; height: number },
   value: number,
   color: string,
   position: { x: number; y: number },
