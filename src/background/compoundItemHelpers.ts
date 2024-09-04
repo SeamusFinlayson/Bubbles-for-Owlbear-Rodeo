@@ -10,17 +10,18 @@ import { createRoundedRectangle, getFillPortion } from "./mathHelpers";
 // Constants used in multiple functions
 const FONT_SIZE = 22;
 const FONT = "Roboto, sans-serif";
-const DISABLE_HIT = false;
+const LOCKED = true;
+const DISABLE_HIT = true;
 const BACKGROUND_OPACITY = 0.6;
 const DISABLE_ATTACHMENT_BEHAVIORS: AttachmentBehavior[] = [
   "ROTATION",
   "VISIBLE",
-  // "COPY",
+  "COPY",
   "SCALE",
   // "POSITION",
 ];
-export const TEXT_VERTICAL_OFFSET = 1.5;
-const LINE_HEIGHT = 0.8;
+export const TEXT_VERTICAL_OFFSET = -0.3;
+const LINE_HEIGHT = 0.95;
 
 // Constants used in createStatBubble()
 export const DIAMETER = 30;
@@ -48,7 +49,7 @@ export function createStatBubble(
     .position({ x: position.x, y: position.y })
     .attachedTo(item.id)
     .layer("ATTACHMENT")
-    .locked(true)
+    .locked(LOCKED)
     .id(`${item.id + label}-background`)
     .visible(item.visible)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
@@ -73,11 +74,9 @@ export function createStatBubble(
     .height(CIRCLE_TEXT_HEIGHT)
     .width(DIAMETER)
     .fontWeight(400)
-    //.strokeColor("black")
-    //.strokeWidth(0)
     .attachedTo(item.id)
     .layer("TEXT")
-    .locked(true)
+    .locked(LOCKED)
     .lineHeight(LINE_HEIGHT)
     .id(`${item.id + label}-label`)
     .visible(item.visible)
@@ -128,15 +127,16 @@ export function createHealthBar(
   const backgroundShape = buildCurve()
     .fillColor(healthBackgroundColor)
     .fillOpacity(BACKGROUND_OPACITY)
-    .strokeWidth(0)
     .position({ x: position.x, y: position.y })
+    .zIndex(10000)
     .attachedTo(item.id)
     .layer("ATTACHMENT")
-    .locked(true)
+    .locked(LOCKED)
     .id(`${item.id}health-background`)
     .visible(setVisibilityProperty)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
     .disableHit(DISABLE_HIT)
+    .strokeWidth(0)
     .tension(0)
     .closed(true)
     .points(createRoundedRectangle(barWidth, barHeight, BAR_CORNER_RADIUS))
@@ -147,12 +147,13 @@ export function createHealthBar(
   const healthShape = buildCurve()
     .fillColor("red")
     .fillOpacity(HEALTH_OPACITY)
+    .zIndex(20000)
+    .position({ x: position.x, y: position.y })
     .strokeWidth(0)
     .strokeOpacity(0)
-    .position({ x: position.x, y: position.y })
     .attachedTo(item.id)
     .layer("ATTACHMENT")
-    .locked(true)
+    .locked(LOCKED)
     .id(`${item.id}health`)
     .visible(setVisibilityProperty)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
@@ -184,13 +185,11 @@ export function createHealthBar(
     .height(barTextHeight)
     .width(barWidth)
     .fontWeight(400)
-    //.strokeColor("black")
-    //.strokeWidth(0)
     .attachedTo(item.id)
     .fillOpacity(1)
     .layer("TEXT")
     .lineHeight(LINE_HEIGHT)
-    .locked(true)
+    .locked(LOCKED)
     .id(`${item.id}health-label`)
     .visible(setVisibilityProperty)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
@@ -224,7 +223,7 @@ export function createNameTagText(
     .attachedTo(invisible ? "none" : item.id)
     .fillOpacity(invisible ? 0 : 0.87)
     .layer("TEXT")
-    .locked(true)
+    .locked(LOCKED)
     .id(invisible ? getNameTagTextTestId(item.id) : `${item.id}name-tag-text`)
     .visible(item.visible)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
@@ -250,7 +249,7 @@ export function createNameTagBackground(
     .position(position)
     .attachedTo(item.id)
     .layer("ATTACHMENT")
-    .locked(true)
+    .locked(LOCKED)
     .id(`${item.id}name-tag-background`)
     .visible(item.visible)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)

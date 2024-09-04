@@ -4,7 +4,6 @@ import {
   DIAMETER,
   FULL_BAR_HEIGHT,
   NAME_TAG_HEIGHT,
-  addAllExtensionAttachmentsToArray,
   addArmorAttachmentsToArray,
   addHealthAttachmentsToArray,
   addNameTagAttachmentsToArray,
@@ -24,7 +23,6 @@ import { NAME_METADATA_ID, getName, getTokenMetadata } from "../itemHelpers";
 import { Settings, getGlobalSettings } from "./getGlobalSettings";
 import createContextMenuItems from "./contextMenuItems";
 
-let tokenIds: string[] = []; // for orphan health bar management
 let itemsLast: Image[] = []; // for item change checks
 const addItemsArray: Item[] = []; // for bulk addition or changing of items
 const deleteItemsArray: string[] = []; // for bulk deletion of scene items
@@ -84,7 +82,6 @@ async function refreshAllHealthBars() {
   for (const item of items) {
     itemIds.push(item.id);
   }
-  tokenIds = itemIds;
 
   // Create name tag backgrounds
   // console.log(globalItemsWithNameTags.length);
@@ -121,6 +118,7 @@ async function startCallbacks() {
     // Handle item changes (Update health bars)
     const unsubscribeFromItems = OBR.scene.items.onChange(
       async (itemsFromCallback) => {
+        console.log(await OBR.scene.local.getItems());
         // Filter items for only images from character, mount, and prop layers
         const imagesFromCallback: Image[] = [];
         for (const item of itemsFromCallback) {
@@ -135,7 +133,7 @@ async function startCallbacks() {
         }
 
         //get rid of health bars that no longer attach to anything
-        await deleteOrphanHealthBars(imagesFromCallback);
+        // await deleteOrphanHealthBars(imagesFromCallback);
 
         //create list of modified and new items, skipping deleted items
         const changedItems: Image[] = getChangedItems(imagesFromCallback);
@@ -168,24 +166,6 @@ async function startCallbacks() {
       }
     });
   }
-}
-
-async function deleteOrphanHealthBars(currentItems: Image[]) {
-  const currentItemIds: string[] = [];
-  for (const item of currentItems) {
-    currentItemIds.push(item.id);
-  }
-
-  //check for orphaned health bars
-  for (const oldId of tokenIds) {
-    if (!currentItemIds.includes(oldId)) {
-      // delete orphaned health bar
-      addAllExtensionAttachmentsToArray(deleteItemsArray, oldId);
-    }
-  }
-
-  // update item list with current values
-  tokenIds = currentItemIds;
 }
 
 function getChangedItems(imagesFromCallback: Image[]) {
@@ -497,8 +477,8 @@ async function sendItemsToScene(
   addItemsArray: Item[],
   deleteItemsArray: string[],
 ) {
-  console.log("added items length", addItemsArray.length);
-  console.log("deleted items length", deleteItemsArray.length);
+  // console.log("added items length", addItemsArray.length);
+  // console.log("deleted items length", deleteItemsArray.length);
   await OBR.scene.local.deleteItems(deleteItemsArray);
   await OBR.scene.local.addItems(addItemsArray);
   deleteItemsArray.length = 0;
