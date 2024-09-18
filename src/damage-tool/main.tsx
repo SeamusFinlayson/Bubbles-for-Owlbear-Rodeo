@@ -4,6 +4,9 @@ import { getTheme } from "../OBRThemeProvider";
 import { ThemeProvider } from "@mui/material";
 import DamageToolApp from "./DamageToolApp";
 import { parseSelectedTokens } from "../itemHelpers";
+import BulkEditor from "./BulkEditor";
+
+import "../index.css";
 
 OBR.onReady(async () => {
   const initialTokens = await parseSelectedTokens(true);
@@ -15,7 +18,7 @@ OBR.onReady(async () => {
   const root = createRoot(document.getElementById("app") as HTMLDivElement);
   root.render(
     <ThemeProvider theme={theme}>
-      <DamageToolApp initialTokens={initialTokens} />
+      <BulkEditor initialTokens={initialTokens} />
     </ThemeProvider>,
   );
 });

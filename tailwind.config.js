@@ -6,12 +6,29 @@ export default {
     hoverOnlyWhenSupported: true,
   },
   theme: {
+    screens: {
+      sm: "400px",
+      md: "500px",
+      lg: "550px",
+    },
     extend: {
       transitionProperty: {
         height: "height",
-        // padding: "padding",
       },
       colors: {
+        mirage: {
+          50: "#f4f5f9",
+          100: "#eaedf5",
+          200: "#dde1ee",
+          300: "#c1c8e0",
+          400: "#898fa7",
+          500: "#6a708d",
+          600: "#555974",
+          700: "#464a5e",
+          800: "#3d4051",
+          900: "#2d3143",
+          950: "#222639",
+        },
         stat: {
           light: {
             health: "rgb(212, 110, 111)",
@@ -24,10 +41,9 @@ export default {
             armor: "rgba(100, 148, 237, 0.4)",
           },
         },
-        //background
         default: {
           DEFAULT: "#dde1ee",
-          dark: "#222639",
+          dark: "#1c212e",
         },
         paper: {
           DEFAULT: "#f1f3f9",
@@ -52,8 +68,13 @@ export default {
           dark: "#bb99ff",
         },
       },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
   darkMode: "class",
 };
