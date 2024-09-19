@@ -32,17 +32,17 @@ const commands = new Map<string, CommandType>([
       ? `Roll ${extractCommandContent(string)}`
       : "Invalid Roll";
   }),
-  commandFactory("d", "Apply Damage", (string: string) => {
+  commandFactory("d", "Roll Damage", (string: string) => {
     return validRoll(extractCommandContent(string))
       ? `Roll ${extractCommandContent(string)} damage`
       : "Invalid Roll";
   }),
-  commandFactory("h", "Apply Healing", (string: string) => {
+  commandFactory("h", "Roll Healing", (string: string) => {
     return validRoll(extractCommandContent(string))
       ? `Roll ${extractCommandContent(string)} healing`
       : "Invalid Roll";
   }),
-  commandFactory("t", "Apply Temporary Hit Points", () => ""),
+  commandFactory("t", "Set Temporary Hit Points", () => ""),
 ]);
 
 // Command line text parsers
@@ -218,11 +218,7 @@ export default function Command({
 
     switch (event.key) {
       case "Escape":
-        if (inputContent === "" && inputRef.current) inputRef.current.blur();
-        else {
-          setInputContent("");
-          setSelection(0);
-        }
+        if (inputRef.current) inputRef.current.blur();
         event.preventDefault();
         break;
       case "ArrowUp":

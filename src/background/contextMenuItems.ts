@@ -98,10 +98,11 @@ function createDamageToolContextItem() {
       },
     ],
     shortcut: "Shift + S",
-    onClick(_, elementId) {
+    onClick: async (_, elementId) => {
+      const darkMode = (await OBR.theme.getTheme()).mode;
       OBR.popover.open({
         id: getPluginId("damage-tool-popover"),
-        url: "/src/damage-tool/damageTool.html",
+        url: `/src/damage-tool/damageTool.html?darkMode=${darkMode}`,
         height: 522,
         width: 600,
         anchorElementId: elementId,

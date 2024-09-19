@@ -7,24 +7,25 @@ import {
 import { HEALTH_METADATA_ID, TEMP_HEALTH_METADATA_ID } from "@/itemMetadataIds";
 import { getPluginId } from "@/getPluginId";
 
+export const DEFAULT_DAMAGE_SCALE = 3;
+export const DEFAULT_INCLUDED = true;
+
 export const getDamageScaleOption = (
   key: string,
   map: Map<string, number>,
 ): number => {
   const value = map.get(key);
-  if (typeof value !== "number")
-    throw "Error: value is " + typeof value + ", expected number.";
+  if (typeof value !== "number") return DEFAULT_DAMAGE_SCALE;
   return value;
 };
 
 export const getIncluded = (key: string, map: Map<string, boolean>) => {
   const value = map.get(key);
-  if (typeof value !== "boolean")
-    throw "Error: value is " + typeof value + ", expected number.";
+  if (typeof value !== "boolean") return DEFAULT_INCLUDED;
   return value;
 };
 
-export function writeUpdatedValuesToTokens(
+export function applyHealthDiffToItems(
   healthDiff: number,
   includedItems: Map<string, boolean>,
   damageScaleSettings: Map<string, number>,
@@ -42,7 +43,6 @@ export function writeUpdatedValuesToTokens(
       }
 
       const included = getIncluded(tokens[i].item.id, includedItems);
-
       const scaledHealthDiff = calculateScaledHealthDiff(
         included
           ? getDamageScaleOption(tokens[i].item.id, damageScaleSettings)

@@ -115,7 +115,7 @@ export default function Footer({
         </PopoverContent>
       </Popover>
       <div className="flex h-9 self-start rounded-md border border-mirage-300 bg-mirage-100 text-sm font-medium leading-none dark:border-mirage-800 dark:bg-mirage-900">
-        <div className="flex h-full min-w-12 items-center justify-center rounded-md border-r border-mirage-300 bg-mirage-50 p-2 px-4 text-lg dark:border-mirage-800 dark:bg-mirage-950">
+        <div className="flex h-full min-w-12 items-center justify-center rounded-l-md border-r border-mirage-300 bg-mirage-50 p-2 px-4 text-lg dark:border-mirage-800 dark:bg-mirage-950">
           {value ? calculateScaledHealthDiff(3, value) : ""}
         </div>
         <div className="flex h-full items-center justify-center rounded-md p-2 px-4">

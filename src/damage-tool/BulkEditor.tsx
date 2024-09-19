@@ -6,36 +6,41 @@ import Footer from "./Footer";
 import Header from "./Header";
 import { DamageTable, SetValuesTable } from "./Tables";
 import { Button } from "@/components/ui/button";
-import { writeUpdatedValuesToTokens } from "./helpers";
+import { applyHealthDiffToItems } from "./helpers";
+import OBR from "@owlbear-rodeo/sdk";
+import { parseSelectedTokens } from "@/itemHelpers";
 
 export default function BulkEditor({
   initialTokens,
 }: {
   initialTokens: Token[];
 }): JSX.Element {
-  let darkMode = true;
-  useEffect(() => {
-    if (darkMode) document.body.classList.add("dark");
-    else document.body.classList.remove("dark");
-  }, [darkMode]);
-
+  // App state
   const [editorMode, setEditorMode] = useState<EditorMode>("setValues");
   const [stampedRoll, setStampedRolls] = useState<StampedDiceRoll[]>([]);
   const [value, setValue] = useState<number | null>(null);
 
+  // Tokens
+  const [tokens, setTokens] = useState(initialTokens);
+
+  // Per token configurations
   const [damageScaleOptions, setDamageScaleOptions] = useState<
     Map<string, number>
-  >(() => {
-    return new Map<string, number>(
-      initialTokens.map((token) => [token.item.id, 3]),
-    );
-  });
+  >(new Map<string, number>());
   const [includedItems, setIncludedItems] = useState<Map<string, boolean>>(
-    () => {
-      return new Map<string, boolean>(
-        initialTokens.map((token) => [token.item.id, true]),
-      );
-    },
+    new Map<string, boolean>(),
+  );
+
+  // Keep tokens up to date with scene
+  useEffect(
+    () =>
+      OBR.scene.items.onChange(() => {
+        const updateTokens = (newTokens: Token[]) => {
+          setTokens(newTokens);
+        };
+        parseSelectedTokens(true).then(updateTokens);
+      }),
+    [],
   );
 
   useEffect(() => {
@@ -48,7 +53,7 @@ export default function BulkEditor({
       case "damage":
         return (
           <DamageTable
-            tokens={initialTokens}
+            tokens={tokens}
             value={value ? value : 0}
             damageScaleOptions={damageScaleOptions}
             setDamageScaleOptions={setDamageScaleOptions}
@@ -59,7 +64,7 @@ export default function BulkEditor({
       default:
         return (
           <SetValuesTable
-            tokens={initialTokens}
+            tokens={tokens}
             includedItems={includedItems}
             setIncludedItems={setIncludedItems}
           ></SetValuesTable>
@@ -67,14 +72,40 @@ export default function BulkEditor({
     }
   };
 
-  const getButtonText = (editorMode: EditorMode): string => {
+  const getActionButton = (editorMode: EditorMode): JSX.Element => {
     switch (editorMode) {
       case "damage":
-        return "Apply Damage";
+        return (
+          <ActionButton
+            label={"Apply Damage"}
+            onClick={() => {
+              applyHealthDiffToItems(
+                value ? -1 * value : 0,
+                includedItems,
+                damageScaleOptions,
+                tokens,
+              );
+              setEditorMode("setValues");
+            }}
+          ></ActionButton>
+        );
       case "healing":
-        return "Apply Healing";
+        return (
+          <ActionButton
+            label={"Apply Healing"}
+            onClick={() => {
+              applyHealthDiffToItems(
+                value ? value : 0,
+                includedItems,
+                damageScaleOptions,
+                tokens,
+              );
+              setEditorMode("setValues");
+            }}
+          ></ActionButton>
+        );
       default:
-        return "Invalid";
+        return <></>;
     }
   };
 
@@ -93,32 +124,23 @@ export default function BulkEditor({
           setStampedRolls={setStampedRolls}
           value={value}
           setValue={setValue}
-          action={
-            editorMode !== "setValues" ? (
-              <Button
-                className="ml-auto"
-                variant={"secondary"}
-                onClick={() => {
-                  switch (editorMode) {
-                    case "damage":
-                      writeUpdatedValuesToTokens(
-                        value ? -1 * value : 0,
-                        includedItems,
-                        damageScaleOptions,
-                        initialTokens,
-                      );
-                  }
-                  setEditorMode("setValues");
-                }}
-              >
-                {getButtonText(editorMode)}
-              </Button>
-            ) : (
-              <></>
-            )
-          }
+          action={getActionButton(editorMode)}
         ></Footer>
       </div>
     </div>
+  );
+}
+
+function ActionButton({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: React.MouseEventHandler<HTMLButtonElement> | undefined;
+}): JSX.Element {
+  return (
+    <Button className="ml-auto" variant={"secondary"} onClick={onClick}>
+      {label}
+    </Button>
   );
 }

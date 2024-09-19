@@ -1,4 +1,4 @@
-import OBR, { Item } from "@owlbear-rodeo/sdk";
+import OBR, { Item, Metadata } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 import Token from "./TokenClass";
 import {
@@ -17,6 +17,32 @@ export async function getSelectedItems(): Promise<Item[]> {
   return selectedItems;
 }
 
+function getNumberFromMetadata(
+  metadata: unknown,
+  metadataId: string,
+  fallback = 0,
+) {
+  try {
+    let value = parseFloat((metadata as Record<string, string>)[metadataId]);
+    if (Number.isNaN(value)) return fallback;
+    return value;
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function getBooleanFromMetadata(
+  metadata: unknown,
+  metadataId: string,
+  fallback = false,
+) {
+  try {
+    return Boolean((metadata as Record<string, boolean>)[metadataId]).valueOf();
+  } catch (error) {
+    return fallback;
+  }
+}
+
 export async function parseSelectedTokens(
   mustHaveMaxHealth = false,
   selectedItems?: Item[],
@@ -24,76 +50,20 @@ export async function parseSelectedTokens(
   const selectedTokens: Token[] = [];
 
   // Get selected Items
-  if (selectedItems === undefined) {
-    selectedItems = await getSelectedItems();
-  }
+  if (selectedItems === undefined) selectedItems = await getSelectedItems();
 
   for (const item of selectedItems) {
-    // Get token metadata
-    const metadata: any = item.metadata[getPluginId("metadata")];
+    // Extract stats from metadata
+    const metadata = item.metadata[getPluginId("metadata")];
 
-    // Extract health metadata
-    let health: number = NaN;
-    try {
-      health = parseFloat(metadata[HEALTH_METADATA_ID]);
-    } catch (error) {
-      health = 0;
-    }
-    if (Number.isNaN(health)) {
-      health = 0;
-    }
+    const health = getNumberFromMetadata(metadata, HEALTH_METADATA_ID);
+    const maxHealth = getNumberFromMetadata(metadata, MAX_HEALTH_METADATA_ID);
+    const tempHealth = getNumberFromMetadata(metadata, TEMP_HEALTH_METADATA_ID);
+    const armorClass = getNumberFromMetadata(metadata, ARMOR_CLASS_METADATA_ID);
+    const hideStats = getBooleanFromMetadata(metadata, HIDE_METADATA_ID);
 
-    // Extract max health metadata
-    let maxHealth: number = NaN;
-    let hasMaxHealth: boolean;
-    try {
-      maxHealth = parseFloat(metadata[MAX_HEALTH_METADATA_ID]);
-      hasMaxHealth = true;
-    } catch (error) {
-      hasMaxHealth = false;
-      maxHealth = 0;
-    }
-    if (Number.isNaN(maxHealth)) {
-      hasMaxHealth = false;
-      maxHealth = 0;
-    }
-
-    // Extract temp health metadata
-    let tempHealth: number = NaN;
-    try {
-      tempHealth = parseFloat(metadata[TEMP_HEALTH_METADATA_ID]);
-    } catch (error) {
-      tempHealth = 0;
-    }
-    if (Number.isNaN(tempHealth)) {
-      tempHealth = 0;
-    }
-
-    let armorClass: number = NaN;
-    try {
-      armorClass = parseFloat(metadata[ARMOR_CLASS_METADATA_ID]);
-    } catch (error) {
-      armorClass = 0;
-    }
-    if (Number.isNaN(armorClass)) {
-      armorClass = 0;
-    }
-
-    let hideStats = false;
-    try {
-      hideStats = Boolean(metadata[HIDE_METADATA_ID]).valueOf();
-    } catch (error) {
-      hideStats = false;
-    }
-
-    if (mustHaveMaxHealth) {
-      // If the token has health and max health add it to the list of valid tokens
-      if (hasMaxHealth && maxHealth !== 0) {
-        selectedTokens.push(
-          new Token(item, health, maxHealth, tempHealth, armorClass, hideStats),
-        );
-      }
-    } else {
+    // If the token has health and max health add it to the list of valid tokens
+    if (!mustHaveMaxHealth || maxHealth > 0) {
       selectedTokens.push(
         new Token(item, health, maxHealth, tempHealth, armorClass, hideStats),
       );
@@ -103,7 +73,7 @@ export async function parseSelectedTokens(
   return selectedTokens;
 }
 
-export function getTokenMetadata(
+export function getTokenStats(
   item: Item,
 ): [
   health: number,
@@ -112,61 +82,14 @@ export function getTokenMetadata(
   armorClass: number,
   statsVisible: boolean,
 ] {
-  const metadata: any = item.metadata[getPluginId("metadata")];
-
-  //try to extract armor class metadata
-  let armorClass: number;
-  try {
-    armorClass = parseFloat(metadata[ARMOR_CLASS_METADATA_ID]);
-  } catch (error) {
-    armorClass = 0;
-  }
-  if (Number.isNaN(armorClass)) {
-    armorClass = 0;
-  }
-
-  //try to extract temporary health metadata
-  let tempHealth: number;
-  try {
-    tempHealth = parseFloat(metadata[TEMP_HEALTH_METADATA_ID]);
-  } catch (error) {
-    tempHealth = 0;
-  }
-  if (Number.isNaN(tempHealth)) {
-    tempHealth = 0;
-  }
-
-  //try to extract health from metadata
-  let health: number;
-  let maxHealth: number;
-  try {
-    health = parseFloat(metadata[HEALTH_METADATA_ID]);
-    maxHealth = parseFloat(metadata[MAX_HEALTH_METADATA_ID]);
-  } catch (error) {
-    health = 0;
-    maxHealth = 0;
-  }
-  if (Number.isNaN(health)) {
-    health = 0;
-  }
-  if (Number.isNaN(maxHealth)) {
-    maxHealth = 0;
-  }
-
-  //try to extract visibility from metadata
-  let statsVisible: boolean;
-  try {
-    statsVisible = !metadata[HIDE_METADATA_ID];
-  } catch (error) {
-    // catch type error
-    if (error instanceof TypeError) {
-      statsVisible = true;
-    } else {
-      throw error;
-    }
-  }
-
-  return [health, maxHealth, tempHealth, armorClass, statsVisible];
+  const metadata = item.metadata[getPluginId("metadata")];
+  return [
+    getNumberFromMetadata(metadata, HEALTH_METADATA_ID),
+    getNumberFromMetadata(metadata, MAX_HEALTH_METADATA_ID),
+    getNumberFromMetadata(metadata, TEMP_HEALTH_METADATA_ID),
+    getNumberFromMetadata(metadata, ARMOR_CLASS_METADATA_ID),
+    getBooleanFromMetadata(metadata, HIDE_METADATA_ID, true),
+  ];
 }
 
 // For name

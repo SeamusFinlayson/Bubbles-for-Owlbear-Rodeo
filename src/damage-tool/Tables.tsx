@@ -19,6 +19,7 @@ import {
 } from "./healthCalculations";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getDamageScaleOption, getIncluded } from "./helpers";
+import { cn } from "@/lib/utils";
 
 export function SetValuesTable({
   tokens,
@@ -36,13 +37,14 @@ export function SetValuesTable({
           <TableRow>
             <CheckboxTableHead
               tokens={tokens}
-              included={allChecked(includedItems)}
+              included={allChecked(tokens, includedItems)}
               setIncludedItems={setIncludedItems}
             />
             <TableHead>Icon</TableHead>
             <TableHead>Name</TableHead>
-            <TableHead>Hit Points</TableHead>
-            <TableHead>Temporary Hit Points</TableHead>
+            <TableHead title="Hit Points / Maximum Hit Points, Temporary Hit Points">
+              Hit Points
+            </TableHead>
             <TableHead>Armor Class</TableHead>
           </TableRow>
         </TableHeader>
@@ -57,22 +59,19 @@ export function SetValuesTable({
                   included={included}
                   setIncludedItems={setIncludedItems}
                 />
-                <TokenImageTableCell token={token} />
-                <TokenNameTableCell token={token} />
+                <TokenImageTableCell token={token} fade={!included} />
+                <TokenNameTableCell token={token} fade={!included} />
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <StatInput defaultValue={token.health}></StatInput>
+                    <StatInput value={token.health}></StatInput>
                     <div>{"/"}</div>
-                    <StatInput defaultValue={token.maxHealth}></StatInput>
+                    <StatInput value={token.maxHealth}></StatInput>
+                    <div>{""}</div>
+                    <StatInput value={token.tempHealth}></StatInput>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center">
-                    <StatInput defaultValue={token.health}></StatInput>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <StatInput defaultValue={token.armorClass}></StatInput>
+                  <StatInput value={token.armorClass}></StatInput>
                 </TableCell>
               </TableRow>
             );
@@ -108,7 +107,7 @@ export function DamageTable({
           <TableRow>
             <CheckboxTableHead
               tokens={tokens}
-              included={allChecked(includedItems)}
+              included={allChecked(tokens, includedItems)}
               setIncludedItems={setIncludedItems}
             />
             <TableHead>Icon</TableHead>
@@ -125,10 +124,8 @@ export function DamageTable({
               token.item.id,
               damageScaleOptions,
             );
-            const damageScaleOption = damageScaleOptions.get(token.item.id);
-            if (damageScaleOption === undefined) throw "Error invalid option";
             const scaledDamage = calculateScaledHealthDiff(
-              included ? damageScaleOption : 0,
+              included ? option : 0,
               value,
             );
             const [newHealth, newTempHealth] = calculateNewHealth(
@@ -138,56 +135,93 @@ export function DamageTable({
               -1 * scaledDamage,
             );
 
+            const nextDamageOption = () => {
+              setDamageScaleOptions((prev) =>
+                new Map(prev).set(
+                  token.item.id,
+                  option < multipliers.length - 1 ? option + 1 : option,
+                ),
+              );
+            };
+
+            const previousDamageOption = () => {
+              setDamageScaleOptions((prev) =>
+                new Map(prev).set(
+                  token.item.id,
+                  option > 1 ? option - 1 : option,
+                ),
+              );
+            };
+
+            const handleKeyDown = (
+              event: React.KeyboardEvent<HTMLTableRowElement>,
+            ) => {
+              switch (event.key) {
+                case "ArrowLeft":
+                  previousDamageOption();
+                  break;
+                case "ArrowRight":
+                  nextDamageOption();
+                  break;
+              }
+            };
+
             return (
-              <TableRow key={token.item.id}>
+              <TableRow
+                key={token.item.id}
+                onKeyDown={(event) => handleKeyDown(event)}
+              >
                 <CheckboxTableCell
                   token={token}
                   included={included}
                   setIncludedItems={setIncludedItems}
                 />
-                <TokenImageTableCell token={token} />
-                <TokenNameTableCell token={token} />
+                <TokenImageTableCell token={token} fade={!included} />
+                <TokenNameTableCell token={token} fade={!included} />
                 <TableCell>
                   <div className="flex max-w-32">
                     <Button
                       className="size-8 rounded-full"
+                      tabIndex={-1}
                       size={"icon"}
                       variant={"outline"}
-                      onClick={() => {
-                        setDamageScaleOptions((prev) =>
-                          new Map(prev).set(
-                            token.item.id,
-                            option > 1 ? option - 1 : option,
-                          ),
-                        );
-                      }}
+                      onClick={previousDamageOption}
                     >
                       <ArrowLeftIcon className="size-4" />
                     </Button>
-                    <div className="flex w-14 items-center justify-center text-lg font-medium">
+                    <div
+                      className={cn(
+                        "flex w-14 items-center justify-center text-lg font-medium",
+                        {
+                          "text-mirage-500 dark:text-mirage-400": !included,
+                        },
+                      )}
+                    >
                       {multipliers[option]}
                     </div>
                     <Button
                       className="size-8 rounded-full"
+                      tabIndex={-1}
                       size={"icon"}
                       variant={"outline"}
-                      onClick={() => {
-                        setDamageScaleOptions((prev) =>
-                          new Map(prev).set(
-                            token.item.id,
-                            option < multipliers.length - 1
-                              ? option + 1
-                              : option,
-                          ),
-                        );
-                      }}
+                      onClick={nextDamageOption}
                     >
                       <ArrowRightIcon className="size-4" />
                     </Button>
                   </div>
                 </TableCell>
-                <TableCell>{scaledDamage}</TableCell>
-                <TableCell className="md:min-w-16 lg:min-w-20">
+                <TableCell
+                  className={cn({
+                    "text-mirage-500 dark:text-mirage-400": !included,
+                  })}
+                >
+                  {scaledDamage}
+                </TableCell>
+                <TableCell
+                  className={cn("md:min-w-16 lg:min-w-20", {
+                    "text-mirage-500 dark:text-mirage-400": !included,
+                  })}
+                >
                   {newHealth.toString() +
                     (newTempHealth > 0 ? ` (${newTempHealth})` : "")}
                 </TableCell>
@@ -201,9 +235,15 @@ export function DamageTable({
   );
 }
 
-function TokenImageTableCell({ token }: { token: Token }): JSX.Element {
+function TokenImageTableCell({
+  token,
+  fade,
+}: {
+  token: Token;
+  fade: boolean;
+}): JSX.Element {
   return (
-    <TableCell className="font-medium">
+    <TableCell className={cn("font-medium", { "opacity-60": fade })}>
       <img
         className="size-8 min-h-8 min-w-8"
         src={(token.item as Image).image.url}
@@ -212,9 +252,19 @@ function TokenImageTableCell({ token }: { token: Token }): JSX.Element {
   );
 }
 
-function TokenNameTableCell({ token }: { token: Token }): JSX.Element {
+function TokenNameTableCell({
+  token,
+  fade,
+}: {
+  token: Token;
+  fade: boolean;
+}): JSX.Element {
   return (
-    <TableCell className="max-w-28 text-sm font-medium">
+    <TableCell
+      className={cn("max-w-28 text-sm font-medium", {
+        "text-mirage-500 dark:text-mirage-400": fade,
+      })}
+    >
       <div className="group">
         <div
           className="overflow-hidden text-clip text-nowrap"
@@ -227,12 +277,12 @@ function TokenNameTableCell({ token }: { token: Token }): JSX.Element {
   );
 }
 
-function StatInput({ defaultValue }: { defaultValue: number }): JSX.Element {
+function StatInput({ value }: { value: number }): JSX.Element {
   return (
     <div className="flex items-center">
       <Input
         className="h-[32px] w-[60px] md:w-[65px] lg:w-[70px]"
-        defaultValue={defaultValue}
+        value={value}
       ></Input>
     </div>
   );
@@ -294,12 +344,16 @@ const multipliers = [
   String.fromCharCode(0xd7) + 2,
 ];
 
-const allChecked = (map: Map<string, boolean>): boolean | "indeterminate" => {
+const allChecked = (
+  tokens: Token[],
+  map: Map<string, boolean>,
+): boolean | "indeterminate" => {
   let allChecked = true;
   let noneChecked = true;
-  for (const entry of map) {
-    if (entry[1] === false) allChecked = false;
-    if (entry[1] === true) noneChecked = false;
+  for (const token of tokens) {
+    const included = getIncluded(token.item.id, map);
+    if (included === false) allChecked = false;
+    if (included === true) noneChecked = false;
   }
   if (allChecked) return true;
   if (noneChecked) return false;
