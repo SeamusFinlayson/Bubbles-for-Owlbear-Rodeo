@@ -1,9 +1,10 @@
-import Token, { StatsObject } from "../TokenClass";
+import Token from "../TokenClass";
 import { useEffect, useState } from "react";
 import {
+  getNewStatValue,
   isInputName,
-  writeInputValueToTokenMetadata,
-} from "./writeInputValueToTokenMetadata";
+  writeTokenValueToItem,
+} from "../statInputHelpers";
 import { useTheme } from "@mui/material";
 import OBR from "@owlbear-rodeo/sdk";
 import {
@@ -37,16 +38,14 @@ export default function StatsMenuApp({
   const mode = useTheme().palette.mode;
   const textColor = useTheme().palette.text.primary;
 
-  const [token, setToken] = useState<StatsObject>(
-    initialToken.returnStatsAsObject(),
-  );
+  const [token, setToken] = useState<Token>(initialToken);
 
   useEffect(
     () =>
       OBR.scene.items.onChange(() => {
         const updateStats = (tokens: Token[]) => {
           let currentToken = tokens[0];
-          setToken(currentToken.returnStatsAsObject());
+          setToken(currentToken);
         };
         getSelectedItems().then((selectedItems) => {
           parseSelectedTokens(false, selectedItems).then((tokens) =>
@@ -58,55 +57,26 @@ export default function StatsMenuApp({
     [],
   );
 
-  async function handleTargetUpdate(target: HTMLInputElement) {
+  async function handleStatUpdate(
+    target: HTMLInputElement,
+    previousValue: number,
+  ) {
     const name = target.name;
-    if (!isInputName(name)) {
-      throw "Error: invalid input name.";
-    }
+    if (!isInputName(name)) throw "Error: invalid input name.";
 
-    let value: string;
+    const value = getNewStatValue(name, target.value, previousValue);
 
-    switch (target.type) {
-      case "text":
-        value = target.value;
-        break;
-      default:
-        throw "Error unhandled input type.";
-    }
-
-    await writeInputValueToTokenMetadata(name, value).then((newValue) => {
-      let correctTypeValue: number | boolean;
-      if (typeof newValue === "string")
-        correctTypeValue = Math.trunc(parseFloat(newValue));
-      else correctTypeValue = newValue;
-
-      setToken((prev): StatsObject => {
-        return { ...prev, [name]: correctTypeValue };
-      });
-    });
+    setToken((prev) => ({ ...prev, [name]: value }) as Token);
+    writeTokenValueToItem(token.item.id, name, value);
   }
 
-  function updateHide(target: HTMLInputElement) {
+  async function updateHide(target: HTMLInputElement) {
     const name = target.name;
-    if (!isInputName(name)) {
-      throw "Error: invalid input name.";
-    }
+    if (!isInputName(name)) throw "Error: invalid input name.";
 
-    let value: boolean;
-
-    switch (target.type) {
-      case "checkbox":
-        value = target.checked;
-        break;
-      default:
-        throw "Error unhandled input type.";
-    }
-
-    setToken((prev): StatsObject => {
-      return { ...prev, [name]: value };
-    });
-
-    writeInputValueToTokenMetadata(name, value);
+    const value = target.checked;
+    setToken((prev) => ({ ...prev, [name]: value }) as Token);
+    writeTokenValueToItem(token.item.id, name, value);
   }
 
   const [tokenName, setTokenName] = useState(initialTokenName);
@@ -145,7 +115,7 @@ export default function StatsMenuApp({
         ></TextField>
       </div>
       {tokenName === "" && (
-        <div className=" right-0 top-0 ">
+        <div className="right-0 top-0">
           <IconButton
             Icon={MagicIcon}
             onClick={() => {
@@ -177,8 +147,8 @@ export default function StatsMenuApp({
         parentValue={token.health}
         parentMax={token.maxHealth}
         color={0}
-        valueUpdateHandler={handleTargetUpdate}
-        maxUpdateHandler={handleTargetUpdate}
+        valueUpdateHandler={(target) => handleStatUpdate(target, token.health)}
+        maxUpdateHandler={(target) => handleStatUpdate(target, token.maxHealth)}
         valueInputProps={{ name: "health" }}
         maxInputProps={{ name: "maxHealth" }}
         animateOnlyWhenRootActive={true}
@@ -186,14 +156,14 @@ export default function StatsMenuApp({
       <BubbleInput
         parentValue={token.tempHealth}
         color={1}
-        updateHandler={handleTargetUpdate}
+        updateHandler={(target) => handleStatUpdate(target, token.tempHealth)}
         inputProps={{ name: "tempHealth" }}
         animateOnlyWhenRootActive={true}
       ></BubbleInput>
       <BubbleInput
         parentValue={token.armorClass}
         color={2}
-        updateHandler={handleTargetUpdate}
+        updateHandler={(target) => handleStatUpdate(target, token.armorClass)}
         inputProps={{ name: "armorClass" }}
         animateOnlyWhenRootActive={true}
       ></BubbleInput>

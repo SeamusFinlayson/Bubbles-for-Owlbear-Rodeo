@@ -18,15 +18,28 @@ import {
   calculateScaledHealthDiff,
 } from "./healthCalculations";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getDamageScaleOption, getIncluded } from "./helpers";
+import {
+  DEFAULT_DAMAGE_SCALE,
+  getDamageScaleOption,
+  getIncluded,
+} from "./helpers";
 import { cn } from "@/lib/utils";
+import { InputHTMLAttributes, useEffect, useState } from "react";
+import {
+  getNewStatValue,
+  InputName,
+  isInputName,
+  writeTokenValueToItem,
+} from "@/statInputHelpers";
 
 export function SetValuesTable({
   tokens,
+  setTokens,
   includedItems,
   setIncludedItems,
 }: {
   tokens: Token[];
+  setTokens: React.Dispatch<React.SetStateAction<Token[]>>;
   includedItems: Map<string, boolean>;
   setIncludedItems: React.Dispatch<React.SetStateAction<Map<string, boolean>>>;
 }): JSX.Element {
@@ -63,15 +76,59 @@ export function SetValuesTable({
                 <TokenNameTableCell token={token} fade={!included} />
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <StatInput value={token.health}></StatInput>
+                    <StatInput
+                      parentValue={token.health}
+                      name={"health"}
+                      updateHandler={(target) =>
+                        handleStatUpdate(
+                          token.item.id,
+                          target,
+                          token.health,
+                          setTokens,
+                        )
+                      }
+                    ></StatInput>
                     <div>{"/"}</div>
-                    <StatInput value={token.maxHealth}></StatInput>
+                    <StatInput
+                      parentValue={token.maxHealth}
+                      name={"maxHealth"}
+                      updateHandler={(target) =>
+                        handleStatUpdate(
+                          token.item.id,
+                          target,
+                          token.maxHealth,
+                          setTokens,
+                        )
+                      }
+                    ></StatInput>
                     <div>{""}</div>
-                    <StatInput value={token.tempHealth}></StatInput>
+                    <StatInput
+                      parentValue={token.tempHealth}
+                      name={"tempHealth"}
+                      updateHandler={(target) =>
+                        handleStatUpdate(
+                          token.item.id,
+                          target,
+                          token.tempHealth,
+                          setTokens,
+                        )
+                      }
+                    ></StatInput>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <StatInput value={token.armorClass}></StatInput>
+                  <StatInput
+                    parentValue={token.armorClass}
+                    name={"armorClass"}
+                    updateHandler={(target) =>
+                      handleStatUpdate(
+                        token.item.id,
+                        target,
+                        token.armorClass,
+                        setTokens,
+                      )
+                    }
+                  ></StatInput>
                 </TableCell>
               </TableRow>
             );
@@ -144,6 +201,12 @@ export function DamageTable({
               );
             };
 
+            const resetDamageOption = () => {
+              setDamageScaleOptions((prev) =>
+                new Map(prev).set(token.item.id, DEFAULT_DAMAGE_SCALE),
+              );
+            };
+
             const previousDamageOption = () => {
               setDamageScaleOptions((prev) =>
                 new Map(prev).set(
@@ -156,13 +219,15 @@ export function DamageTable({
             const handleKeyDown = (
               event: React.KeyboardEvent<HTMLTableRowElement>,
             ) => {
-              switch (event.key) {
+              switch (event.code) {
                 case "ArrowLeft":
                   previousDamageOption();
                   break;
                 case "ArrowRight":
                   nextDamageOption();
                   break;
+                case "KeyR":
+                  resetDamageOption();
               }
             };
 
@@ -179,9 +244,9 @@ export function DamageTable({
                 <TokenImageTableCell token={token} fade={!included} />
                 <TokenNameTableCell token={token} fade={!included} />
                 <TableCell>
-                  <div className="flex max-w-32">
+                  <div className="flex max-w-32 gap-2">
                     <Button
-                      className="size-8 rounded-full"
+                      className="size-8 min-w-8 rounded-full"
                       tabIndex={-1}
                       size={"icon"}
                       variant={"outline"}
@@ -189,7 +254,7 @@ export function DamageTable({
                     >
                       <ArrowLeftIcon className="size-4" />
                     </Button>
-                    <div
+                    {/* <div
                       className={cn(
                         "flex w-14 items-center justify-center text-lg font-medium",
                         {
@@ -198,9 +263,17 @@ export function DamageTable({
                       )}
                     >
                       {multipliers[option]}
-                    </div>
+                    </div> */}
                     <Button
-                      className="size-8 rounded-full"
+                      className="flex h-8 w-10 items-center justify-center text-lg font-medium"
+                      tabIndex={-1}
+                      variant={"ghost"}
+                      onClick={resetDamageOption}
+                    >
+                      {multipliers[option]}
+                    </Button>
+                    <Button
+                      className="size-8 min-w-8 rounded-full"
                       tabIndex={-1}
                       size={"icon"}
                       variant={"outline"}
@@ -277,12 +350,88 @@ function TokenNameTableCell({
   );
 }
 
-function StatInput({ value }: { value: number }): JSX.Element {
+async function handleStatUpdate(
+  itemId: string,
+  target: HTMLInputElement,
+  previousValue: number,
+  setTokens: React.Dispatch<React.SetStateAction<Token[]>>,
+) {
+  const name = target.name;
+  if (!isInputName(name)) throw "Error: invalid input name.";
+
+  const value = getNewStatValue(name, target.value, previousValue);
+
+  setTokens((prevTokens) => {
+    for (let i = 0; i < prevTokens.length; i++) {
+      // console.log(prevTokens[i]);
+      if (prevTokens[i].item.id === itemId)
+        prevTokens[i] = { ...prevTokens[i], [name]: value } as Token;
+    }
+    return [...prevTokens];
+  });
+  writeTokenValueToItem(itemId, name, value);
+}
+
+function StatInput({
+  parentValue,
+  updateHandler,
+  name,
+  inputProps,
+}: {
+  parentValue: number;
+  updateHandler: (target: HTMLInputElement) => Promise<void>;
+  name: InputName;
+  inputProps?: InputHTMLAttributes<HTMLInputElement>;
+}): JSX.Element {
+  const [value, setValue] = useState<string>(parentValue.toString());
+  let ignoreBlur = false;
+
+  // Update value when the tracker value changes in parent
+  const [valueInputUpdateFlag, setValueInputUpdateFlag] = useState(false);
+  if (valueInputUpdateFlag) {
+    setValue(parentValue.toString());
+    setValueInputUpdateFlag(false);
+  }
+  useEffect(() => setValueInputUpdateFlag(true), [parentValue]);
+
+  // Update tracker in parent element
+  const runUpdateHandler = (
+    e:
+      | React.FocusEvent<HTMLInputElement, Element>
+      | React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    updateHandler(e.target as HTMLInputElement).then(() =>
+      setValueInputUpdateFlag(true),
+    );
+  };
+
+  // Select text on focus
+  const selectText = (event: React.FocusEvent<HTMLInputElement, Element>) => {
+    event.target.select();
+  };
+
   return (
     <div className="flex items-center">
       <Input
+        {...inputProps}
         className="h-[32px] w-[60px] md:w-[65px] lg:w-[70px]"
+        name={name}
         value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={(e) => {
+          if (!ignoreBlur) runUpdateHandler(e);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            (e.target as HTMLInputElement).blur();
+          } else if (e.key === "Escape") {
+            ignoreBlur = true;
+            (e.target as HTMLInputElement).blur();
+            ignoreBlur = false;
+            setValue(parentValue.toString());
+          }
+        }}
+        onFocus={selectText}
       ></Input>
     </div>
   );

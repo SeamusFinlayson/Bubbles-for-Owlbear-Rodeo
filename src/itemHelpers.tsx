@@ -1,4 +1,4 @@
-import OBR, { Item, Metadata } from "@owlbear-rodeo/sdk";
+import OBR, { Item } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 import Token from "./TokenClass";
 import {
@@ -88,7 +88,7 @@ export function getTokenStats(
     getNumberFromMetadata(metadata, MAX_HEALTH_METADATA_ID),
     getNumberFromMetadata(metadata, TEMP_HEALTH_METADATA_ID),
     getNumberFromMetadata(metadata, ARMOR_CLASS_METADATA_ID),
-    getBooleanFromMetadata(metadata, HIDE_METADATA_ID, true),
+    !getBooleanFromMetadata(metadata, HIDE_METADATA_ID),
   ];
 }
 

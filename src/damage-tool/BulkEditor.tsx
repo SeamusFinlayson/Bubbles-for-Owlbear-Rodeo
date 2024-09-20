@@ -65,6 +65,7 @@ export default function BulkEditor({
         return (
           <SetValuesTable
             tokens={tokens}
+            setTokens={setTokens}
             includedItems={includedItems}
             setIncludedItems={setIncludedItems}
           ></SetValuesTable>

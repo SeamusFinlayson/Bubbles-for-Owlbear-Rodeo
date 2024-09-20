@@ -42,7 +42,7 @@ const commands = new Map<string, CommandType>([
       ? `Roll ${extractCommandContent(string)} healing`
       : "Invalid Roll";
   }),
-  commandFactory("t", "Set Temporary Hit Points", () => ""),
+  // commandFactory("t", "Set Temporary Hit Points", () => ""),
 ]);
 
 // Command line text parsers
