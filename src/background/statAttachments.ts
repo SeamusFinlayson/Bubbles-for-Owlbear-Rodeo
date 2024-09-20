@@ -20,7 +20,7 @@ import {
   getNameTagTextTestId,
 } from "./compoundItemHelpers";
 import { getOriginAndBounds } from "./mathHelpers";
-import { NAME_METADATA_ID, getName, getTokenMetadata } from "../itemHelpers";
+import { NAME_METADATA_ID, getName, getTokenStats } from "../itemHelpers";
 import { Settings, getGlobalSettings } from "./getGlobalSettings";
 import createContextMenuItems from "./contextMenuItems";
 
@@ -329,7 +329,7 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
 
   // Create stats
   const [health, maxHealth, tempHealth, armorClass, statsVisible] =
-    getTokenMetadata(item);
+    getTokenStats(item);
   if (role === "PLAYER" && !statsVisible && !settings.showBars) {
     // Display nothing, explicitly remove all attachments
     addHealthAttachmentsToArray(deleteItemsArray, item.id);
