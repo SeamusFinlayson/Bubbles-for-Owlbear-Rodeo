@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Command from "./components/Command";
+import Command from "./Command";
 import { EditorMode, StampedDiceRoll } from "./types";
 import { Button } from "@/components/ui/button";
 

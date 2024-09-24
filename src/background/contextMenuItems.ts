@@ -11,16 +11,22 @@ const STATS_HEIGHT = 84;
 const HIDE_HEIGHT = 50;
 const BOTTOM_PADDING = 2;
 
-export default function createContextMenuItems(settings: Settings) {
+export default async function createContextMenuItems(
+  settings: Settings,
+  themeMode: "DARK" | "LIGHT",
+) {
   let menuHeight = STATS_HEIGHT + BOTTOM_PADDING;
   if (settings.nameTags) menuHeight += NAME_HEIGHT;
 
-  createPlayerMenu(menuHeight);
-  createGmMenu(menuHeight + HIDE_HEIGHT);
-  createDamageToolContextItem();
+  createPlayerMenu(themeMode, menuHeight);
+  createGmMenu(themeMode, menuHeight + HIDE_HEIGHT);
+  createDamageToolContextItem(themeMode);
 }
 
-function createPlayerMenu(playerMenuHeight: number) {
+function createPlayerMenu(
+  themeMode: "DARK" | "LIGHT",
+  playerMenuHeight: number,
+) {
   OBR.contextMenu.create({
     id: getPluginId("player-menu"),
     icons: [
@@ -51,13 +57,13 @@ function createPlayerMenu(playerMenuHeight: number) {
     ],
     shortcut: "Shift + S",
     embed: {
-      url: "/src/edit-stats/editStats.html",
+      url: `/src/edit-stats/editStats.html?themeMode=${themeMode}`,
       height: playerMenuHeight,
     },
   });
 }
 
-function createGmMenu(gmMenuHeight: number) {
+function createGmMenu(themeMode: "DARK" | "LIGHT", gmMenuHeight: number) {
   OBR.contextMenu.create({
     id: getPluginId("gm-menu"),
     icons: [
@@ -78,13 +84,13 @@ function createGmMenu(gmMenuHeight: number) {
     ],
     shortcut: "Shift + S",
     embed: {
-      url: "/src/edit-stats/editStats.html",
+      url: `/src/edit-stats/editStats.html?themeMode=${themeMode}`,
       height: gmMenuHeight,
     },
   });
 }
 
-function createDamageToolContextItem() {
+function createDamageToolContextItem(themeMode: "DARK" | "LIGHT") {
   OBR.contextMenu.create({
     id: getPluginId("damage-tool"),
     icons: [
@@ -99,10 +105,9 @@ function createDamageToolContextItem() {
     ],
     shortcut: "Shift + S",
     onClick: async (_, elementId) => {
-      const darkMode = (await OBR.theme.getTheme()).mode;
       OBR.popover.open({
         id: getPluginId("damage-tool-popover"),
-        url: `/src/damage-tool/damageTool.html?darkMode=${darkMode}`,
+        url: `/src/damage-tool/damageTool.html?themeMode=${themeMode}`,
         height: 522,
         width: 600,
         anchorElementId: elementId,

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import ChildrenBlur from "./ChildrenBlur";
+import ChildrenBlur from "../components/ChildrenBlur";
 import { Input2 } from "@/components/ui/input2";
 import { Separator } from "@/components/ui/separator";
 import { DiceRoll, Parser } from "@dice-roller/rpg-dice-roller";
-import { EditorMode, StampedDiceRoll } from "../types";
+import { EditorMode, StampedDiceRoll } from "./types";
 
 type CommandType = {
   code: string;

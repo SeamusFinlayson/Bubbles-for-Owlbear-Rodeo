@@ -37,11 +37,13 @@ const settings: Settings = {
 };
 let callbacksStarted = false;
 let userRoleLast: "GM" | "PLAYER";
+let themeMode: "DARK" | "LIGHT";
 
 export default async function startBackground() {
   const start = async () => {
     await getGlobalSettings(settings);
-    createContextMenuItems(settings);
+    themeMode = (await OBR.theme.getTheme()).mode;
+    createContextMenuItems(settings, themeMode);
     await refreshAllHealthBars();
     await startCallbacks();
   };
@@ -95,6 +97,12 @@ async function startCallbacks() {
     // Don't run this again unless the listeners have been unsubscribed
     callbacksStarted = true;
 
+    // Handle theme changes
+    const unSubscribeFromTheme = OBR.theme.onChange((theme) => {
+      themeMode = theme.mode;
+      createContextMenuItems(settings, themeMode);
+    });
+
     // Handle role changes
     userRoleLast = await OBR.player.getRole();
     const unSubscribeFromPlayer = OBR.player.onChange(async () => {
@@ -109,9 +117,8 @@ async function startCallbacks() {
     // Handle metadata changes
     const unsubscribeFromSceneMetadata = OBR.scene.onMetadataChange(
       async (metadata) => {
-        // Do a refresh if an item change is detected
         if (await getGlobalSettings(settings, metadata)) {
-          createContextMenuItems(settings);
+          createContextMenuItems(settings, themeMode);
           refreshAllHealthBars();
         }
       },
@@ -159,6 +166,7 @@ async function startCallbacks() {
     // Unsubscribe listeners that rely on the scene if it stops being ready
     const unsubscribeFromScene = OBR.scene.onReadyChange((isReady) => {
       if (!isReady) {
+        unSubscribeFromTheme();
         unSubscribeFromPlayer();
         unsubscribeFromSceneMetadata();
         unsubscribeFromItems();

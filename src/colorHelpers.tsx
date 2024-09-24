@@ -1,3 +1,12 @@
+export function addThemeToBody() {
+  const themeMode = new URLSearchParams(document.location.search).get(
+    "themeMode",
+  );
+  console.log(themeMode);
+  if (themeMode === "DARK") document.body.classList.add("dark");
+  else document.body.classList.remove("dark");
+}
+
 export function getBackgroundColor(colorNumber: number) {
   let color: string;
   switch (colorNumber % 3) {

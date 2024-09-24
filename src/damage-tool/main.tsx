@@ -4,12 +4,10 @@ import { parseSelectedTokens } from "../itemHelpers";
 import BulkEditor from "./BulkEditor";
 
 import "../index.css";
+import { addThemeToBody } from "@/colorHelpers";
 
 OBR.onReady(async () => {
-  const darkMode = new URLSearchParams(document.location.search).get(
-    "darkMode",
-  );
-  if (darkMode === "DARK") document.body.classList.add("dark");
+  addThemeToBody();
 
   const initialTokens = await parseSelectedTokens(true);
 

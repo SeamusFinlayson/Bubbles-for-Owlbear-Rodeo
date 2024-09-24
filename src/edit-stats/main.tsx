@@ -1,22 +1,21 @@
 import OBR from "@owlbear-rodeo/sdk";
-import { ThemeProvider } from "@mui/material";
-import { getTheme } from "../OBRThemeProvider";
 import { createRoot } from "react-dom/client";
 import StatsMenuApp from "./StatsMenuApp";
 import { getName, getSelectedItems, parseSelectedTokens } from "../itemHelpers";
 import { getPluginId } from "../getPluginId";
+import { addThemeToBody } from "@/colorHelpers";
 
 OBR.onReady(async () => {
-  const [selectedItems, role, themeObject, sceneMetadata] = await Promise.all([
+  const [selectedItems, role, sceneMetadata] = await Promise.all([
     getSelectedItems(),
     OBR.player.getRole(),
-    OBR.theme.getTheme(),
     OBR.scene.getMetadata(),
   ]);
 
-  const theme = getTheme(themeObject);
   const initialTokens = await parseSelectedTokens(false, selectedItems);
   const initialName = getName(selectedItems[0]);
+
+  addThemeToBody();
 
   let initialNameTagsEnabled: unknown = (sceneMetadata as any)[
     getPluginId("metadata")
@@ -30,18 +29,16 @@ OBR.onReady(async () => {
       document.getElementById("mother-flex") as HTMLDivElement,
     );
     root.render(
-      <ThemeProvider theme={theme}>
-        <StatsMenuApp
-          initialToken={initialTokens[0]}
-          initialTokenName={initialName}
-          initialNameTagsEnabled={
-            typeof initialNameTagsEnabled === "boolean"
-              ? initialNameTagsEnabled
-              : false
-          }
-          role={role}
-        />
-      </ThemeProvider>,
+      <StatsMenuApp
+        initialToken={initialTokens[0]}
+        initialTokenName={initialName}
+        initialNameTagsEnabled={
+          typeof initialNameTagsEnabled === "boolean"
+            ? initialNameTagsEnabled
+            : false
+        }
+        role={role}
+      />,
     );
   }
 });

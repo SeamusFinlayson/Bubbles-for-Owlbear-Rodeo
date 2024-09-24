@@ -5,7 +5,6 @@ import {
   isInputName,
   writeTokenValueToItem,
 } from "../statInputHelpers";
-import { useTheme } from "@mui/material";
 import OBR from "@owlbear-rodeo/sdk";
 import {
   getName,
@@ -35,9 +34,6 @@ export default function StatsMenuApp({
   initialNameTagsEnabled: boolean;
   role: "GM" | "PLAYER";
 }): JSX.Element {
-  const mode = useTheme().palette.mode;
-  const textColor = useTheme().palette.text.primary;
-
   const [token, setToken] = useState<Token>(initialToken);
 
   useEffect(
@@ -84,6 +80,7 @@ export default function StatsMenuApp({
   const [nameTagsEnabled, setNameTagsEnabled] = useState(
     initialNameTagsEnabled,
   );
+
   useEffect(() =>
     OBR.scene.onMetadataChange((metadata) => {
       const nameTagsEnabled = (
@@ -133,7 +130,7 @@ export default function StatsMenuApp({
   );
 
   const StatsMenu: JSX.Element = (
-    <div className={"stat-grid " + mode} style={{ color: textColor }}>
+    <div className={"stat-grid bg-black/[0.07] dark:bg-white/[0.07]"}>
       <div className="grid-item">
         <label className="label">HP</label>
       </div>
@@ -171,7 +168,7 @@ export default function StatsMenuApp({
   );
 
   const HideRow: JSX.Element = (
-    <div className={"hide-switch-row " + mode} style={{ color: textColor }}>
+    <div className={"hide-switch-row bg-black/[0.07] dark:bg-white/[0.07]"}>
       <label htmlFor="hide" className="label" style={{ margin: 0 }}>
         Hide stats from players
       </label>
@@ -183,20 +180,11 @@ export default function StatsMenuApp({
     </div>
   );
 
-  if (role === "GM") {
-    return (
-      <div className={mode}>
-        {nameTagsEnabled && NameField}
-        {StatsMenu}
-        {HideRow}
-      </div>
-    );
-  } else {
-    return (
-      <div className={mode}>
-        {nameTagsEnabled && NameField}
-        {StatsMenu}
-      </div>
-    );
-  }
+  return (
+    <div className="text-text-primary dark:text-text-primary-dark">
+      {nameTagsEnabled && NameField}
+      {StatsMenu}
+      {role === "GM" && HideRow}
+    </div>
+  );
 }
