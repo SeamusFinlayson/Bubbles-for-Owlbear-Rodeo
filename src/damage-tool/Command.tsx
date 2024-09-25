@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import ChildrenBlur from "../components/ChildrenBlur";
 import { Input2 } from "@/components/ui/input2";
 import { Separator } from "@/components/ui/separator";
-import { DiceRoll, Parser } from "@dice-roller/rpg-dice-roller";
+import { Parser } from "@dice-roller/rpg-dice-roller";
 import { EditorMode, StampedDiceRoll } from "./types";
+import { addNewRollToRolls } from "./helpers";
 
 type CommandType = {
   code: string;
@@ -77,9 +78,11 @@ const validRoll = (string: string) => {
 export default function Command({
   setEditorMode,
   setStampedRolls,
+  setAnimateRoll,
 }: {
   setEditorMode: React.Dispatch<React.SetStateAction<EditorMode>>;
   setStampedRolls: React.Dispatch<React.SetStateAction<StampedDiceRoll[]>>;
+  setAnimateRoll: React.Dispatch<React.SetStateAction<boolean>>;
 }): JSX.Element {
   const [inputContent, setInputContent] = useState("");
   const [selection, setSelection] = useState(0);
@@ -110,12 +113,11 @@ export default function Command({
       const executeCommand = () => {
         if (validRoll(extractCommandContent(inputContent))) {
           // Get roll
-          const roll = new DiceRoll(extractCommandContent(inputContent));
+          const diceExpression = extractCommandContent(inputContent);
           const addToRolls = () => {
-            setStampedRolls((rolls) => [
-              { timeStamp: Date.now(), diceRoll: roll } as StampedDiceRoll,
-              ...rolls,
-            ]);
+            setStampedRolls((prevRolls) =>
+              addNewRollToRolls(prevRolls, diceExpression, setAnimateRoll),
+            );
           };
           switch (commandCode) {
             case "r":

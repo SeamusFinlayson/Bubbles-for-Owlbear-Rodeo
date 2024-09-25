@@ -79,6 +79,7 @@ export function SetValuesTable({
                     <StatInput
                       parentValue={token.health}
                       name={"health"}
+                      variant="hitPoints"
                       updateHandler={(target) =>
                         handleStatUpdate(
                           token.item.id,
@@ -92,6 +93,7 @@ export function SetValuesTable({
                     <StatInput
                       parentValue={token.maxHealth}
                       name={"maxHealth"}
+                      variant="hitPoints"
                       updateHandler={(target) =>
                         handleStatUpdate(
                           token.item.id,
@@ -105,6 +107,7 @@ export function SetValuesTable({
                     <StatInput
                       parentValue={token.tempHealth}
                       name={"tempHealth"}
+                      variant="tempHitPoints"
                       updateHandler={(target) =>
                         handleStatUpdate(
                           token.item.id,
@@ -120,6 +123,7 @@ export function SetValuesTable({
                   <StatInput
                     parentValue={token.armorClass}
                     name={"armorClass"}
+                    variant="armorClass"
                     updateHandler={(target) =>
                       handleStatUpdate(
                         token.item.id,
@@ -377,11 +381,13 @@ function StatInput({
   updateHandler,
   name,
   inputProps,
+  variant,
 }: {
   parentValue: number;
   updateHandler: (target: HTMLInputElement) => Promise<void>;
   name: InputName;
   inputProps?: InputHTMLAttributes<HTMLInputElement>;
+  variant: "hitPoints" | "tempHitPoints" | "armorClass";
 }): JSX.Element {
   const [value, setValue] = useState<string>(parentValue.toString());
   let ignoreBlur = false;
@@ -414,7 +420,14 @@ function StatInput({
     <div className="flex items-center">
       <Input
         {...inputProps}
-        className="h-[32px] w-[60px] md:w-[65px] lg:w-[70px]"
+        className={cn("h-[32px] w-[60px] md:w-[65px] lg:w-[70px]", {
+          "bg-stat-light-health/10 dark:bg-stat-dark-health/5":
+            variant === "hitPoints",
+          "bg-stat-light-temp/10 dark:bg-stat-dark-temp/5":
+            variant === "tempHitPoints",
+          "bg-stat-light-armor/10 dark:bg-stat-dark-armor/5":
+            variant === "armorClass",
+        })}
         name={name}
         value={value}
         onChange={(e) => setValue(e.target.value)}

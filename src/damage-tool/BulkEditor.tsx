@@ -6,19 +6,23 @@ import Footer from "./Footer";
 import Header from "./Header";
 import { DamageTable, SetValuesTable } from "./Tables";
 import { Button } from "@/components/ui/button";
-import { applyHealthDiffToItems } from "./helpers";
+import { applyHealthDiffToItems, getRollsFromScene } from "./helpers";
 import OBR from "@owlbear-rodeo/sdk";
 import { parseSelectedTokens } from "@/itemHelpers";
 
 export default function BulkEditor({
   initialTokens,
+  initialRolls,
 }: {
   initialTokens: Token[];
+  initialRolls: StampedDiceRoll[];
 }): JSX.Element {
   // App state
   const [editorMode, setEditorMode] = useState<EditorMode>("setValues");
-  const [stampedRoll, setStampedRolls] = useState<StampedDiceRoll[]>([]);
+  const [stampedRoll, setStampedRolls] =
+    useState<StampedDiceRoll[]>(initialRolls);
   const [value, setValue] = useState<number | null>(null);
+  const [animateRoll, setAnimateRoll] = useState(false);
 
   // Tokens
   const [tokens, setTokens] = useState(initialTokens);
@@ -43,10 +47,17 @@ export default function BulkEditor({
     [],
   );
 
+  useEffect(
+    OBR.scene.onMetadataChange(async (sceneMetadata) => {
+      setStampedRolls(await getRollsFromScene(sceneMetadata));
+    }),
+    [],
+  );
+
   useEffect(() => {
-    const newValue = stampedRoll[0]?.diceRoll.total;
+    const newValue = stampedRoll[0]?.total;
     if (newValue !== undefined) setValue(newValue);
-  }, [stampedRoll[0]?.diceRoll.total]);
+  }, [stampedRoll[0]?.total]);
 
   const getTable = (editorMode: EditorMode) => {
     switch (editorMode) {
@@ -117,6 +128,7 @@ export default function BulkEditor({
           editorMode={editorMode}
           setEditorMode={setEditorMode}
           setStampedRolls={setStampedRolls}
+          setAnimateRoll={setAnimateRoll}
         ></Header>
         {getTable(editorMode)}
         <Footer
@@ -126,6 +138,8 @@ export default function BulkEditor({
           value={value}
           setValue={setValue}
           action={getActionButton(editorMode)}
+          animateRoll={animateRoll}
+          setAnimateRoll={setAnimateRoll}
         ></Footer>
       </div>
     </div>

@@ -1,11 +1,15 @@
 import Token from "@/TokenClass";
-import OBR, { Item } from "@owlbear-rodeo/sdk";
+import OBR, { Item, Metadata } from "@owlbear-rodeo/sdk";
 import {
   calculateNewHealth,
   calculateScaledHealthDiff,
 } from "./healthCalculations";
 import { HEALTH_METADATA_ID, TEMP_HEALTH_METADATA_ID } from "@/itemMetadataIds";
 import { getPluginId } from "@/getPluginId";
+import { StampedDiceRoll } from "./types";
+import { DiceRoll } from "@dice-roller/rpg-dice-roller";
+
+/* Items */
 
 export const DEFAULT_DAMAGE_SCALE = 3;
 export const DEFAULT_INCLUDED = true;
@@ -75,4 +79,52 @@ export function applyHealthDiffToItems(
       items[i].metadata[getPluginId("metadata")] = combinedMetadata;
     }
   });
+}
+
+/* Dice */
+
+const DICE_METADATA_ID = getPluginId("diceRolls");
+
+export async function setSceneRolls(rolls: StampedDiceRoll[]) {
+  await OBR.scene.setMetadata({ [DICE_METADATA_ID]: rolls });
+}
+
+export async function getRollsFromScene(sceneMetadata?: Metadata) {
+  if (sceneMetadata === undefined)
+    sceneMetadata = await OBR.scene.getMetadata();
+  const diceRolls = sceneMetadata[DICE_METADATA_ID];
+  if (!isDiceRollArray(diceRolls)) throw "Error: invalid dice roll array";
+  return diceRolls;
+}
+
+function isDiceRollArray(rolls: unknown): rolls is StampedDiceRoll[] {
+  if (!Array.isArray(rolls)) return false;
+  for (const roll of rolls) {
+    if (typeof roll?.timeStamp !== "number") return false;
+    if (typeof roll?.total !== "number") return false;
+    if (typeof roll?.roll !== "string") return false;
+  }
+  return true;
+}
+
+export function addNewRollToRolls(
+  prevRolls: StampedDiceRoll[],
+  newRollExpression: string,
+  setAnimateRoll: React.Dispatch<React.SetStateAction<boolean>>,
+) {
+  const roll = new DiceRoll(newRollExpression);
+  const rolls: StampedDiceRoll[] = [
+    {
+      timeStamp: Date.now(),
+      total: roll.total,
+      roll: roll.toString(),
+    },
+    ...prevRolls.splice(0, 19),
+  ];
+
+  setAnimateRoll(true);
+  setTimeout(() => setAnimateRoll(false), 500);
+
+  setSceneRolls(rolls);
+  return rolls;
 }

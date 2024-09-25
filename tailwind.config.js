@@ -12,6 +12,28 @@ export default {
       lg: "550px",
     },
     extend: {
+      animation: { "inverse-bounce": "hiThere 0.5s infinite" },
+
+      keyframes: {
+        hiThere: {
+          "0%": { transform: "scale(0.6) rotate(-180deg)" },
+          "40%": {
+            transform: "translateX(-100%) rotate(-180deg)",
+            animationTimingFunction: "linear",
+          },
+
+          "70%": {
+            transform: "translateX(30%) rotate(54deg)",
+            animationTimingFunction: "linear",
+          },
+          "90%": {
+            transform: "translateX(0%) rotate(0deg)",
+          },
+          "100%": {
+            transform: "translateX(0%) rotate(0deg)",
+          },
+        },
+      },
       transitionProperty: {
         height: "height",
       },
