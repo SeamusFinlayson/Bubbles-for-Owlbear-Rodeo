@@ -4,9 +4,13 @@ import {
   calculateNewHealth,
   calculateScaledHealthDiff,
 } from "./healthCalculations";
-import { HEALTH_METADATA_ID, TEMP_HEALTH_METADATA_ID } from "@/itemMetadataIds";
+import {
+  HEALTH_METADATA_ID,
+  StatMetadataID,
+  TEMP_HEALTH_METADATA_ID,
+} from "@/itemMetadataIds";
 import { getPluginId } from "@/getPluginId";
-import { StampedDiceRoll } from "./types";
+import { StampedDiceRoll, StatOverwriteData } from "./types";
 import { DiceRoll } from "@dice-roller/rpg-dice-roller";
 
 /* Items */
@@ -35,6 +39,7 @@ export function applyHealthDiffToItems(
   damageScaleSettings: Map<string, number>,
   tokens: Token[],
 ) {
+  // TODO: validate items
   const validItems: Item[] = [];
   tokens.forEach((token) => {
     validItems.push(token.item);
@@ -77,6 +82,57 @@ export function applyHealthDiffToItems(
       const combinedMetadata = { ...retrievedMetadata, ...newMetadata }; //overwrite only the modified value
 
       items[i].metadata[getPluginId("metadata")] = combinedMetadata;
+    }
+  });
+}
+
+export function overwriteStats(
+  statOverwrites: StatOverwriteData,
+  includedItems: Map<string, boolean>,
+  tokens: Token[],
+) {
+  const validItems: Item[] = [];
+  tokens.forEach((token) => {
+    validItems.push(token.item);
+  });
+
+  OBR.scene.items.updateItems(validItems, (items) => {
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].id !== tokens[i].item.id) {
+        throw "Error: Item mismatch in Stat Bubbles Damage Tool, could not update token.";
+      }
+
+      const included = getIncluded(tokens[i].item.id, includedItems);
+
+      if (included) {
+        let newMetadata = {};
+        const stats: [string, StatMetadataID][] = [
+          [statOverwrites.hitPoints, "health"],
+          [statOverwrites.maxHitPoints, "max health"],
+          [statOverwrites.tempHitPoints, "temporary health"],
+          [statOverwrites.armorClass, "armor class"],
+        ];
+
+        for (const stat of stats) {
+          if (stat[0] !== "") {
+            const value = parseFloat(stat[0]);
+            if (Number.isInteger(value)) {
+              newMetadata = { ...newMetadata, [stat[1]]: value };
+            }
+          }
+        }
+
+        let retrievedMetadata: any;
+        if (items[i].metadata[getPluginId("metadata")]) {
+          retrievedMetadata = JSON.parse(
+            JSON.stringify(items[i].metadata[getPluginId("metadata")]),
+          );
+        }
+
+        const combinedMetadata = { ...retrievedMetadata, ...newMetadata }; //overwrite only the modified value
+
+        items[i].metadata[getPluginId("metadata")] = combinedMetadata;
+      }
     }
   });
 }

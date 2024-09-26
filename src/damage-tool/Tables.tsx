@@ -2,7 +2,6 @@ import Token from "../TokenClass";
 import "../index.css";
 import { Image } from "@owlbear-rodeo/sdk";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -24,13 +23,14 @@ import {
   getIncluded,
 } from "./helpers";
 import { cn } from "@/lib/utils";
-import { InputHTMLAttributes, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   getNewStatValue,
   InputName,
   isInputName,
   writeTokenValueToItem,
 } from "@/statInputHelpers";
+import StatStyledInput from "./StatStyledInput";
 
 export function SetValuesTable({
   tokens,
@@ -44,8 +44,8 @@ export function SetValuesTable({
   setIncludedItems: React.Dispatch<React.SetStateAction<Map<string, boolean>>>;
 }): JSX.Element {
   return (
-    <ScrollArea className="grow pl-4 pr-4 dark:bg-mirage-950">
-      <Table>
+    <ScrollArea className="grow pl-4 pr-4">
+      <Table tabIndex={-1}>
         <TableHeader>
           <TableRow>
             <CheckboxTableHead
@@ -79,7 +79,6 @@ export function SetValuesTable({
                     <StatInput
                       parentValue={token.health}
                       name={"health"}
-                      variant="hitPoints"
                       updateHandler={(target) =>
                         handleStatUpdate(
                           token.item.id,
@@ -93,7 +92,6 @@ export function SetValuesTable({
                     <StatInput
                       parentValue={token.maxHealth}
                       name={"maxHealth"}
-                      variant="hitPoints"
                       updateHandler={(target) =>
                         handleStatUpdate(
                           token.item.id,
@@ -107,7 +105,6 @@ export function SetValuesTable({
                     <StatInput
                       parentValue={token.tempHealth}
                       name={"tempHealth"}
-                      variant="tempHitPoints"
                       updateHandler={(target) =>
                         handleStatUpdate(
                           token.item.id,
@@ -123,7 +120,6 @@ export function SetValuesTable({
                   <StatInput
                     parentValue={token.armorClass}
                     name={"armorClass"}
-                    variant="armorClass"
                     updateHandler={(target) =>
                       handleStatUpdate(
                         token.item.id,
@@ -232,6 +228,7 @@ export function DamageTable({
                   break;
                 case "KeyR":
                   resetDamageOption();
+                  break;
               }
             };
 
@@ -254,25 +251,21 @@ export function DamageTable({
                       tabIndex={-1}
                       size={"icon"}
                       variant={"outline"}
-                      onClick={previousDamageOption}
+                      onClick={(e) => {
+                        previousDamageOption();
+                        e.stopPropagation();
+                      }}
                     >
                       <ArrowLeftIcon className="size-4" />
                     </Button>
-                    {/* <div
-                      className={cn(
-                        "flex w-14 items-center justify-center text-lg font-medium",
-                        {
-                          "text-mirage-500 dark:text-mirage-400": !included,
-                        },
-                      )}
-                    >
-                      {multipliers[option]}
-                    </div> */}
                     <Button
                       className="flex h-8 w-10 items-center justify-center text-lg font-medium"
                       tabIndex={-1}
                       variant={"ghost"}
-                      onClick={resetDamageOption}
+                      onClick={(e) => {
+                        resetDamageOption();
+                        e.stopPropagation();
+                      }}
                     >
                       {multipliers[option]}
                     </Button>
@@ -281,7 +274,10 @@ export function DamageTable({
                       tabIndex={-1}
                       size={"icon"}
                       variant={"outline"}
-                      onClick={nextDamageOption}
+                      onClick={(e) => {
+                        nextDamageOption();
+                        e.stopPropagation();
+                      }}
                     >
                       <ArrowRightIcon className="size-4" />
                     </Button>
@@ -380,14 +376,10 @@ function StatInput({
   parentValue,
   updateHandler,
   name,
-  inputProps,
-  variant,
 }: {
   parentValue: number;
   updateHandler: (target: HTMLInputElement) => Promise<void>;
   name: InputName;
-  inputProps?: InputHTMLAttributes<HTMLInputElement>;
-  variant: "hitPoints" | "tempHitPoints" | "armorClass";
 }): JSX.Element {
   const [value, setValue] = useState<string>(parentValue.toString());
   let ignoreBlur = false;
@@ -418,34 +410,28 @@ function StatInput({
 
   return (
     <div className="flex items-center">
-      <Input
-        {...inputProps}
-        className={cn("h-[32px] w-[60px] md:w-[65px] lg:w-[70px]", {
-          "bg-stat-light-health/10 dark:bg-stat-dark-health/5":
-            variant === "hitPoints",
-          "bg-stat-light-temp/10 dark:bg-stat-dark-temp/5":
-            variant === "tempHitPoints",
-          "bg-stat-light-armor/10 dark:bg-stat-dark-armor/5":
-            variant === "armorClass",
-        })}
+      <StatStyledInput
         name={name}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onBlur={(e) => {
-          if (!ignoreBlur) runUpdateHandler(e);
+        inputProps={{
+          value: value,
+          onChange: (e) => setValue(e.target.value),
+          onBlur: (e) => {
+            if (!ignoreBlur) runUpdateHandler(e);
+          },
+          onKeyDown: (e) => {
+            if (e.key === "Enter") {
+              (e.target as HTMLInputElement).blur();
+            } else if (e.key === "Escape") {
+              ignoreBlur = true;
+              (e.target as HTMLInputElement).blur();
+              ignoreBlur = false;
+              setValue(parentValue.toString());
+            }
+          },
+          onFocus: selectText,
+          onClick: (e) => e.stopPropagation(),
         }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            (e.target as HTMLInputElement).blur();
-          } else if (e.key === "Escape") {
-            ignoreBlur = true;
-            (e.target as HTMLInputElement).blur();
-            ignoreBlur = false;
-            setValue(parentValue.toString());
-          }
-        }}
-        onFocus={selectText}
-      ></Input>
+      ></StatStyledInput>
     </div>
   );
 }
@@ -461,15 +447,17 @@ function CheckboxTableHead({
 }): JSX.Element {
   return (
     <TableCell>
-      <Checkbox
-        checked={included}
-        onCheckedChange={(checked) => {
-          if (typeof checked === "boolean")
-            setIncludedItems(
-              () => new Map(tokens.map((token) => [token.item.id, checked])),
-            );
-        }}
-      />
+      <div className="flex">
+        <Checkbox
+          checked={included}
+          onCheckedChange={(checked) => {
+            if (typeof checked === "boolean")
+              setIncludedItems(
+                () => new Map(tokens.map((token) => [token.item.id, checked])),
+              );
+          }}
+        />
+      </div>
     </TableCell>
   );
 }
@@ -485,15 +473,17 @@ function CheckboxTableCell({
 }): JSX.Element {
   return (
     <TableCell>
-      <Checkbox
-        checked={included}
-        onCheckedChange={(checked) => {
-          if (typeof checked === "boolean")
-            setIncludedItems((prev) =>
-              new Map(prev).set(token.item.id, checked),
-            );
-        }}
-      />
+      <div className="flex size-4">
+        <Checkbox
+          checked={included}
+          onCheckedChange={(checked) => {
+            if (typeof checked === "boolean")
+              setIncludedItems((prev) =>
+                new Map(prev).set(token.item.id, checked),
+              );
+          }}
+        />
+      </div>
     </TableCell>
   );
 }

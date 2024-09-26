@@ -8,31 +8,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Command from "./Command";
-import { EditorMode, StampedDiceRoll } from "./types";
+import { Operation, StampedDiceRoll } from "./types";
 import { Button } from "@/components/ui/button";
 
 export default function Header({
-  editorMode,
-  setEditorMode,
+  operation,
+  setOperation,
   setStampedRolls: setRolls,
   setAnimateRoll,
 }: {
-  editorMode: EditorMode;
-  setEditorMode: React.Dispatch<React.SetStateAction<EditorMode>>;
+  operation: Operation;
+  setOperation: React.Dispatch<React.SetStateAction<Operation>>;
   setStampedRolls: React.Dispatch<React.SetStateAction<StampedDiceRoll[]>>;
   setAnimateRoll: React.Dispatch<React.SetStateAction<boolean>>;
 }): JSX.Element {
   return (
-    <div className="flex gap-4 px-4">
+    <div className="flex gap-4 bg-mirage-900 p-4 pb-2 pt-3">
       <Command
-        setEditorMode={setEditorMode}
+        setOperation={setOperation}
         setStampedRolls={setRolls}
         setAnimateRoll={setAnimateRoll}
       ></Command>
       <Select
-        value={editorMode}
+        value={operation}
         onValueChange={(value) => {
-          setEditorMode(value as EditorMode);
+          setOperation(value as Operation);
         }}
       >
         <SelectTrigger className="w-[180px]">
@@ -40,10 +40,11 @@ export default function Header({
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectLabel>Command</SelectLabel>
-            <SelectItem value="setValues">None</SelectItem>
+            <SelectLabel>Operation</SelectLabel>
+            <SelectItem value="none">None</SelectItem>
             <SelectItem value="damage">Damage</SelectItem>
             <SelectItem value="healing">Heal</SelectItem>
+            <SelectItem value="overwrite">Overwrite Multiple</SelectItem>
           </SelectGroup>
         </SelectContent>
       </Select>

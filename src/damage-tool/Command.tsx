@@ -3,13 +3,15 @@ import ChildrenBlur from "../components/ChildrenBlur";
 import { Input2 } from "@/components/ui/input2";
 import { Separator } from "@/components/ui/separator";
 import { Parser } from "@dice-roller/rpg-dice-roller";
-import { EditorMode, StampedDiceRoll } from "./types";
+import { Operation, StampedDiceRoll } from "./types";
 import { addNewRollToRolls } from "./helpers";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 type CommandType = {
   code: string;
-  getHintLabel: () => string;
-  commandParser: (string: string) => string;
+  codeHint: () => string;
+  parserHint: (string: string) => string;
 };
 
 // Create code hint commands
@@ -22,8 +24,8 @@ const commandFactory = (
     code,
     {
       code: code,
-      getHintLabel: () => hintLabel,
-      commandParser: commandParser,
+      codeHint: () => hintLabel,
+      parserHint: commandParser,
     },
   ];
 };
@@ -43,16 +45,15 @@ const commands = new Map<string, CommandType>([
       ? `Roll ${extractCommandContent(string)} healing`
       : "Invalid Roll";
   }),
-  // commandFactory("t", "Set Temporary Hit Points", () => ""),
+  commandFactory("o", "Overwrite Multiple Token Stats", () => {
+    return `Switch to overwrite operation`;
+  }),
 ]);
 
 // Command line text parsers
 const extractCommandCode = (string: string) => {
   let code = string.substring(0, string.indexOf(" "));
   return code;
-};
-const getCommandCodeIndex = (code: string): boolean => {
-  return commands.has(code);
 };
 const extractCommandContent = (string: string) => {
   string = string.substring(string.indexOf(" ") + 1);
@@ -76,21 +77,23 @@ const validRoll = (string: string) => {
 };
 
 export default function Command({
-  setEditorMode,
+  setOperation,
   setStampedRolls,
   setAnimateRoll,
 }: {
-  setEditorMode: React.Dispatch<React.SetStateAction<EditorMode>>;
+  setOperation: React.Dispatch<React.SetStateAction<Operation>>;
   setStampedRolls: React.Dispatch<React.SetStateAction<StampedDiceRoll[]>>;
   setAnimateRoll: React.Dispatch<React.SetStateAction<boolean>>;
 }): JSX.Element {
   const [inputContent, setInputContent] = useState("");
-  const [selection, setSelection] = useState(0);
-  const [hasFocus, setHasFocus] = useState(false);
+  const [targetIndex, setTargetIndex] = useState(0);
+  const [isActive, setIsActive] = useState<boolean | "from-null" | "initial">(
+    "initial",
+  );
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    document.addEventListener("keydown", (e: KeyboardEvent) => {
+    const focusInputShortcut = (e: KeyboardEvent) => {
       if (e.code === "KeyK" && e.ctrlKey) {
         e.stopPropagation();
         e.preventDefault();
@@ -99,7 +102,9 @@ export default function Command({
           inputRef.current.select();
         }
       }
-    });
+    };
+    document.addEventListener("keydown", focusInputShortcut);
+    return document.removeEventListener("keydown", focusInputShortcut);
   }, []);
 
   const executeCommandMap = new Map<string, () => void>();
@@ -108,61 +113,76 @@ export default function Command({
 
   let commandItems: JSX.Element[] = [];
   const commandCode = extractCommandCode(inputContent);
-  if (getCommandCodeIndex(commandCode)) {
-    if (commands.has(commandCode)) {
-      const executeCommand = () => {
-        if (validRoll(extractCommandContent(inputContent))) {
-          // Get roll
-          const diceExpression = extractCommandContent(inputContent);
-          const addToRolls = () => {
-            setStampedRolls((prevRolls) =>
-              addNewRollToRolls(prevRolls, diceExpression, setAnimateRoll),
-            );
-          };
-          switch (commandCode) {
-            case "r":
-              addToRolls();
-              break;
-            case "d":
-              addToRolls();
-              setEditorMode("damage");
-              break;
-            case "h":
-              addToRolls();
-              setEditorMode("healing");
-              break;
-            case "t":
-              addToRolls();
-              break;
-          }
-          // Unfocus command line
-          if (inputRef.current) inputRef.current.blur();
-        }
+  if (commands.has(commandCode)) {
+    const executeCommand = () => {
+      const getDiceExpression = () => {
+        const diceExpression = extractCommandContent(inputContent);
+        if (!validRoll(diceExpression)) return null;
+        return diceExpression;
       };
-
-      commandCount++;
-      indexCodeMap.set(commandCount, "roll demo");
-      executeCommandMap.set("roll demo", executeCommand);
-
-      const command = commands.get(commandCode);
-
-      if (command)
-        commandItems.push(
-          <CommandItem
-            key={"x"}
-            selection={selection}
-            value={commandCount}
-            onSelectionConfirm={executeCommand}
-          >
-            <div className="pl-1">{command.commandParser(inputContent)}</div>
-            {commandCount === selection && (
-              <div className="ml-auto justify-end text-mirage-500 dark:text-mirage-500">
-                enter
-              </div>
-            )}
-          </CommandItem>,
+      const addToRolls = (diceExpression: string) => {
+        setStampedRolls((prevRolls) =>
+          addNewRollToRolls(prevRolls, diceExpression, setAnimateRoll),
         );
-    }
+      };
+      switch (commandCode) {
+        case "r": {
+          const diceExpression = getDiceExpression();
+          if (diceExpression) {
+            addToRolls(diceExpression);
+          }
+          break;
+        }
+        case "d": {
+          const diceExpression = getDiceExpression();
+          if (diceExpression) {
+            addToRolls(diceExpression);
+            setOperation("damage");
+          }
+          break;
+        }
+        case "h": {
+          const diceExpression = getDiceExpression();
+          if (diceExpression) {
+            addToRolls(diceExpression);
+            setOperation("healing");
+          }
+          break;
+        }
+        case "o": {
+          setOperation("overwrite");
+          break;
+        }
+        default:
+          console.log("unhandled command");
+      }
+      // Unfocus command line
+      if (inputRef.current) inputRef.current.blur();
+      setIsActive(false);
+    };
+
+    commandCount++;
+    indexCodeMap.set(commandCount, "roll demo");
+    executeCommandMap.set("roll demo", executeCommand);
+
+    const command = commands.get(commandCode);
+
+    if (command)
+      commandItems.push(
+        <CommandItem
+          key={commandCode + "parser"}
+          index={commandCount}
+          targetIndex={targetIndex}
+          onSelectionConfirm={executeCommand}
+        >
+          <div className="py-1 pl-1">{command.parserHint(inputContent)}</div>
+          {commandCount === targetIndex && (
+            <div className="ml-auto justify-end text-mirage-500 dark:text-mirage-500">
+              enter
+            </div>
+          )}
+        </CommandItem>,
+      );
   } else {
     for (const command of commands) {
       const executeCommand = () => {
@@ -176,25 +196,25 @@ export default function Command({
 
       commandItems.push(
         <CommandItem
-          key={command[1].getHintLabel()}
-          selection={selection}
-          value={commandCount}
-          // onSelectorFocus={() => setInputContent(command.applyCode(false))}
+          key={command[0]}
+          targetIndex={targetIndex}
+          index={commandCount}
           onSelectionConfirm={executeCommand}
         >
           <div
-            className={
-              (commandCount === selection
-                ? "bg-mirage-50 dark:bg-mirage-800"
-                : "bg-mirage-50 hover:bg-mirage-50/70 dark:bg-mirage-900 dark:hover:bg-mirage-800/70") +
-              " " +
-              "flex size-6 items-center justify-center rounded-sm drop-shadow"
-            }
+            className={cn(
+              "flex size-7 items-center justify-center rounded-sm drop-shadow",
+              {
+                "bg-mirage-50 dark:bg-mirage-800": targetIndex === commandCount,
+                "bg-mirage-50 group-hover/command-item:bg-mirage-50/70 dark:bg-mirage-900 dark:group-hover/command-item:bg-mirage-800/70":
+                  targetIndex !== commandCount,
+              },
+            )}
           >
-            {command[0]}
+            <div className="pb-0.5">{command[0]}</div>
           </div>
-          <div>{command[1].getHintLabel()}</div>
-          {commandCount === selection && (
+          <div>{command[1].codeHint()}</div>
+          {commandCount === targetIndex && (
             <div className="ml-auto justify-end text-mirage-500 dark:text-mirage-500">
               enter
             </div>
@@ -204,24 +224,23 @@ export default function Command({
     }
   }
 
-  if (selection > commandItems.length || selection < 1) setSelection(1);
+  if (targetIndex > commandItems.length || targetIndex < 1) setTargetIndex(1);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const previousItem = () => {
-      if (selection > 1) setSelection(selection - 1);
-      else setSelection(commandItems.length);
+      if (targetIndex > 1) setTargetIndex(targetIndex - 1);
+      else setTargetIndex(commandItems.length);
       event.preventDefault();
     };
     const nextItem = () => {
-      if (selection < commandItems.length) setSelection(selection + 1);
-      else setSelection(1);
+      if (targetIndex < commandItems.length) setTargetIndex(targetIndex + 1);
+      else setTargetIndex(1);
       event.preventDefault();
     };
 
     switch (event.key) {
       case "Escape":
         if (inputRef.current) inputRef.current.blur();
-        event.preventDefault();
         break;
       case "ArrowUp":
         previousItem();
@@ -230,11 +249,13 @@ export default function Command({
         nextItem();
         break;
       case "Tab":
-        if (event.shiftKey) previousItem();
-        else nextItem();
+        if (isActive === true || isActive === "initial") {
+          if (event.shiftKey) previousItem();
+          else nextItem();
+        }
         break;
       case "Enter":
-        const selectionCode = indexCodeMap.get(selection);
+        const selectionCode = indexCodeMap.get(targetIndex);
         if (selectionCode) {
           const executeCommand = executeCommandMap.get(selectionCode);
           if (executeCommand) executeCommand();
@@ -245,23 +266,43 @@ export default function Command({
   };
 
   return (
-    <div className="relative z-10 h-[40px] w-[500px] flex-grow overflow-visible">
-      <ChildrenBlur onBlur={() => setHasFocus(false)}>
-        <div className="rounded-md border border-mirage-300 bg-mirage-50 shadow-sm dark:border-mirage-800 dark:bg-mirage-950 focus-within:[&:has(:focus-visible)]:border-transparent focus-within:[&:has(:focus-visible)]:ring-2 focus-within:[&:has(:focus-visible)]:ring-primary dark:focus-within:[&:has(:focus-visible)]:ring-primary-dark">
+    <div className="relative z-10 w-[500px] flex-grow overflow-visible">
+      <ChildrenBlur
+        onBlur={() => {
+          setIsActive(false);
+        }}
+      >
+        <div className="absolute w-full rounded-md border border-mirage-300 bg-mirage-50 shadow-sm dark:border-mirage-800 dark:bg-mirage-950 focus-within:[&:has(:focus-visible)]:border-transparent focus-within:[&:has(:focus-visible)]:ring-2 focus-within:[&:has(:focus-visible)]:ring-primary dark:focus-within:[&:has(:focus-visible)]:ring-primary-dark">
           <Input2
             ref={inputRef}
             placeholder="Enter a command (ctrl+k)"
             value={inputContent}
-            onChange={(e) => setInputContent(e.target.value)}
+            onChange={(e) => {
+              setInputContent(e.target.value);
+              if (inputContent === "") setIsActive("from-null");
+              else setIsActive(true);
+            }}
             onKeyDown={(e) => handleKeyDown(e)}
-            onFocus={() => setHasFocus(true)}
+            onFocus={(e) => {
+              if (e.relatedTarget === null && isActive !== "initial") {
+                setIsActive("from-null");
+              } else setIsActive(true);
+            }}
             autoFocus
           />
-          {document.activeElement === inputRef.current && (
-            <div className="flex flex-col gap-1 p-2 pt-0">
-              <Separator className="mt-0"></Separator>
-              {commandItems}
-            </div>
+          {(isActive === true ||
+            isActive === "from-null" ||
+            isActive === "initial") && (
+            <>
+              <div className="p-2 pt-0">
+                <Separator className="mt-0" />
+              </div>
+              <ScrollArea type="scroll" className="p-2 pt-0">
+                <div className="flex max-h-[330px] flex-col gap-1">
+                  {commandItems}
+                </div>
+              </ScrollArea>
+            </>
           )}
         </div>
       </ChildrenBlur>
@@ -270,31 +311,44 @@ export default function Command({
 }
 
 function CommandItem({
-  value,
-  selection,
+  index,
+  targetIndex,
   onSelectorFocus,
   onSelectionConfirm,
   children,
 }: {
-  value: number;
-  selection: number;
+  index: number;
+  targetIndex: number;
   onSelectorFocus?: () => void;
   onSelectionConfirm: () => void;
   children: any;
 }): JSX.Element {
+  const divRef = useRef<HTMLDivElement>(null);
+
+  const scrollToElement = () => {
+    if (divRef.current !== null) {
+      divRef.current.scrollIntoView({ behavior: "instant", block: "nearest" });
+    }
+  };
+
   useEffect(() => {
-    if (onSelectorFocus && value === selection) onSelectorFocus();
-  }, [selection]);
+    if (targetIndex === index) {
+      scrollToElement();
+      if (onSelectorFocus) onSelectorFocus();
+    }
+  }, [targetIndex]);
 
   return (
     <div
-      className={
-        (value === selection
-          ? "bg-mirage-100 dark:bg-mirage-900"
-          : "bg-transparent hover:bg-mirage-100/70 dark:bg-transparent dark:hover:bg-mirage-900/70") +
-        " " +
-        "flex w-full items-center gap-2 rounded-sm p-2 pr-4 text-sm"
-      }
+      ref={divRef}
+      className={cn(
+        "group/command-item flex w-full items-center gap-2 rounded-sm p-1 pr-4 text-sm",
+        {
+          "bg-mirage-100 dark:bg-mirage-900": targetIndex === index,
+          "bg-transparent hover:bg-mirage-100/70 dark:bg-transparent dark:hover:bg-mirage-900/70":
+            targetIndex !== index,
+        },
+      )}
       onClick={(e) => {
         e.stopPropagation();
         onSelectionConfirm();

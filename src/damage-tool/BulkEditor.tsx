@@ -1,14 +1,27 @@
 import Token from "../TokenClass";
 import "../index.css";
 import { useEffect, useState } from "react";
-import { EditorMode, StampedDiceRoll } from "./types";
+import { Operation, StampedDiceRoll, StatOverwriteData } from "./types";
 import Footer from "./Footer";
 import Header from "./Header";
 import { DamageTable, SetValuesTable } from "./Tables";
-import { Button } from "@/components/ui/button";
-import { applyHealthDiffToItems, getRollsFromScene } from "./helpers";
+import {
+  applyHealthDiffToItems,
+  getRollsFromScene,
+  overwriteStats,
+} from "./helpers";
 import OBR from "@owlbear-rodeo/sdk";
 import { parseSelectedTokens } from "@/itemHelpers";
+import ActionButton from "./ActionButton";
+
+const getInitialStatOverwrites = () => {
+  return {
+    hitPoints: "",
+    maxHitPoints: "",
+    tempHitPoints: "",
+    armorClass: "",
+  };
+};
 
 export default function BulkEditor({
   initialTokens,
@@ -18,11 +31,14 @@ export default function BulkEditor({
   initialRolls: StampedDiceRoll[];
 }): JSX.Element {
   // App state
-  const [editorMode, setEditorMode] = useState<EditorMode>("setValues");
+  const [operation, setOperation] = useState<Operation>("none");
   const [stampedRoll, setStampedRolls] =
     useState<StampedDiceRoll[]>(initialRolls);
   const [value, setValue] = useState<number | null>(null);
   const [animateRoll, setAnimateRoll] = useState(false);
+  const [statOverwrites, setStatOverwrites] = useState<StatOverwriteData>(
+    getInitialStatOverwrites,
+  );
 
   // Tokens
   const [tokens, setTokens] = useState(initialTokens);
@@ -59,8 +75,8 @@ export default function BulkEditor({
     if (newValue !== undefined) setValue(newValue);
   }, [stampedRoll[0]?.total]);
 
-  const getTable = (editorMode: EditorMode) => {
-    switch (editorMode) {
+  const getTable = (operation: Operation) => {
+    switch (operation) {
       case "damage":
         return (
           <DamageTable
@@ -84,20 +100,22 @@ export default function BulkEditor({
     }
   };
 
-  const getActionButton = (editorMode: EditorMode): JSX.Element => {
-    switch (editorMode) {
+  const getCommandButton = (operation: Operation): JSX.Element => {
+    switch (operation) {
       case "damage":
         return (
           <ActionButton
             label={"Apply Damage"}
-            onClick={() => {
-              applyHealthDiffToItems(
-                value ? -1 * value : 0,
-                includedItems,
-                damageScaleOptions,
-                tokens,
-              );
-              setEditorMode("setValues");
+            buttonProps={{
+              onClick: () => {
+                applyHealthDiffToItems(
+                  value ? -1 * value : 0,
+                  includedItems,
+                  damageScaleOptions,
+                  tokens,
+                );
+                setOperation("none");
+              },
             }}
           ></ActionButton>
         );
@@ -105,14 +123,29 @@ export default function BulkEditor({
         return (
           <ActionButton
             label={"Apply Healing"}
-            onClick={() => {
-              applyHealthDiffToItems(
-                value ? value : 0,
-                includedItems,
-                damageScaleOptions,
-                tokens,
-              );
-              setEditorMode("setValues");
+            buttonProps={{
+              onClick: () => {
+                applyHealthDiffToItems(
+                  value ? value : 0,
+                  includedItems,
+                  damageScaleOptions,
+                  tokens,
+                );
+                setOperation("none");
+              },
+            }}
+          ></ActionButton>
+        );
+      case "overwrite":
+        return (
+          <ActionButton
+            label={"Overwrite"}
+            buttonProps={{
+              onClick: () => {
+                overwriteStats(statOverwrites, includedItems, tokens);
+                setStatOverwrites(getInitialStatOverwrites);
+                setOperation("none");
+              },
             }}
           ></ActionButton>
         );
@@ -123,39 +156,27 @@ export default function BulkEditor({
 
   return (
     <div className="h-[522px] overflow-clip">
-      <div className="flex h-full flex-col justify-between gap-2 bg-mirage-100 py-4 dark:bg-mirage-900 dark:text-mirage-200">
+      <div className="flex h-full flex-col justify-between bg-mirage-100 dark:bg-mirage-950 dark:text-mirage-200">
         <Header
-          editorMode={editorMode}
-          setEditorMode={setEditorMode}
+          operation={operation}
+          setOperation={setOperation}
           setStampedRolls={setStampedRolls}
           setAnimateRoll={setAnimateRoll}
         ></Header>
-        {getTable(editorMode)}
+        {getTable(operation)}
         <Footer
-          editorMode={editorMode}
+          operation={operation}
           stampedRolls={stampedRoll}
           setStampedRolls={setStampedRolls}
           value={value}
           setValue={setValue}
-          action={getActionButton(editorMode)}
+          action={getCommandButton(operation)}
           animateRoll={animateRoll}
           setAnimateRoll={setAnimateRoll}
+          statOverwrites={statOverwrites}
+          setStatOverwrites={setStatOverwrites}
         ></Footer>
       </div>
     </div>
-  );
-}
-
-function ActionButton({
-  label,
-  onClick,
-}: {
-  label: string;
-  onClick: React.MouseEventHandler<HTMLButtonElement> | undefined;
-}): JSX.Element {
-  return (
-    <Button className="ml-auto" variant={"secondary"} onClick={onClick}>
-      {label}
-    </Button>
   );
 }
