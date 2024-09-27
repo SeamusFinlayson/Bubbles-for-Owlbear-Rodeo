@@ -10,7 +10,12 @@ import {
   TEMP_HEALTH_METADATA_ID,
 } from "@/itemMetadataIds";
 import { getPluginId } from "@/getPluginId";
-import { StampedDiceRoll, StatOverwriteData } from "./types";
+import {
+  Action,
+  BulkEditorState,
+  StampedDiceRoll,
+  StatOverwriteData,
+} from "./types";
 import { DiceRoll } from "@dice-roller/rpg-dice-roller";
 
 /* Items */
@@ -163,24 +168,96 @@ function isDiceRollArray(rolls: unknown): rolls is StampedDiceRoll[] {
   return true;
 }
 
-export function addNewRollToRolls(
-  prevRolls: StampedDiceRoll[],
-  newRollExpression: string,
-  setAnimateRoll: React.Dispatch<React.SetStateAction<boolean>>,
-) {
-  const roll = new DiceRoll(newRollExpression);
-  const rolls: StampedDiceRoll[] = [
-    {
-      timeStamp: Date.now(),
-      total: roll.total,
-      roll: roll.toString(),
-    },
-    ...prevRolls.splice(0, 19),
-  ];
-
-  setAnimateRoll(true);
-  setTimeout(() => setAnimateRoll(false), 500);
-
-  setSceneRolls(rolls);
-  return rolls;
+export function reducer(
+  state: BulkEditorState,
+  action: Action,
+): BulkEditorState {
+  switch (action.type) {
+    case "set-operation":
+      return { ...state, operation: action.operation };
+    case "set-rolls":
+      return { ...state, rolls: action.rolls };
+    case "add-roll":
+      const roll = new DiceRoll(action.diceExpression);
+      const rolls = [
+        {
+          timeStamp: Date.now(),
+          total: roll.total,
+          roll: roll.toString(),
+        },
+        ...state.rolls.splice(0, 19),
+      ];
+      setSceneRolls(rolls);
+      setTimeout(
+        () => action.dispatch({ type: "set-animate-roll", animateRoll: false }),
+        500,
+      );
+      return {
+        ...state,
+        rolls: rolls,
+        animateRoll: true,
+      };
+    case "set-value":
+      return { ...state, value: action.value };
+    case "set-animate-roll":
+      return { ...state, animateRoll: action.animateRoll };
+    case "set-stat-overwrites":
+      return { ...state, statOverwrites: action.statOverWrites };
+    case "clear-stat-overwrites":
+      return { ...state, statOverwrites: unsetStatOverwrites() };
+    case "set-hit-points-overwrite":
+      return {
+        ...state,
+        statOverwrites: {
+          ...state.statOverwrites,
+          hitPoints: action.hitPointsOverwrite,
+        },
+      };
+    case "set-max-hit-points-overwrite":
+      return {
+        ...state,
+        statOverwrites: {
+          ...state.statOverwrites,
+          maxHitPoints: action.maxHitPointsOverwrite,
+        },
+      };
+    case "set-temp-hit-points-overwrite":
+      return {
+        ...state,
+        statOverwrites: {
+          ...state.statOverwrites,
+          tempHitPoints: action.tempHitPointsOverwrite,
+        },
+      };
+    case "set-armor-class-overwrite":
+      return {
+        ...state,
+        statOverwrites: {
+          ...state.statOverwrites,
+          armorClass: action.armorClassOverwrite,
+        },
+      };
+    case "set-damage-scale-options":
+      return {
+        ...state,
+        damageScaleOptions: new Map(action.damageScaleOptions),
+      };
+    case "set-included-items":
+      return {
+        ...state,
+        includedItems: new Map(action.includedItems),
+      };
+    default:
+      console.log("unhandled action");
+      return state;
+  }
 }
+
+export const unsetStatOverwrites = () => {
+  return {
+    hitPoints: "",
+    maxHitPoints: "",
+    tempHitPoints: "",
+    armorClass: "",
+  };
+};

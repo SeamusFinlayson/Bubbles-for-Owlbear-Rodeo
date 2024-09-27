@@ -31,17 +31,18 @@ import {
   writeTokenValueToItem,
 } from "@/statInputHelpers";
 import StatStyledInput from "./StatStyledInput";
+import { Action, BulkEditorState } from "./types";
 
 export function SetValuesTable({
   tokens,
   setTokens,
-  includedItems,
-  setIncludedItems,
+  appState,
+  dispatch,
 }: {
   tokens: Token[];
   setTokens: React.Dispatch<React.SetStateAction<Token[]>>;
-  includedItems: Map<string, boolean>;
-  setIncludedItems: React.Dispatch<React.SetStateAction<Map<string, boolean>>>;
+  appState: BulkEditorState;
+  dispatch: React.Dispatch<Action>;
 }): JSX.Element {
   return (
     <ScrollArea className="grow pl-4 pr-4">
@@ -49,9 +50,15 @@ export function SetValuesTable({
         <TableHeader>
           <TableRow>
             <CheckboxTableHead
-              tokens={tokens}
-              included={allChecked(tokens, includedItems)}
-              setIncludedItems={setIncludedItems}
+              included={allChecked(tokens, appState.includedItems)}
+              onCheckedChange={(checked) =>
+                dispatch({
+                  type: "set-included-items",
+                  includedItems: new Map(
+                    tokens.map((token) => [token.item.id, checked]),
+                  ),
+                })
+              }
             />
             <TableHead>Icon</TableHead>
             <TableHead>Name</TableHead>
@@ -63,14 +70,21 @@ export function SetValuesTable({
         </TableHeader>
         <TableBody>
           {tokens.map((token) => {
-            const included = getIncluded(token.item.id, includedItems);
+            const included = getIncluded(token.item.id, appState.includedItems);
 
             return (
               <TableRow key={token.item.id}>
                 <CheckboxTableCell
-                  token={token}
                   included={included}
-                  setIncludedItems={setIncludedItems}
+                  onCheckedChange={(checked) =>
+                    dispatch({
+                      type: "set-included-items",
+                      includedItems: appState.includedItems.set(
+                        token.item.id,
+                        checked,
+                      ),
+                    })
+                  }
                 />
                 <TokenImageTableCell token={token} fade={!included} />
                 <TokenNameTableCell token={token} fade={!included} />
@@ -142,20 +156,12 @@ export function SetValuesTable({
 
 export function DamageTable({
   tokens,
-  value,
-  includedItems,
-  setIncludedItems,
-  damageScaleOptions,
-  setDamageScaleOptions,
+  appState,
+  dispatch,
 }: {
   tokens: Token[];
-  value: number;
-  includedItems: Map<string, boolean>;
-  setIncludedItems: React.Dispatch<React.SetStateAction<Map<string, boolean>>>;
-  damageScaleOptions: Map<string, number>;
-  setDamageScaleOptions: React.Dispatch<
-    React.SetStateAction<Map<string, number>>
-  >;
+  appState: BulkEditorState;
+  dispatch: React.Dispatch<Action>;
 }): JSX.Element {
   return (
     <ScrollArea className="grow pl-4 pr-4 dark:bg-mirage-950">
@@ -163,9 +169,15 @@ export function DamageTable({
         <TableHeader>
           <TableRow>
             <CheckboxTableHead
-              tokens={tokens}
-              included={allChecked(tokens, includedItems)}
-              setIncludedItems={setIncludedItems}
+              included={allChecked(tokens, appState.includedItems)}
+              onCheckedChange={(checked) =>
+                dispatch({
+                  type: "set-included-items",
+                  includedItems: new Map(
+                    tokens.map((token) => [token.item.id, checked]),
+                  ),
+                })
+              }
             />
             <TableHead>Icon</TableHead>
             <TableHead>Name</TableHead>
@@ -176,14 +188,14 @@ export function DamageTable({
         </TableHeader>
         <TableBody>
           {tokens.map((token) => {
-            const included = getIncluded(token.item.id, includedItems);
+            const included = getIncluded(token.item.id, appState.includedItems);
             const option = getDamageScaleOption(
               token.item.id,
-              damageScaleOptions,
+              appState.damageScaleOptions,
             );
             const scaledDamage = calculateScaledHealthDiff(
               included ? option : 0,
-              value,
+              appState.value ? appState.value : 0,
             );
             const [newHealth, newTempHealth] = calculateNewHealth(
               token.health,
@@ -193,27 +205,33 @@ export function DamageTable({
             );
 
             const nextDamageOption = () => {
-              setDamageScaleOptions((prev) =>
-                new Map(prev).set(
+              dispatch({
+                type: "set-damage-scale-options",
+                damageScaleOptions: new Map(appState.damageScaleOptions).set(
                   token.item.id,
                   option < multipliers.length - 1 ? option + 1 : option,
                 ),
-              );
+              });
             };
 
             const resetDamageOption = () => {
-              setDamageScaleOptions((prev) =>
-                new Map(prev).set(token.item.id, DEFAULT_DAMAGE_SCALE),
-              );
+              dispatch({
+                type: "set-damage-scale-options",
+                damageScaleOptions: new Map(appState.damageScaleOptions).set(
+                  token.item.id,
+                  DEFAULT_DAMAGE_SCALE,
+                ),
+              });
             };
 
             const previousDamageOption = () => {
-              setDamageScaleOptions((prev) =>
-                new Map(prev).set(
+              dispatch({
+                type: "set-damage-scale-options",
+                damageScaleOptions: new Map(appState.damageScaleOptions).set(
                   token.item.id,
                   option > 1 ? option - 1 : option,
                 ),
-              );
+              });
             };
 
             const handleKeyDown = (
@@ -238,9 +256,16 @@ export function DamageTable({
                 onKeyDown={(event) => handleKeyDown(event)}
               >
                 <CheckboxTableCell
-                  token={token}
                   included={included}
-                  setIncludedItems={setIncludedItems}
+                  onCheckedChange={(checked) =>
+                    dispatch({
+                      type: "set-included-items",
+                      includedItems: appState.includedItems.set(
+                        token.item.id,
+                        checked,
+                      ),
+                    })
+                  }
                 />
                 <TokenImageTableCell token={token} fade={!included} />
                 <TokenNameTableCell token={token} fade={!included} />
@@ -437,53 +462,39 @@ function StatInput({
 }
 
 function CheckboxTableHead({
-  tokens,
   included,
-  setIncludedItems,
+  onCheckedChange,
 }: {
-  tokens: Token[];
   included: boolean | "indeterminate";
-  setIncludedItems: React.Dispatch<React.SetStateAction<Map<string, boolean>>>;
+  onCheckedChange: (checked: boolean) => void;
 }): JSX.Element {
   return (
     <TableCell>
-      <div className="flex">
-        <Checkbox
-          checked={included}
-          onCheckedChange={(checked) => {
-            if (typeof checked === "boolean")
-              setIncludedItems(
-                () => new Map(tokens.map((token) => [token.item.id, checked])),
-              );
-          }}
-        />
-      </div>
+      <Checkbox
+        checked={included}
+        onCheckedChange={(checked) => {
+          if (typeof checked === "boolean") onCheckedChange(checked);
+        }}
+      />
     </TableCell>
   );
 }
 
 function CheckboxTableCell({
-  token,
   included,
-  setIncludedItems,
+  onCheckedChange,
 }: {
-  token: Token;
   included: boolean;
-  setIncludedItems: React.Dispatch<React.SetStateAction<Map<string, boolean>>>;
+  onCheckedChange: (checked: boolean) => void;
 }): JSX.Element {
   return (
     <TableCell>
-      <div className="flex size-4">
-        <Checkbox
-          checked={included}
-          onCheckedChange={(checked) => {
-            if (typeof checked === "boolean")
-              setIncludedItems((prev) =>
-                new Map(prev).set(token.item.id, checked),
-              );
-          }}
-        />
-      </div>
+      <Checkbox
+        checked={included}
+        onCheckedChange={(checked) => {
+          if (typeof checked === "boolean") onCheckedChange(checked);
+        }}
+      />
     </TableCell>
   );
 }

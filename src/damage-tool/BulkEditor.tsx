@@ -1,27 +1,13 @@
 import Token from "../TokenClass";
 import "../index.css";
-import { useEffect, useState } from "react";
-import { Operation, StampedDiceRoll, StatOverwriteData } from "./types";
+import { useEffect, useReducer, useState } from "react";
+import { BulkEditorState, Operation, StampedDiceRoll } from "./types";
 import Footer from "./Footer";
 import Header from "./Header";
 import { DamageTable, SetValuesTable } from "./Tables";
-import {
-  applyHealthDiffToItems,
-  getRollsFromScene,
-  overwriteStats,
-} from "./helpers";
+import { getRollsFromScene, reducer, unsetStatOverwrites } from "./helpers";
 import OBR from "@owlbear-rodeo/sdk";
 import { parseSelectedTokens } from "@/itemHelpers";
-import ActionButton from "./ActionButton";
-
-const getInitialStatOverwrites = () => {
-  return {
-    hitPoints: "",
-    maxHitPoints: "",
-    tempHitPoints: "",
-    armorClass: "",
-  };
-};
 
 export default function BulkEditor({
   initialTokens,
@@ -31,25 +17,20 @@ export default function BulkEditor({
   initialRolls: StampedDiceRoll[];
 }): JSX.Element {
   // App state
-  const [operation, setOperation] = useState<Operation>("none");
-  const [stampedRoll, setStampedRolls] =
-    useState<StampedDiceRoll[]>(initialRolls);
-  const [value, setValue] = useState<number | null>(null);
-  const [animateRoll, setAnimateRoll] = useState(false);
-  const [statOverwrites, setStatOverwrites] = useState<StatOverwriteData>(
-    getInitialStatOverwrites,
-  );
+  const [appState, dispatch] = useReducer(reducer, {}, (): BulkEditorState => {
+    return {
+      operation: "none",
+      rolls: initialRolls,
+      value: null,
+      animateRoll: false,
+      statOverwrites: unsetStatOverwrites(),
+      damageScaleOptions: new Map<string, number>(),
+      includedItems: new Map<string, boolean>(),
+    };
+  });
 
   // Tokens
   const [tokens, setTokens] = useState(initialTokens);
-
-  // Per token configurations
-  const [damageScaleOptions, setDamageScaleOptions] = useState<
-    Map<string, number>
-  >(new Map<string, number>());
-  const [includedItems, setIncludedItems] = useState<Map<string, boolean>>(
-    new Map<string, boolean>(),
-  );
 
   // Keep tokens up to date with scene
   useEffect(
@@ -65,15 +46,19 @@ export default function BulkEditor({
 
   useEffect(
     OBR.scene.onMetadataChange(async (sceneMetadata) => {
-      setStampedRolls(await getRollsFromScene(sceneMetadata));
+      dispatch({
+        type: "set-rolls",
+        rolls: await getRollsFromScene(sceneMetadata),
+      });
     }),
     [],
   );
 
   useEffect(() => {
-    const newValue = stampedRoll[0]?.total;
-    if (newValue !== undefined) setValue(newValue);
-  }, [stampedRoll[0]?.total]);
+    const newValue = appState.rolls[0]?.total;
+    if (newValue !== undefined)
+      dispatch({ type: "set-value", value: newValue });
+  }, [appState.rolls[0]?.total]);
 
   const getTable = (operation: Operation) => {
     switch (operation) {
@@ -81,11 +66,8 @@ export default function BulkEditor({
         return (
           <DamageTable
             tokens={tokens}
-            value={value ? value : 0}
-            damageScaleOptions={damageScaleOptions}
-            setDamageScaleOptions={setDamageScaleOptions}
-            includedItems={includedItems}
-            setIncludedItems={setIncludedItems}
+            appState={appState}
+            dispatch={dispatch}
           ></DamageTable>
         );
       default:
@@ -93,88 +75,22 @@ export default function BulkEditor({
           <SetValuesTable
             tokens={tokens}
             setTokens={setTokens}
-            includedItems={includedItems}
-            setIncludedItems={setIncludedItems}
+            appState={appState}
+            dispatch={dispatch}
           ></SetValuesTable>
         );
-    }
-  };
-
-  const getCommandButton = (operation: Operation): JSX.Element => {
-    switch (operation) {
-      case "damage":
-        return (
-          <ActionButton
-            label={"Apply Damage"}
-            buttonProps={{
-              onClick: () => {
-                applyHealthDiffToItems(
-                  value ? -1 * value : 0,
-                  includedItems,
-                  damageScaleOptions,
-                  tokens,
-                );
-                setOperation("none");
-              },
-            }}
-          ></ActionButton>
-        );
-      case "healing":
-        return (
-          <ActionButton
-            label={"Apply Healing"}
-            buttonProps={{
-              onClick: () => {
-                applyHealthDiffToItems(
-                  value ? value : 0,
-                  includedItems,
-                  damageScaleOptions,
-                  tokens,
-                );
-                setOperation("none");
-              },
-            }}
-          ></ActionButton>
-        );
-      case "overwrite":
-        return (
-          <ActionButton
-            label={"Overwrite"}
-            buttonProps={{
-              onClick: () => {
-                overwriteStats(statOverwrites, includedItems, tokens);
-                setStatOverwrites(getInitialStatOverwrites);
-                setOperation("none");
-              },
-            }}
-          ></ActionButton>
-        );
-      default:
-        return <></>;
     }
   };
 
   return (
     <div className="h-[522px] overflow-clip">
       <div className="flex h-full flex-col justify-between bg-mirage-100 dark:bg-mirage-950 dark:text-mirage-200">
-        <Header
-          operation={operation}
-          setOperation={setOperation}
-          setStampedRolls={setStampedRolls}
-          setAnimateRoll={setAnimateRoll}
-        ></Header>
-        {getTable(operation)}
+        <Header appState={appState} dispatch={dispatch}></Header>
+        {getTable(appState.operation)}
         <Footer
-          operation={operation}
-          stampedRolls={stampedRoll}
-          setStampedRolls={setStampedRolls}
-          value={value}
-          setValue={setValue}
-          action={getCommandButton(operation)}
-          animateRoll={animateRoll}
-          setAnimateRoll={setAnimateRoll}
-          statOverwrites={statOverwrites}
-          setStatOverwrites={setStatOverwrites}
+          tokens={tokens}
+          appState={appState}
+          dispatch={dispatch}
         ></Footer>
       </div>
     </div>

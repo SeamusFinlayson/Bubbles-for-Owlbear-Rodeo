@@ -3,8 +3,7 @@ import ChildrenBlur from "../components/ChildrenBlur";
 import { Input2 } from "@/components/ui/input2";
 import { Separator } from "@/components/ui/separator";
 import { Parser } from "@dice-roller/rpg-dice-roller";
-import { Operation, StampedDiceRoll } from "./types";
-import { addNewRollToRolls } from "./helpers";
+import { Action } from "./types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
@@ -77,13 +76,9 @@ const validRoll = (string: string) => {
 };
 
 export default function Command({
-  setOperation,
-  setStampedRolls,
-  setAnimateRoll,
+  dispatch,
 }: {
-  setOperation: React.Dispatch<React.SetStateAction<Operation>>;
-  setStampedRolls: React.Dispatch<React.SetStateAction<StampedDiceRoll[]>>;
-  setAnimateRoll: React.Dispatch<React.SetStateAction<boolean>>;
+  dispatch: React.Dispatch<Action>;
 }): JSX.Element {
   const [inputContent, setInputContent] = useState("");
   const [targetIndex, setTargetIndex] = useState(0);
@@ -104,7 +99,6 @@ export default function Command({
       }
     };
     document.addEventListener("keydown", focusInputShortcut);
-    return document.removeEventListener("keydown", focusInputShortcut);
   }, []);
 
   const executeCommandMap = new Map<string, () => void>();
@@ -121,9 +115,7 @@ export default function Command({
         return diceExpression;
       };
       const addToRolls = (diceExpression: string) => {
-        setStampedRolls((prevRolls) =>
-          addNewRollToRolls(prevRolls, diceExpression, setAnimateRoll),
-        );
+        dispatch({ type: "add-roll", diceExpression, dispatch });
       };
       switch (commandCode) {
         case "r": {
@@ -137,7 +129,7 @@ export default function Command({
           const diceExpression = getDiceExpression();
           if (diceExpression) {
             addToRolls(diceExpression);
-            setOperation("damage");
+            dispatch({ type: "set-operation", operation: "damage" });
           }
           break;
         }
@@ -145,12 +137,13 @@ export default function Command({
           const diceExpression = getDiceExpression();
           if (diceExpression) {
             addToRolls(diceExpression);
-            setOperation("healing");
+            dispatch({ type: "set-operation", operation: "healing" });
           }
           break;
         }
         case "o": {
-          setOperation("overwrite");
+          dispatch({ type: "set-operation", operation: "overwrite" });
+
           break;
         }
         default:
@@ -288,7 +281,6 @@ export default function Command({
                 setIsActive("from-null");
               } else setIsActive(true);
             }}
-            autoFocus
           />
           {(isActive === true ||
             isActive === "from-null" ||

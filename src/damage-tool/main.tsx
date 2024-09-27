@@ -8,12 +8,12 @@ import { addThemeToBody } from "@/colorHelpers";
 import { getRollsFromScene } from "./helpers";
 
 OBR.onReady(async () => {
-  addThemeToBody();
-
-  const [initialTokens, initialRolls] = await Promise.all([
+  const [initialTokens, initialRolls, theme] = await Promise.all([
     parseSelectedTokens(true),
     getRollsFromScene(),
+    OBR.theme.getTheme(),
   ]);
+  addThemeToBody(theme.mode);
 
   // Render React component
   const root = createRoot(document.getElementById("app") as HTMLDivElement);

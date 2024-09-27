@@ -1,4 +1,4 @@
-import { Operation, StampedDiceRoll, StatOverwriteData } from "./types";
+import { Action, BulkEditorState, Operation } from "./types";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -8,36 +8,82 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { calculateScaledHealthDiff } from "./healthCalculations";
 import { useState } from "react";
-import { addNewRollToRolls } from "./helpers";
 import DiceSVG from "./DiceSVG";
 import StatStyledInput from "./StatStyledInput";
+import ActionButton from "./ActionButton";
+import { applyHealthDiffToItems, overwriteStats } from "./helpers";
+import Token from "@/TokenClass";
 
 export default function Footer({
-  operation,
-  stampedRolls,
-  setStampedRolls,
-  value,
-  setValue,
-  action,
-  animateRoll,
-  setAnimateRoll,
-  statOverwrites,
-  setStatOverwrites,
+  appState,
+  dispatch,
+  tokens,
 }: {
-  operation: Operation;
-  stampedRolls: StampedDiceRoll[];
-  setStampedRolls: React.Dispatch<React.SetStateAction<StampedDiceRoll[]>>;
-  value: number | null;
-  setValue: React.Dispatch<React.SetStateAction<number | null>>;
-  action: JSX.Element;
-  animateRoll: boolean;
-  setAnimateRoll: React.Dispatch<React.SetStateAction<boolean>>;
-  statOverwrites: StatOverwriteData;
-  setStatOverwrites: React.Dispatch<React.SetStateAction<StatOverwriteData>>;
+  appState: BulkEditorState;
+  dispatch: React.Dispatch<Action>;
+  tokens: Token[];
 }): JSX.Element {
   const [diceMenuOpen, setDiceMenuOpen] = useState(false);
 
-  const items: JSX.Element[] = stampedRolls.map((stampedRoll) => {
+  const getOperationButton = (operation: Operation): JSX.Element => {
+    switch (operation) {
+      case "damage":
+        return (
+          <ActionButton
+            label={"Apply Damage"}
+            buttonProps={{
+              onClick: () => {
+                applyHealthDiffToItems(
+                  appState.value ? -1 * appState.value : 0,
+                  appState.includedItems,
+                  appState.damageScaleOptions,
+                  tokens,
+                );
+                dispatch({ type: "set-operation", operation: "none" });
+              },
+            }}
+          ></ActionButton>
+        );
+      case "healing":
+        return (
+          <ActionButton
+            label={"Apply Healing"}
+            buttonProps={{
+              onClick: () => {
+                applyHealthDiffToItems(
+                  appState.value ? appState.value : 0,
+                  appState.includedItems,
+                  appState.damageScaleOptions,
+                  tokens,
+                );
+                dispatch({ type: "set-operation", operation: "none" });
+              },
+            }}
+          ></ActionButton>
+        );
+      case "overwrite":
+        return (
+          <ActionButton
+            label={"Overwrite"}
+            buttonProps={{
+              onClick: () => {
+                overwriteStats(
+                  appState.statOverwrites,
+                  appState.includedItems,
+                  tokens,
+                );
+                dispatch({ type: "clear-stat-overwrites" });
+                dispatch({ type: "set-operation", operation: "none" });
+              },
+            }}
+          ></ActionButton>
+        );
+      default:
+        return <></>;
+    }
+  };
+
+  const items: JSX.Element[] = appState.rolls.map((stampedRoll) => {
     const rollString = stampedRoll.roll;
     return (
       <div
@@ -67,9 +113,11 @@ export default function Footer({
                 0,
                 rollString.indexOf(":"),
               );
-              setStampedRolls((prevRolls) =>
-                addNewRollToRolls(prevRolls, diceExpression, setAnimateRoll),
-              );
+              dispatch({
+                type: "add-roll",
+                diceExpression: diceExpression,
+                dispatch: dispatch,
+              });
               setDiceMenuOpen(false);
             }}
           >
@@ -79,7 +127,7 @@ export default function Footer({
             variant={"secondary"}
             className="shrink grow"
             onClick={() => {
-              setValue(stampedRoll.total);
+              dispatch({ type: "set-value", value: stampedRoll.total });
               setDiceMenuOpen(false);
             }}
           >
@@ -91,8 +139,8 @@ export default function Footer({
   });
 
   let valueDisplayString = "Make a roll";
-  if (value !== null)
-    switch (operation) {
+  if (appState.value !== null)
+    switch (appState.operation) {
       case "none":
         valueDisplayString = `Selected Roll Result`;
         break;
@@ -106,10 +154,10 @@ export default function Footer({
 
   return (
     <>
-      {(operation === "none" ||
-        operation === "damage" ||
-        operation === "healing") && (
-        <div className="flex flex-wrap gap-4 bg-mirage-900 p-2 px-4">
+      {(appState.operation === "none" ||
+        appState.operation === "damage" ||
+        appState.operation === "healing") && (
+        <div className="flex flex-wrap gap-4 p-2 px-4 dark:bg-mirage-900">
           <Popover open={diceMenuOpen} onOpenChange={setDiceMenuOpen}>
             <PopoverTrigger asChild>
               <Button variant={"outline"}>Roll Log</Button>
@@ -118,7 +166,7 @@ export default function Footer({
               <ScrollArea className="h-[420px] px-4">
                 <div className="flex flex-col gap-4 py-4">
                   <h4 className="font-medium leading-none">Roll History</h4>
-                  {stampedRolls.length > 0 ? (
+                  {appState.rolls.length > 0 ? (
                     <div className="flex flex-col justify-start gap-2">
                       {items}
                     </div>
@@ -134,39 +182,42 @@ export default function Footer({
           </Popover>
           <div className="flex h-9 self-start rounded-md border border-mirage-300 bg-mirage-100 text-sm font-medium leading-none dark:border-mirage-800 dark:bg-mirage-900">
             <div className="flex h-full w-10 min-w-12 items-center justify-center rounded-l-md border-r border-mirage-300 bg-mirage-50 p-2 px-4 text-lg dark:border-mirage-800 dark:bg-mirage-950">
-              {animateRoll && (
+              {appState.animateRoll && (
                 <div className={"absolute animate-inverse-bounce"}>
                   <DiceSVG />
                 </div>
               )}
-              {!animateRoll && (
-                <div>{value ? calculateScaledHealthDiff(3, value) : ""}</div>
+              {!appState.animateRoll && (
+                <div>
+                  {appState.value
+                    ? calculateScaledHealthDiff(3, appState.value)
+                    : ""}
+                </div>
               )}
             </div>
             <div className="flex h-full items-center justify-center rounded-md p-2 px-4">
               {valueDisplayString}
             </div>
           </div>
-          {action}
+          {getOperationButton(appState.operation)}
         </div>
       )}
-      {operation === "overwrite" && (
+      {appState.operation === "overwrite" && (
         <>
-          <div className="flex items-center gap-2 border-t border-mirage-300 bg-mirage-950 p-2 px-4 dark:border-mirage-800">
+          <div className="flex items-center gap-2 border-t border-mirage-300 p-2 px-4 dark:border-mirage-800">
             <StatStyledInput
               name="health"
               inputProps={{
-                value: statOverwrites.hitPoints,
+                value: appState.statOverwrites.hitPoints,
                 onChange: (e) =>
-                  setStatOverwrites((prev) => {
-                    return { ...prev, hitPoints: e.target.value };
+                  dispatch({
+                    type: "set-hit-points-overwrite",
+                    hitPointsOverwrite: e.target.value,
                   }),
                 onBlur: (e) =>
-                  setStatOverwrites((prev) => {
-                    return {
-                      ...prev,
-                      hitPoints: makeStringValid(e.target.value),
-                    };
+                  dispatch({
+                    type: "set-hit-points-overwrite",
+                    hitPointsOverwrite: toValidIntString(e.target.value),
                   }),
                 className: "w-24 h-[36px]",
                 placeholder: "unchanged",
@@ -175,17 +226,16 @@ export default function Footer({
             <StatStyledInput
               name="maxHealth"
               inputProps={{
-                value: statOverwrites.maxHitPoints,
+                value: appState.statOverwrites.maxHitPoints,
                 onChange: (e) =>
-                  setStatOverwrites((prev) => {
-                    return { ...prev, maxHitPoints: e.target.value };
+                  dispatch({
+                    type: "set-max-hit-points-overwrite",
+                    maxHitPointsOverwrite: e.target.value,
                   }),
                 onBlur: (e) =>
-                  setStatOverwrites((prev) => {
-                    return {
-                      ...prev,
-                      maxHitPoints: makeStringValid(e.target.value),
-                    };
+                  dispatch({
+                    type: "set-max-hit-points-overwrite",
+                    maxHitPointsOverwrite: toValidIntString(e.target.value),
                   }),
                 className: "w-24 h-[36px]",
                 placeholder: "unchanged",
@@ -194,17 +244,16 @@ export default function Footer({
             <StatStyledInput
               name="tempHealth"
               inputProps={{
-                value: statOverwrites.tempHitPoints,
+                value: appState.statOverwrites.tempHitPoints,
                 onChange: (e) =>
-                  setStatOverwrites((prev) => {
-                    return { ...prev, tempHitPoints: e.target.value };
+                  dispatch({
+                    type: "set-temp-hit-points-overwrite",
+                    tempHitPointsOverwrite: e.target.value,
                   }),
                 onBlur: (e) =>
-                  setStatOverwrites((prev) => {
-                    return {
-                      ...prev,
-                      tempHitPoints: makeStringValid(e.target.value),
-                    };
+                  dispatch({
+                    type: "set-temp-hit-points-overwrite",
+                    tempHitPointsOverwrite: toValidIntString(e.target.value),
                   }),
                 className: "w-24 h-[36px]",
                 placeholder: "unchanged",
@@ -213,23 +262,22 @@ export default function Footer({
             <StatStyledInput
               name="armorClass"
               inputProps={{
-                value: statOverwrites.armorClass,
+                value: appState.statOverwrites.armorClass,
                 onChange: (e) =>
-                  setStatOverwrites((prev) => {
-                    return { ...prev, armorClass: e.target.value };
+                  dispatch({
+                    type: "set-armor-class-overwrite",
+                    armorClassOverwrite: e.target.value,
                   }),
                 onBlur: (e) =>
-                  setStatOverwrites((prev) => {
-                    return {
-                      ...prev,
-                      armorClass: makeStringValid(e.target.value),
-                    };
+                  dispatch({
+                    type: "set-armor-class-overwrite",
+                    armorClassOverwrite: toValidIntString(e.target.value),
                   }),
                 className: "w-24 h-[36px]",
                 placeholder: "unchanged",
               }}
             />
-            {action}
+            {getOperationButton(appState.operation)}
           </div>
         </>
       )}
@@ -237,7 +285,7 @@ export default function Footer({
   );
 }
 
-const makeStringValid = (value: string): string => {
+const toValidIntString = (value: string): string => {
   const valueNum = Math.trunc(parseFloat(value));
   if (Number.isNaN(valueNum)) return "";
   return valueNum.toString();
