@@ -10,7 +10,7 @@ import {
   getName,
   getSelectedItemNameProperty,
   getSelectedItems,
-  parseSelectedTokens,
+  parseItems,
   writeNameToSelectedItem,
 } from "../itemHelpers";
 import BarInput from "../components/BarInput";
@@ -44,9 +44,7 @@ export default function StatsMenuApp({
           setToken(currentToken);
         };
         getSelectedItems().then((selectedItems) => {
-          parseSelectedTokens(false, selectedItems).then((tokens) =>
-            updateStats(tokens),
-          );
+          updateStats(parseItems(selectedItems));
           setTokenName(getName(selectedItems[0]));
         });
       }),
@@ -168,9 +166,13 @@ export default function StatsMenuApp({
   );
 
   const HideRow: JSX.Element = (
-    <div className={"hide-switch-row bg-black/[0.07] dark:bg-white/[0.07]"}>
-      <label htmlFor="hide" className="label" style={{ margin: 0 }}>
-        Hide stats from players
+    <div
+      className={
+        "mx-2 mt-2 flex justify-between rounded-lg bg-black/[0.07] p-2 px-3 dark:bg-white/[0.07]"
+      }
+    >
+      <label htmlFor="hide" className="label">
+        Dungeon Master Only
       </label>
       <ToggleButton
         isChecked={token.hideStats}

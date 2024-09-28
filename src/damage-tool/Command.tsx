@@ -89,7 +89,7 @@ export default function Command({
 
   useEffect(() => {
     const focusInputShortcut = (e: KeyboardEvent) => {
-      if (e.code === "KeyK" && e.ctrlKey) {
+      if (e.code === "KeyS" && e.shiftKey) {
         e.stopPropagation();
         e.preventDefault();
         if (inputRef.current) {
@@ -268,7 +268,7 @@ export default function Command({
         <div className="absolute w-full rounded-md border border-mirage-300 bg-mirage-50 shadow-sm dark:border-mirage-800 dark:bg-mirage-950 focus-within:[&:has(:focus-visible)]:border-transparent focus-within:[&:has(:focus-visible)]:ring-2 focus-within:[&:has(:focus-visible)]:ring-primary dark:focus-within:[&:has(:focus-visible)]:ring-primary-dark">
           <Input2
             ref={inputRef}
-            placeholder="Enter a command (ctrl+k)"
+            placeholder="Enter a command (shift+s)"
             value={inputContent}
             onChange={(e) => {
               setInputContent(e.target.value);
@@ -282,9 +282,7 @@ export default function Command({
               } else setIsActive(true);
             }}
           />
-          {(isActive === true ||
-            isActive === "from-null" ||
-            isActive === "initial") && (
+          {(isActive === true || isActive === "from-null") && (
             <>
               <div className="p-2 pt-0">
                 <Separator className="mt-0" />

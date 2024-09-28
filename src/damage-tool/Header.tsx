@@ -10,6 +10,9 @@ import {
 import Command from "./Command";
 import { Action, BulkEditorState, Operation } from "./types";
 import { Button } from "@/components/ui/button";
+import { GearIcon } from "@radix-ui/react-icons";
+import OBR from "@owlbear-rodeo/sdk";
+import { getPluginId } from "@/getPluginId";
 
 export default function Header({
   appState,
@@ -19,7 +22,7 @@ export default function Header({
   dispatch: React.Dispatch<Action>;
 }): JSX.Element {
   return (
-    <div className="flex gap-4 p-4 pb-2 pt-3 dark:bg-mirage-900">
+    <div className="flex gap-4 p-4 pb-2 pt-3">
       <Command dispatch={dispatch}></Command>
       <Select
         value={appState.operation}
@@ -40,8 +43,21 @@ export default function Header({
           </SelectGroup>
         </SelectContent>
       </Select>
-      <Button size={"icon"} variant={"outline"}>
-        {" i "}
+      <Button
+        size={"icon"}
+        variant={"outline"}
+        className="shrink-0"
+        onClick={async () => {
+          const themeMode = (await OBR.theme.getTheme()).mode;
+          OBR.popover.open({
+            id: getPluginId("settings"),
+            url: `/src/action/actionPopover.html?themeMode=${themeMode}`,
+            height: 500,
+            width: 400,
+          });
+        }}
+      >
+        <GearIcon className="size-5" />
       </Button>
     </div>
   );

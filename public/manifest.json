@@ -1,6 +1,6 @@
 {
   "name": "Stat Bubbles for D&D",
-  "version": "1.7.12",
+  "version": "1.7.13",
   "manifest_version": 2,
   "author": "Seamus Finlayson",
   "homepage_url": "https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo",
@@ -10,8 +10,8 @@
   "action": {
     "title": "Stat Bubbles for D&D",
     "icon": "/status.svg",
-    "popover": "/src/action/actionPopover.html",
-    "height": 390,
-    "width": 300
+    "popover": "/src/damage-tool/damageTool.html",
+    "height": 522,
+    "width": 600
   }
 }

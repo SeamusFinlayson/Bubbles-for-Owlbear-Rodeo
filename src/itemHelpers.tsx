@@ -1,4 +1,4 @@
-import OBR, { Item } from "@owlbear-rodeo/sdk";
+import OBR, { isImage, Item } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
 import Token from "./TokenClass";
 import {
@@ -11,8 +11,9 @@ import {
 
 // parse stats
 
-export async function getSelectedItems(): Promise<Item[]> {
-  const selection = await OBR.player.getSelection();
+export async function getSelectedItems(selection?: string[]): Promise<Item[]> {
+  if (selection === undefined) selection = await OBR.player.getSelection();
+  if (selection === undefined) return [];
   const selectedItems = await OBR.scene.items.getItems(selection);
   return selectedItems;
 }
@@ -43,34 +44,32 @@ function getBooleanFromMetadata(
   }
 }
 
-export async function parseSelectedTokens(
-  mustHaveMaxHealth = false,
-  selectedItems?: Item[],
-): Promise<Token[]> {
-  const selectedTokens: Token[] = [];
+export function parseItems(items: Item[]): Token[] {
+  const validItems = items.filter((item) => itemFilter(item));
 
-  // Get selected Items
-  if (selectedItems === undefined) selectedItems = await getSelectedItems();
-
-  for (const item of selectedItems) {
-    // Extract stats from metadata
+  const Tokens: Token[] = [];
+  for (const item of validItems) {
     const metadata = item.metadata[getPluginId("metadata")];
-
-    const health = getNumberFromMetadata(metadata, HEALTH_METADATA_ID);
-    const maxHealth = getNumberFromMetadata(metadata, MAX_HEALTH_METADATA_ID);
-    const tempHealth = getNumberFromMetadata(metadata, TEMP_HEALTH_METADATA_ID);
-    const armorClass = getNumberFromMetadata(metadata, ARMOR_CLASS_METADATA_ID);
-    const hideStats = getBooleanFromMetadata(metadata, HIDE_METADATA_ID);
-
-    // If the token has health and max health add it to the list of valid tokens
-    if (!mustHaveMaxHealth || maxHealth > 0) {
-      selectedTokens.push(
-        new Token(item, health, maxHealth, tempHealth, armorClass, hideStats),
-      );
-    }
+    Tokens.push(
+      new Token(
+        item,
+        getNumberFromMetadata(metadata, HEALTH_METADATA_ID),
+        getNumberFromMetadata(metadata, MAX_HEALTH_METADATA_ID),
+        getNumberFromMetadata(metadata, TEMP_HEALTH_METADATA_ID),
+        getNumberFromMetadata(metadata, ARMOR_CLASS_METADATA_ID),
+        getBooleanFromMetadata(metadata, HIDE_METADATA_ID),
+      ),
+    );
   }
 
-  return selectedTokens;
+  return Tokens;
+}
+
+/** Returns true for images on the mount and character layers */
+export function itemFilter(item: Item) {
+  return (
+    isImage(item) && (item.layer === "CHARACTER" || item.layer === "MOUNT")
+  );
 }
 
 export function getTokenStats(

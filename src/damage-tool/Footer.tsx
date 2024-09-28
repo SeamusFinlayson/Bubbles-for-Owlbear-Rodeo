@@ -142,7 +142,7 @@ export default function Footer({
   if (appState.value !== null)
     switch (appState.operation) {
       case "none":
-        valueDisplayString = `Selected Roll Result`;
+        valueDisplayString = `Roll Result`;
         break;
       case "damage":
         valueDisplayString = `Damage Result`;
@@ -157,7 +157,7 @@ export default function Footer({
       {(appState.operation === "none" ||
         appState.operation === "damage" ||
         appState.operation === "healing") && (
-        <div className="flex flex-wrap gap-4 p-2 px-4 dark:bg-mirage-900">
+        <div className="flex flex-wrap gap-4 p-2 px-4">
           <Popover open={diceMenuOpen} onOpenChange={setDiceMenuOpen}>
             <PopoverTrigger asChild>
               <Button variant={"outline"}>Roll Log</Button>
@@ -165,7 +165,7 @@ export default function Footer({
             <PopoverContent className="w-72 p-0" align="start">
               <ScrollArea className="h-[420px] px-4">
                 <div className="flex flex-col gap-4 py-4">
-                  <h4 className="font-medium leading-none">Roll History</h4>
+                  <h4 className="font-medium leading-none">Scene Roll Log</h4>
                   {appState.rolls.length > 0 ? (
                     <div className="flex flex-col justify-start gap-2">
                       {items}
@@ -180,7 +180,7 @@ export default function Footer({
               </ScrollArea>
             </PopoverContent>
           </Popover>
-          <div className="flex h-9 self-start rounded-md border border-mirage-300 bg-mirage-100 text-sm font-medium leading-none dark:border-mirage-800 dark:bg-mirage-900">
+          <div className="flex h-9 self-start rounded-md border border-mirage-300 text-sm font-medium leading-none dark:border-mirage-800">
             <div className="flex h-full w-10 min-w-12 items-center justify-center rounded-l-md border-r border-mirage-300 bg-mirage-50 p-2 px-4 text-lg dark:border-mirage-800 dark:bg-mirage-950">
               {appState.animateRoll && (
                 <div className={"absolute animate-inverse-bounce"}>
@@ -204,7 +204,7 @@ export default function Footer({
       )}
       {appState.operation === "overwrite" && (
         <>
-          <div className="flex items-center gap-2 border-t border-mirage-300 p-2 px-4 dark:border-mirage-800">
+          <div className="flex items-center gap-2 border-mirage-300 p-2 px-4 dark:border-mirage-800">
             <StatStyledInput
               name="health"
               inputProps={{

@@ -45,10 +45,10 @@ export function SetValuesTable({
   dispatch: React.Dispatch<Action>;
 }): JSX.Element {
   return (
-    <ScrollArea className="grow pl-4 pr-4">
-      <Table tabIndex={-1}>
-        <TableHeader>
-          <TableRow>
+    <Table tabIndex={-1}>
+      <TableHeader>
+        <TableRow>
+          {appState.operation !== "none" && (
             <CheckboxTableHead
               included={allChecked(tokens, appState.includedItems)}
               onCheckedChange={(checked) =>
@@ -60,20 +60,22 @@ export function SetValuesTable({
                 })
               }
             />
-            <TableHead>Icon</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead title="Hit Points / Maximum Hit Points, Temporary Hit Points">
-              Hit Points
-            </TableHead>
-            <TableHead>Armor Class</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {tokens.map((token) => {
-            const included = getIncluded(token.item.id, appState.includedItems);
+          )}
+          <TableHead>Icon</TableHead>
+          <TableHead>Name</TableHead>
+          <TableHead title="Hit Points / Maximum Hit Points, Temporary Hit Points">
+            Hit Points
+          </TableHead>
+          <TableHead>Armor Class</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {tokens.map((token) => {
+          const included = getIncluded(token.item.id, appState.includedItems);
 
-            return (
-              <TableRow key={token.item.id}>
+          return (
+            <TableRow key={token.item.id}>
+              {appState.operation !== "none" && (
                 <CheckboxTableCell
                   included={included}
                   onCheckedChange={(checked) =>
@@ -86,71 +88,70 @@ export function SetValuesTable({
                     })
                   }
                 />
-                <TokenImageTableCell token={token} fade={!included} />
-                <TokenNameTableCell token={token} fade={!included} />
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <StatInput
-                      parentValue={token.health}
-                      name={"health"}
-                      updateHandler={(target) =>
-                        handleStatUpdate(
-                          token.item.id,
-                          target,
-                          token.health,
-                          setTokens,
-                        )
-                      }
-                    ></StatInput>
-                    <div>{"/"}</div>
-                    <StatInput
-                      parentValue={token.maxHealth}
-                      name={"maxHealth"}
-                      updateHandler={(target) =>
-                        handleStatUpdate(
-                          token.item.id,
-                          target,
-                          token.maxHealth,
-                          setTokens,
-                        )
-                      }
-                    ></StatInput>
-                    <div>{""}</div>
-                    <StatInput
-                      parentValue={token.tempHealth}
-                      name={"tempHealth"}
-                      updateHandler={(target) =>
-                        handleStatUpdate(
-                          token.item.id,
-                          target,
-                          token.tempHealth,
-                          setTokens,
-                        )
-                      }
-                    ></StatInput>
-                  </div>
-                </TableCell>
-                <TableCell>
+              )}
+              <TokenImageTableCell token={token} fade={!included} />
+              <TokenNameTableCell token={token} fade={!included} />
+              <TableCell>
+                <div className="flex items-center gap-2">
                   <StatInput
-                    parentValue={token.armorClass}
-                    name={"armorClass"}
+                    parentValue={token.health}
+                    name={"health"}
                     updateHandler={(target) =>
                       handleStatUpdate(
                         token.item.id,
                         target,
-                        token.armorClass,
+                        token.health,
                         setTokens,
                       )
                     }
                   ></StatInput>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-      <ScrollBar orientation="horizontal" forceMount />
-    </ScrollArea>
+                  <div>{"/"}</div>
+                  <StatInput
+                    parentValue={token.maxHealth}
+                    name={"maxHealth"}
+                    updateHandler={(target) =>
+                      handleStatUpdate(
+                        token.item.id,
+                        target,
+                        token.maxHealth,
+                        setTokens,
+                      )
+                    }
+                  ></StatInput>
+                  <div>{""}</div>
+                  <StatInput
+                    parentValue={token.tempHealth}
+                    name={"tempHealth"}
+                    updateHandler={(target) =>
+                      handleStatUpdate(
+                        token.item.id,
+                        target,
+                        token.tempHealth,
+                        setTokens,
+                      )
+                    }
+                  ></StatInput>
+                </div>
+              </TableCell>
+              <TableCell>
+                <StatInput
+                  parentValue={token.armorClass}
+                  name={"armorClass"}
+                  updateHandler={(target) =>
+                    handleStatUpdate(
+                      token.item.id,
+                      target,
+                      token.armorClass,
+                      setTokens,
+                    )
+                  }
+                ></StatInput>
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -164,172 +165,169 @@ export function DamageTable({
   dispatch: React.Dispatch<Action>;
 }): JSX.Element {
   return (
-    <ScrollArea className="grow pl-4 pr-4 dark:bg-mirage-950">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <CheckboxTableHead
-              included={allChecked(tokens, appState.includedItems)}
-              onCheckedChange={(checked) =>
-                dispatch({
-                  type: "set-included-items",
-                  includedItems: new Map(
-                    tokens.map((token) => [token.item.id, checked]),
-                  ),
-                })
-              }
-            />
-            <TableHead>Icon</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Multiplier</TableHead>
-            <TableHead>Damage</TableHead>
-            <TableHead>New Hit Points</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {tokens.map((token) => {
-            const included = getIncluded(token.item.id, appState.includedItems);
-            const option = getDamageScaleOption(
-              token.item.id,
-              appState.damageScaleOptions,
-            );
-            const scaledDamage = calculateScaledHealthDiff(
-              included ? option : 0,
-              appState.value ? appState.value : 0,
-            );
-            const [newHealth, newTempHealth] = calculateNewHealth(
-              token.health,
-              token.maxHealth,
-              token.tempHealth,
-              -1 * scaledDamage,
-            );
-
-            const nextDamageOption = () => {
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <CheckboxTableHead
+            included={allChecked(tokens, appState.includedItems)}
+            onCheckedChange={(checked) =>
               dispatch({
-                type: "set-damage-scale-options",
-                damageScaleOptions: new Map(appState.damageScaleOptions).set(
-                  token.item.id,
-                  option < multipliers.length - 1 ? option + 1 : option,
+                type: "set-included-items",
+                includedItems: new Map(
+                  tokens.map((token) => [token.item.id, checked]),
                 ),
-              });
-            };
+              })
+            }
+          />
+          <TableHead>Icon</TableHead>
+          <TableHead>Name</TableHead>
+          <TableHead>Multiplier</TableHead>
+          <TableHead>Damage</TableHead>
+          <TableHead>New Hit Points</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {tokens.map((token) => {
+          const included = getIncluded(token.item.id, appState.includedItems);
+          const option = getDamageScaleOption(
+            token.item.id,
+            appState.damageScaleOptions,
+          );
+          const scaledDamage = calculateScaledHealthDiff(
+            included ? option : 0,
+            appState.value ? appState.value : 0,
+          );
+          const [newHealth, newTempHealth] = calculateNewHealth(
+            token.health,
+            token.maxHealth,
+            token.tempHealth,
+            -1 * scaledDamage,
+          );
 
-            const resetDamageOption = () => {
-              dispatch({
-                type: "set-damage-scale-options",
-                damageScaleOptions: new Map(appState.damageScaleOptions).set(
-                  token.item.id,
-                  DEFAULT_DAMAGE_SCALE,
-                ),
-              });
-            };
+          const nextDamageOption = () => {
+            dispatch({
+              type: "set-damage-scale-options",
+              damageScaleOptions: new Map(appState.damageScaleOptions).set(
+                token.item.id,
+                option < multipliers.length - 1 ? option + 1 : option,
+              ),
+            });
+          };
 
-            const previousDamageOption = () => {
-              dispatch({
-                type: "set-damage-scale-options",
-                damageScaleOptions: new Map(appState.damageScaleOptions).set(
-                  token.item.id,
-                  option > 1 ? option - 1 : option,
-                ),
-              });
-            };
+          const resetDamageOption = () => {
+            dispatch({
+              type: "set-damage-scale-options",
+              damageScaleOptions: new Map(appState.damageScaleOptions).set(
+                token.item.id,
+                DEFAULT_DAMAGE_SCALE,
+              ),
+            });
+          };
 
-            const handleKeyDown = (
-              event: React.KeyboardEvent<HTMLTableRowElement>,
-            ) => {
-              switch (event.code) {
-                case "ArrowLeft":
-                  previousDamageOption();
-                  break;
-                case "ArrowRight":
-                  nextDamageOption();
-                  break;
-                case "KeyR":
-                  resetDamageOption();
-                  break;
-              }
-            };
+          const previousDamageOption = () => {
+            dispatch({
+              type: "set-damage-scale-options",
+              damageScaleOptions: new Map(appState.damageScaleOptions).set(
+                token.item.id,
+                option > 1 ? option - 1 : option,
+              ),
+            });
+          };
 
-            return (
-              <TableRow
-                key={token.item.id}
-                onKeyDown={(event) => handleKeyDown(event)}
+          const handleKeyDown = (
+            event: React.KeyboardEvent<HTMLTableRowElement>,
+          ) => {
+            switch (event.code) {
+              case "ArrowLeft":
+                previousDamageOption();
+                break;
+              case "ArrowRight":
+                nextDamageOption();
+                break;
+              case "KeyR":
+                resetDamageOption();
+                break;
+            }
+          };
+
+          return (
+            <TableRow
+              key={token.item.id}
+              onKeyDown={(event) => handleKeyDown(event)}
+            >
+              <CheckboxTableCell
+                included={included}
+                onCheckedChange={(checked) =>
+                  dispatch({
+                    type: "set-included-items",
+                    includedItems: appState.includedItems.set(
+                      token.item.id,
+                      checked,
+                    ),
+                  })
+                }
+              />
+              <TokenImageTableCell token={token} fade={!included} />
+              <TokenNameTableCell token={token} fade={!included} />
+              <TableCell>
+                <div className="flex max-w-32 gap-2">
+                  <Button
+                    className="size-8 min-w-8 rounded-full"
+                    tabIndex={-1}
+                    size={"icon"}
+                    variant={"outline"}
+                    onClick={(e) => {
+                      previousDamageOption();
+                      e.stopPropagation();
+                    }}
+                  >
+                    <ArrowLeftIcon className="size-4" />
+                  </Button>
+                  <Button
+                    className="flex h-8 w-10 items-center justify-center text-lg font-medium"
+                    tabIndex={-1}
+                    variant={"ghost"}
+                    onClick={(e) => {
+                      resetDamageOption();
+                      e.stopPropagation();
+                    }}
+                  >
+                    {multipliers[option]}
+                  </Button>
+                  <Button
+                    className="size-8 min-w-8 rounded-full"
+                    tabIndex={-1}
+                    size={"icon"}
+                    variant={"outline"}
+                    onClick={(e) => {
+                      nextDamageOption();
+                      e.stopPropagation();
+                    }}
+                  >
+                    <ArrowRightIcon className="size-4" />
+                  </Button>
+                </div>
+              </TableCell>
+              <TableCell
+                className={cn({
+                  "text-mirage-500 dark:text-mirage-400": !included,
+                })}
               >
-                <CheckboxTableCell
-                  included={included}
-                  onCheckedChange={(checked) =>
-                    dispatch({
-                      type: "set-included-items",
-                      includedItems: appState.includedItems.set(
-                        token.item.id,
-                        checked,
-                      ),
-                    })
-                  }
-                />
-                <TokenImageTableCell token={token} fade={!included} />
-                <TokenNameTableCell token={token} fade={!included} />
-                <TableCell>
-                  <div className="flex max-w-32 gap-2">
-                    <Button
-                      className="size-8 min-w-8 rounded-full"
-                      tabIndex={-1}
-                      size={"icon"}
-                      variant={"outline"}
-                      onClick={(e) => {
-                        previousDamageOption();
-                        e.stopPropagation();
-                      }}
-                    >
-                      <ArrowLeftIcon className="size-4" />
-                    </Button>
-                    <Button
-                      className="flex h-8 w-10 items-center justify-center text-lg font-medium"
-                      tabIndex={-1}
-                      variant={"ghost"}
-                      onClick={(e) => {
-                        resetDamageOption();
-                        e.stopPropagation();
-                      }}
-                    >
-                      {multipliers[option]}
-                    </Button>
-                    <Button
-                      className="size-8 min-w-8 rounded-full"
-                      tabIndex={-1}
-                      size={"icon"}
-                      variant={"outline"}
-                      onClick={(e) => {
-                        nextDamageOption();
-                        e.stopPropagation();
-                      }}
-                    >
-                      <ArrowRightIcon className="size-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-                <TableCell
-                  className={cn({
-                    "text-mirage-500 dark:text-mirage-400": !included,
-                  })}
-                >
-                  {scaledDamage}
-                </TableCell>
-                <TableCell
-                  className={cn("md:min-w-16 lg:min-w-20", {
-                    "text-mirage-500 dark:text-mirage-400": !included,
-                  })}
-                >
-                  {newHealth.toString() +
-                    (newTempHealth > 0 ? ` (${newTempHealth})` : "")}
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-      <ScrollBar orientation="horizontal" forceMount />
-    </ScrollArea>
+                {scaledDamage}
+              </TableCell>
+              <TableCell
+                className={cn("md:min-w-16 lg:min-w-20", {
+                  "text-mirage-500 dark:text-mirage-400": !included,
+                })}
+              >
+                {newHealth.toString() +
+                  (newTempHealth > 0 ? ` (${newTempHealth})` : "")}
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
   );
 }
 

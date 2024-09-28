@@ -20,7 +20,7 @@ export default async function createContextMenuItems(
 
   createPlayerMenu(themeMode, menuHeight);
   createGmMenu(themeMode, menuHeight + HIDE_HEIGHT);
-  createDamageToolContextItem(themeMode);
+  // createDamageToolContextItem(themeMode);
 }
 
 function createPlayerMenu(

@@ -1,4 +1,4 @@
-export function addThemeToBody(themeMode: "DARK" | "LIGHT") {
+export function addThemeToBody(themeMode?: "DARK" | "LIGHT") {
   if (themeMode === undefined)
     themeMode = new URLSearchParams(document.location.search).get(
       "themeMode",

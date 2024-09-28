@@ -7,6 +7,8 @@ export default {
   },
   theme: {
     screens: {
+      "2xs": "300px",
+      xs: "350px",
       sm: "400px",
       md: "500px",
       lg: "550px",
@@ -36,6 +38,7 @@ export default {
       },
       transitionProperty: {
         height: "height",
+        "max-height": "max-height",
       },
       colors: {
         mirage: {
@@ -49,6 +52,7 @@ export default {
           700: "#464a5e",
           800: "#3d4051",
           900: "#2d3143",
+          940: "#24283b",
           950: "#222639",
         },
         stat: {

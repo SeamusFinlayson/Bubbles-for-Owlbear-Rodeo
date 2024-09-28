@@ -1,26 +1,24 @@
 import Token from "../TokenClass";
 import "../index.css";
 import { useEffect, useReducer, useState } from "react";
-import { BulkEditorState, Operation, StampedDiceRoll } from "./types";
+import { Action, BulkEditorState, Operation } from "./types";
 import Footer from "./Footer";
 import Header from "./Header";
 import { DamageTable, SetValuesTable } from "./Tables";
 import { getRollsFromScene, reducer, unsetStatOverwrites } from "./helpers";
-import OBR from "@owlbear-rodeo/sdk";
-import { parseSelectedTokens } from "@/itemHelpers";
+import OBR, { Item } from "@owlbear-rodeo/sdk";
+import { itemFilter, parseItems } from "@/itemHelpers";
+import { addThemeToBody } from "@/colorHelpers";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 
-export default function BulkEditor({
-  initialTokens,
-  initialRolls,
-}: {
-  initialTokens: Token[];
-  initialRolls: StampedDiceRoll[];
-}): JSX.Element {
+export default function BulkEditor(): JSX.Element {
   // App state
   const [appState, dispatch] = useReducer(reducer, {}, (): BulkEditorState => {
     return {
       operation: "none",
-      rolls: initialRolls,
+      showItems: "SELECTED",
+      rolls: [],
       value: null,
       animateRoll: false,
       statOverwrites: unsetStatOverwrites(),
@@ -29,28 +27,76 @@ export default function BulkEditor({
     };
   });
 
-  // Tokens
-  const [tokens, setTokens] = useState(initialTokens);
+  // Scene Data
+  const [tokens, setTokens] = useState<Token[]>([]);
+  const [playerSelection, setPlayerSelection] = useState<string[]>([]);
+  const [playerRole, setPlayerRole] = useState<"PLAYER" | "GM">("PLAYER");
+  const [sceneReady, setSceneReady] = useState(false);
 
-  // Keep tokens up to date with scene
+  const selectedTokens = tokens.filter(
+    (token) =>
+      (appState.showItems === "ALL" ||
+        playerSelection.includes(token.item.id)) &&
+      (playerRole === "GM" || !token.hideStats) &&
+      !(appState.operation === "damage" && token.maxHealth <= 0) &&
+      !(appState.operation === "healing" && token.maxHealth <= 0),
+  );
+
+  // Sync tokens with scene
+  const parseTokens = (items: Item[]) => setTokens(parseItems(items));
+  useEffect(() => {
+    return OBR.scene.items.onChange(parseTokens);
+  }, []);
+
+  // Handle room ready
+  useEffect(() => {
+    const handleReady = (ready: boolean) => {
+      setSceneReady(ready);
+      if (ready) {
+        OBR.scene.items.getItems(itemFilter).then(parseTokens);
+        getRollsFromScene().then((rolls) =>
+          dispatch({
+            type: "set-rolls",
+            rolls: rolls,
+          }),
+        );
+      } else {
+        setTokens([]);
+      }
+    };
+    OBR.scene.isReady().then(handleReady);
+    return OBR.scene.onReadyChange(handleReady);
+  }, []);
+
+  // Sync player
+  useEffect(() => {
+    const updateSelection = (selection: string[] | undefined) => {
+      setPlayerSelection(selection ? selection : []);
+    };
+    const updatePlayerRole = (role: "PLAYER" | "GM") => setPlayerRole(role);
+    OBR.player.getSelection().then(updateSelection);
+    OBR.player.getRole().then(updatePlayerRole);
+    return OBR.player.onChange((player) => {
+      updateSelection(player.selection);
+      updatePlayerRole(player.role);
+    });
+  }, []);
+
+  // Sync rolls
   useEffect(
-    () =>
-      OBR.scene.items.onChange(() => {
-        const updateTokens = (newTokens: Token[]) => {
-          setTokens(newTokens);
-        };
-        parseSelectedTokens(true).then(updateTokens);
-      }),
+    OBR.scene.onMetadataChange(async (sceneMetadata) => {
+      if (sceneReady)
+        dispatch({
+          type: "set-rolls",
+          rolls: await getRollsFromScene(sceneMetadata),
+        });
+    }),
     [],
   );
 
+  // Sync theme
   useEffect(
-    OBR.scene.onMetadataChange(async (sceneMetadata) => {
-      dispatch({
-        type: "set-rolls",
-        rolls: await getRollsFromScene(sceneMetadata),
-      });
-    }),
+    () => OBR.theme.onChange((theme) => addThemeToBody(theme.mode)),
     [],
   );
 
@@ -61,11 +107,17 @@ export default function BulkEditor({
   }, [appState.rolls[0]?.total]);
 
   const getTable = (operation: Operation) => {
+    if (selectedTokens.length === 0)
+      return (
+        <div className="flex h-full items-start justify-center p-2 text-mirage-400 dark:text-mirage-600">
+          Tokens you select on the map will be visible here.
+        </div>
+      );
     switch (operation) {
       case "damage":
         return (
           <DamageTable
-            tokens={tokens}
+            tokens={selectedTokens}
             appState={appState}
             dispatch={dispatch}
           ></DamageTable>
@@ -73,7 +125,7 @@ export default function BulkEditor({
       default:
         return (
           <SetValuesTable
-            tokens={tokens}
+            tokens={selectedTokens}
             setTokens={setTokens}
             appState={appState}
             dispatch={dispatch}
@@ -83,16 +135,46 @@ export default function BulkEditor({
   };
 
   return (
-    <div className="h-[522px] overflow-clip">
-      <div className="flex h-full flex-col justify-between bg-mirage-100 dark:bg-mirage-950 dark:text-mirage-200">
+    <div className="h-full overflow-clip">
+      <div className="flex h-full flex-col justify-between bg-mirage-100/90 dark:bg-mirage-940/85 dark:text-mirage-200">
         <Header appState={appState} dispatch={dispatch}></Header>
-        {getTable(appState.operation)}
+        <ScrollArea className="h-full pl-4 pr-4">
+          <div className="flex flex-col items-center justify-start gap-2 pb-2">
+            {getTable(appState.operation)}
+            <ChangeShowItemsButton appState={appState} dispatch={dispatch} />
+          </div>
+          <ScrollBar orientation="horizontal" forceMount />
+        </ScrollArea>
         <Footer
-          tokens={tokens}
+          tokens={selectedTokens}
           appState={appState}
           dispatch={dispatch}
         ></Footer>
       </div>
     </div>
+  );
+}
+
+function ChangeShowItemsButton({
+  appState,
+  dispatch,
+}: {
+  appState: BulkEditorState;
+  dispatch: React.Dispatch<Action>;
+}): JSX.Element {
+  return (
+    <Button
+      variant={"ghost"}
+      onClick={() =>
+        dispatch({
+          type: "set-show-items",
+          showItems: appState.showItems === "ALL" ? "SELECTED" : "ALL",
+        })
+      }
+    >
+      {appState.showItems === "ALL"
+        ? "Show Only Selected Tokens"
+        : "Show All Tokens"}
+    </Button>
   );
 }

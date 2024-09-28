@@ -23,6 +23,7 @@ export type BulkEditorState = {
   statOverwrites: StatOverwriteData;
   damageScaleOptions: Map<string, number>;
   includedItems: Map<string, boolean>;
+  showItems: "ALL" | "SELECTED";
 };
 
 export type Action =
@@ -77,4 +78,8 @@ export type Action =
   | {
       type: "set-included-items";
       includedItems: Map<string, boolean>;
+    }
+  | {
+      type: "set-show-items";
+      showItems: "ALL" | "SELECTED";
     };

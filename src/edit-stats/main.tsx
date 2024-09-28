@@ -1,7 +1,7 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { createRoot } from "react-dom/client";
 import StatsMenuApp from "./StatsMenuApp";
-import { getName, getSelectedItems, parseSelectedTokens } from "../itemHelpers";
+import { getName, getSelectedItems, parseItems } from "../itemHelpers";
 import { getPluginId } from "../getPluginId";
 import { addThemeToBody } from "@/colorHelpers";
 
@@ -12,7 +12,7 @@ OBR.onReady(async () => {
     OBR.scene.getMetadata(),
   ]);
 
-  const initialTokens = await parseSelectedTokens(false, selectedItems);
+  const initialTokens = parseItems(selectedItems);
   const initialName = getName(selectedItems[0]);
 
   addThemeToBody();

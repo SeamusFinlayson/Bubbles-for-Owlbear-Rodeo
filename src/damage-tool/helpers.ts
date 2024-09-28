@@ -154,6 +154,7 @@ export async function getRollsFromScene(sceneMetadata?: Metadata) {
   if (sceneMetadata === undefined)
     sceneMetadata = await OBR.scene.getMetadata();
   const diceRolls = sceneMetadata[DICE_METADATA_ID];
+  if (diceRolls === undefined) return [];
   if (!isDiceRollArray(diceRolls)) throw "Error: invalid dice roll array";
   return diceRolls;
 }
@@ -174,7 +175,16 @@ export function reducer(
 ): BulkEditorState {
   switch (action.type) {
     case "set-operation":
-      return { ...state, operation: action.operation };
+      return {
+        ...state,
+        operation: action.operation,
+        ...(state.operation !== action.operation
+          ? {
+              damageScaleOptions: new Map<string, number>(),
+              includedItems: new Map<string, boolean>(),
+            }
+          : {}),
+      };
     case "set-rolls":
       return { ...state, rolls: action.rolls };
     case "add-roll":
@@ -247,6 +257,8 @@ export function reducer(
         ...state,
         includedItems: new Map(action.includedItems),
       };
+    case "set-show-items":
+      return { ...state, showItems: action.showItems };
     default:
       console.log("unhandled action");
       return state;
