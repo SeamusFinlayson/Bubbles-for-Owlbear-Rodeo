@@ -20,7 +20,7 @@ export function SortableTableRow({
   return (
     <TableRow
       ref={setNodeRef}
-      style={style}
+      style={{ ...style }}
       {...attributes}
       {...listeners}
       tabIndex={-1}

@@ -1,13 +1,12 @@
-import { PointerSensor } from "@dnd-kit/core";
-import type { PointerEvent } from "react";
+import { MouseSensor } from "@dnd-kit/core";
+import type { MouseEvent } from "react";
 
-export class SmartPointerSensor extends PointerSensor {
+export class SmartMouseSensor extends MouseSensor {
   static activators = [
     {
-      eventName: "onPointerDown" as any,
-      handler: ({ nativeEvent: event }: PointerEvent) => {
+      eventName: "onMouseDown" as any,
+      handler: ({ nativeEvent: event }: MouseEvent) => {
         if (
-          !event.isPrimary ||
           event.button !== 0 ||
           isInteractiveElement(event.target as Element)
         ) {
@@ -21,7 +20,7 @@ export class SmartPointerSensor extends PointerSensor {
 }
 function isInteractiveElement(element: Element | null) {
   const interactiveElements = [
-    "button",
+    // "button",
     "input",
     "textarea",
     "select",

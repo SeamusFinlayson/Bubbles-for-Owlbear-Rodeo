@@ -55,7 +55,7 @@ import {
 } from "@dnd-kit/sortable";
 import { restrictToFirstScrollableAncestor } from "@dnd-kit/modifiers";
 
-import { SmartPointerSensor } from "./SmartPointerSensor";
+import { SmartMouseSensor } from "./SmartPointerSensor";
 import { SortableTableRow } from "./SortableTableRow";
 
 export function SetValuesTable({
@@ -76,8 +76,8 @@ export function SetValuesTable({
   handleDragEnd: (event: DragEndEvent) => void;
 }): JSX.Element {
   const sensors = useSensors(
-    useSensor(SmartPointerSensor, {
-      activationConstraint: { distance: 10 },
+    useSensor(SmartMouseSensor, {
+      activationConstraint: { distance: { y: 10 } },
     }),
   );
 
