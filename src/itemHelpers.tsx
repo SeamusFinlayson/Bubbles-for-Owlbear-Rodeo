@@ -1,12 +1,14 @@
 import OBR, { isImage, Item } from "@owlbear-rodeo/sdk";
 import { getPluginId } from "./getPluginId";
-import Token from "./TokenClass";
+import Token, { tokenFactory } from "./TokenClass";
 import {
   HEALTH_METADATA_ID,
   MAX_HEALTH_METADATA_ID,
   TEMP_HEALTH_METADATA_ID,
   ARMOR_CLASS_METADATA_ID,
   HIDE_METADATA_ID,
+  GROUP_METADATA_ID,
+  INDEX_METADATA_ID,
 } from "./itemMetadataIds";
 
 // parse stats
@@ -51,13 +53,15 @@ export function parseItems(items: Item[]): Token[] {
   for (const item of validItems) {
     const metadata = item.metadata[getPluginId("metadata")];
     Tokens.push(
-      new Token(
+      tokenFactory(
         item,
         getNumberFromMetadata(metadata, HEALTH_METADATA_ID),
         getNumberFromMetadata(metadata, MAX_HEALTH_METADATA_ID),
         getNumberFromMetadata(metadata, TEMP_HEALTH_METADATA_ID),
         getNumberFromMetadata(metadata, ARMOR_CLASS_METADATA_ID),
         getBooleanFromMetadata(metadata, HIDE_METADATA_ID),
+        getNumberFromMetadata(metadata, GROUP_METADATA_ID),
+        getNumberFromMetadata(metadata, INDEX_METADATA_ID, -1),
       ),
     );
   }

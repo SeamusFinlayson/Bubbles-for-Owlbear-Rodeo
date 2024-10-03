@@ -10,12 +10,15 @@ import {
   getRollsFromScene,
   reducer,
   unsetStatOverwrites,
+  writeTokenSortingToItems,
 } from "./helpers";
 import OBR, { Item } from "@owlbear-rodeo/sdk";
 import { itemFilter, parseItems } from "@/itemHelpers";
 import { addThemeToBody } from "@/colorHelpers";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { arrayMove } from "@dnd-kit/sortable";
+import { DragEndEvent } from "@dnd-kit/core";
 
 export default function BulkEditor(): JSX.Element {
   // App state
@@ -52,10 +55,44 @@ export default function BulkEditor(): JSX.Element {
       !(appState.operation === "healing" && token.maxHealth <= 0),
   );
 
+  function handleDragEnd(event: DragEndEvent) {
+    //group is unhandled
+    const { active, over } = event;
+    if (over?.id && active.id !== over.id) {
+      setTokens((tokens) => {
+        const oldIndex = tokens.find(
+          (token) => token.item.id === active.id,
+        )?.index;
+        const newIndex = tokens.find(
+          (token) => token.item.id === over.id,
+        )?.index;
+        const newTokens = arrayMove(
+          tokens,
+          oldIndex as number,
+          newIndex as number,
+        );
+        for (let i = 0; i < newTokens.length; i++) newTokens[i].index = i;
+
+        writeTokenSortingToItems(newTokens);
+        return newTokens;
+      });
+    }
+  }
+
   // Sync tokens with scene
-  const parseTokens = (items: Item[]) => setTokens(parseItems(items));
+  const updateTokens = (items: Item[]) => {
+    const newTokens = parseItems(items);
+    // Guarantee initialized and ordered indices
+    newTokens.sort(
+      (a, b) =>
+        (a.index === -1 ? newTokens.length : a.index) -
+        (b.index === -1 ? newTokens.length : b.index),
+    );
+    for (let i = 0; i < newTokens.length; i++) newTokens[i].index = i;
+    setTokens(newTokens);
+  };
   useEffect(() => {
-    return OBR.scene.items.onChange(parseTokens);
+    return OBR.scene.items.onChange(updateTokens);
   }, []);
 
   // Handle room ready
@@ -63,7 +100,7 @@ export default function BulkEditor(): JSX.Element {
     const handleReady = (ready: boolean) => {
       setSceneReady(ready);
       if (ready) {
-        OBR.scene.items.getItems(itemFilter).then(parseTokens);
+        OBR.scene.items.getItems(itemFilter).then(updateTokens);
         getRollsFromScene().then((rolls) =>
           dispatch({
             type: "set-rolls",
@@ -147,6 +184,7 @@ export default function BulkEditor(): JSX.Element {
             setTokens={setTokens}
             playerRole={playerRole}
             playerSelection={playerSelection}
+            handleDragEnd={handleDragEnd}
           ></SetValuesTable>
         );
     }

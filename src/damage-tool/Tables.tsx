@@ -50,7 +50,6 @@ import {
   DragEndEvent,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
@@ -66,6 +65,7 @@ export function SetValuesTable({
   setTokens,
   playerRole,
   playerSelection,
+  handleDragEnd,
 }: {
   appState: BulkEditorState;
   dispatch: React.Dispatch<Action>;
@@ -73,25 +73,13 @@ export function SetValuesTable({
   setTokens: React.Dispatch<React.SetStateAction<Token[]>>;
   playerRole: "PLAYER" | "GM";
   playerSelection: string[];
+  handleDragEnd: (event: DragEndEvent) => void;
 }): JSX.Element {
   const sensors = useSensors(
     useSensor(SmartPointerSensor, {
       activationConstraint: { distance: 10 },
     }),
   );
-
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (over?.id && active.id !== over.id) {
-      setTokens((tokens) => {
-        const oldIndex = tokens.findIndex(
-          (token) => token.item.id === active.id,
-        );
-        const newIndex = tokens.findIndex((token) => token.item.id === over.id);
-        return arrayMove(tokens, oldIndex, newIndex);
-      });
-    }
-  }
 
   return (
     <DndContext
@@ -101,7 +89,7 @@ export function SetValuesTable({
       onDragEnd={handleDragEnd}
     >
       <SortableContext
-        items={[...tokens.map((token) => token.item.id), 5, 6, 7, 8]}
+        items={tokens.map((token) => token.item.id)}
         strategy={verticalListSortingStrategy}
       >
         <Table tabIndex={-1}>
