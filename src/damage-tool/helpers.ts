@@ -1,5 +1,5 @@
 import Token from "@/TokenClass";
-import OBR, { Item, Metadata } from "@owlbear-rodeo/sdk";
+import OBR, { Item, Math2, Metadata, Vector2 } from "@owlbear-rodeo/sdk";
 import {
   calculateNewHealth,
   calculateScaledHealthDiff,
@@ -21,7 +21,7 @@ import { DiceRoll } from "@dice-roller/rpg-dice-roller";
 /* Items */
 
 export const DEFAULT_DAMAGE_SCALE = 3;
-export const DEFAULT_INCLUDED = true;
+export const DEFAULT_INCLUDED = false;
 
 export const getDamageScaleOption = (
   key: string,
@@ -181,7 +181,10 @@ export function reducer(
         ...(state.operation !== action.operation
           ? {
               damageScaleOptions: new Map<string, number>(),
-              includedItems: new Map<string, boolean>(),
+              includedItems:
+                action.operation === "none"
+                  ? new Map<string, boolean>()
+                  : state.includedItems,
             }
           : {}),
       };
@@ -273,3 +276,54 @@ export const unsetStatOverwrites = () => {
     armorClass: "",
   };
 };
+
+export async function handleTokenClicked(itemId: string, replace: boolean) {
+  const selectedItems = await OBR.player.getSelection();
+  if (selectedItems && selectedItems.includes(itemId))
+    OBR.player.deselect([itemId]);
+  else OBR.player.select([itemId], replace);
+}
+
+async function deselectText() {
+  // Deselect the list item text
+  window.getSelection()?.removeAllRanges();
+}
+
+export async function focusItem(itemId: string) {
+  // User may have selected text by double clicking on the initiative item
+  deselectText();
+
+  await OBR.player.select([itemId]);
+  // Focus on this item
+
+  // Convert the center of the selected item to screen-space
+  const bounds = await OBR.scene.items.getItemBounds([itemId]);
+  const boundsAbsoluteCenter = await OBR.viewport.transformPoint(bounds.center);
+
+  // Get the center of the viewport in screen-space
+  const viewportWidth = await OBR.viewport.getWidth();
+  const viewportHeight = await OBR.viewport.getHeight();
+  const viewportCenter: Vector2 = {
+    x: viewportWidth / 2,
+    y: viewportHeight / 2,
+  };
+
+  // Offset the item center by the viewport center
+  const absoluteCenter = Math2.subtract(boundsAbsoluteCenter, viewportCenter);
+
+  // Convert the center to world-space
+  const relativeCenter =
+    await OBR.viewport.inverseTransformPoint(absoluteCenter);
+
+  // Invert and scale the world-space position to match a viewport position offset
+  const viewportScale = await OBR.viewport.getScale();
+  const viewportPosition = Math2.multiply(relativeCenter, -viewportScale);
+
+  await OBR.viewport.animateTo({
+    scale: viewportScale,
+    position: viewportPosition,
+  });
+
+  // Select this item
+  OBR.player.select([itemId]);
+}

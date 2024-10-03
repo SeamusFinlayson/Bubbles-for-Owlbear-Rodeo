@@ -5,7 +5,12 @@ import { Action, BulkEditorState, Operation } from "./types";
 import Footer from "./Footer";
 import Header from "./Header";
 import { DamageTable, SetValuesTable } from "./Tables";
-import { getRollsFromScene, reducer, unsetStatOverwrites } from "./helpers";
+import {
+  getIncluded,
+  getRollsFromScene,
+  reducer,
+  unsetStatOverwrites,
+} from "./helpers";
 import OBR, { Item } from "@owlbear-rodeo/sdk";
 import { itemFilter, parseItems } from "@/itemHelpers";
 import { addThemeToBody } from "@/colorHelpers";
@@ -27,16 +32,21 @@ export default function BulkEditor(): JSX.Element {
     };
   });
 
-  // Scene Data
+  // Scene State
   const [tokens, setTokens] = useState<Token[]>([]);
   const [playerSelection, setPlayerSelection] = useState<string[]>([]);
   const [playerRole, setPlayerRole] = useState<"PLAYER" | "GM">("PLAYER");
   const [sceneReady, setSceneReady] = useState(false);
 
+  // Tokens filter state
+  const [mostRecentSelection, setMostRecentSelection] =
+    useState<string[]>(playerSelection);
+
   const selectedTokens = tokens.filter(
     (token) =>
       (appState.showItems === "ALL" ||
-        playerSelection.includes(token.item.id)) &&
+        mostRecentSelection.includes(token.item.id) ||
+        getIncluded(token.item.id, appState.includedItems)) &&
       (playerRole === "GM" || !token.hideStats) &&
       !(appState.operation === "damage" && token.maxHealth <= 0) &&
       !(appState.operation === "healing" && token.maxHealth <= 0),
@@ -72,15 +82,20 @@ export default function BulkEditor(): JSX.Element {
   useEffect(() => {
     const updateSelection = (selection: string[] | undefined) => {
       setPlayerSelection(selection ? selection : []);
+      if (selection) setMostRecentSelection(selection);
     };
-    const updatePlayerRole = (role: "PLAYER" | "GM") => setPlayerRole(role);
+    const updatePlayerRole = (role: "PLAYER" | "GM") => {
+      setPlayerRole(role);
+      if (role === "PLAYER")
+        dispatch({ type: "set-operation", operation: "none" });
+    };
     OBR.player.getSelection().then(updateSelection);
     OBR.player.getRole().then(updatePlayerRole);
     return OBR.player.onChange((player) => {
       updateSelection(player.selection);
       updatePlayerRole(player.role);
     });
-  }, []);
+  });
 
   // Sync rolls
   useEffect(
@@ -110,7 +125,7 @@ export default function BulkEditor(): JSX.Element {
     if (selectedTokens.length === 0)
       return (
         <div className="flex h-full items-start justify-center p-2 text-mirage-400 dark:text-mirage-600">
-          Tokens you select on the map will be visible here.
+          The tokens you most recently selected on the map will be visible here.
         </div>
       );
     switch (operation) {
@@ -120,15 +135,18 @@ export default function BulkEditor(): JSX.Element {
             tokens={selectedTokens}
             appState={appState}
             dispatch={dispatch}
+            playerSelection={playerSelection}
           ></DamageTable>
         );
       default:
         return (
           <SetValuesTable
-            tokens={selectedTokens}
-            setTokens={setTokens}
             appState={appState}
             dispatch={dispatch}
+            tokens={selectedTokens}
+            setTokens={setTokens}
+            playerRole={playerRole}
+            playerSelection={playerSelection}
           ></SetValuesTable>
         );
     }
@@ -137,8 +155,12 @@ export default function BulkEditor(): JSX.Element {
   return (
     <div className="h-full overflow-clip">
       <div className="flex h-full flex-col justify-between bg-mirage-100/90 dark:bg-mirage-940/85 dark:text-mirage-200">
-        <Header appState={appState} dispatch={dispatch}></Header>
-        <ScrollArea className="h-full pl-4 pr-4">
+        <Header
+          appState={appState}
+          dispatch={dispatch}
+          playerRole={playerRole}
+        ></Header>
+        <ScrollArea className="h-full sm:px-4">
           <div className="flex flex-col items-center justify-start gap-2 pb-2">
             {getTable(appState.operation)}
             <ChangeShowItemsButton appState={appState} dispatch={dispatch} />

@@ -10,7 +10,7 @@ export default function ActionButton({
   return (
     <Button
       key={label}
-      className="ml-auto"
+      className="w-full"
       variant={"secondary"}
       {...buttonProps}
     >

@@ -28,7 +28,7 @@ const commandFactory = (
     },
   ];
 };
-const commands = new Map<string, CommandType>([
+const gmCommands = new Map<string, CommandType>([
   commandFactory("r", "Roll", (string: string) => {
     return validRoll(extractCommandContent(string))
       ? `Roll ${extractCommandContent(string)}`
@@ -44,8 +44,15 @@ const commands = new Map<string, CommandType>([
       ? `Roll ${extractCommandContent(string)} healing`
       : "Invalid Roll";
   }),
-  commandFactory("o", "Overwrite Multiple Token Stats", () => {
-    return `Switch to overwrite operation`;
+  // commandFactory("o", "Overwrite Multiple Token Stats", () => {
+  //   return `Switch to overwrite operation`;
+  // }),
+]);
+const playerCommands = new Map<string, CommandType>([
+  commandFactory("r", "Roll", (string: string) => {
+    return validRoll(extractCommandContent(string))
+      ? `Roll ${extractCommandContent(string)}`
+      : "Invalid Roll";
   }),
 ]);
 
@@ -77,8 +84,10 @@ const validRoll = (string: string) => {
 
 export default function Command({
   dispatch,
+  playerRole,
 }: {
   dispatch: React.Dispatch<Action>;
+  playerRole: "PLAYER" | "GM";
 }): JSX.Element {
   const [inputContent, setInputContent] = useState("");
   const [targetIndex, setTargetIndex] = useState(0);
@@ -100,6 +109,8 @@ export default function Command({
     };
     document.addEventListener("keydown", focusInputShortcut);
   }, []);
+
+  const commands = playerRole === "GM" ? gmCommands : playerCommands;
 
   const executeCommandMap = new Map<string, () => void>();
   const indexCodeMap = new Map<number, string>();

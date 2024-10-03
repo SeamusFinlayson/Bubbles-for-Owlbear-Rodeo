@@ -2,6 +2,7 @@ import Token from "../TokenClass";
 import { useEffect, useState } from "react";
 import {
   getNewStatValue,
+  InputName,
   isInputName,
   writeTokenValueToItem,
 } from "../statInputHelpers";
@@ -16,12 +17,15 @@ import {
 import BarInput from "../components/BarInput";
 import "../index.css";
 import BubbleInput from "../components/BubbleInput";
-import ToggleButton from "../components/ToggleButton";
 import "./editStatsStyle.css";
 import TextField from "../components/TextField";
 import IconButton from "../components/IconButton";
 import MagicIcon from "../components/MagicIcon";
 import { getPluginId } from "../getPluginId";
+import { Button } from "@/components/ui/button";
+import BookLock from "@/components/icons/BookLock";
+import BookOpen from "@/components/icons/BookOpen";
+import { cn } from "@/lib/utils";
 
 export default function StatsMenuApp({
   initialToken,
@@ -64,11 +68,11 @@ export default function StatsMenuApp({
     writeTokenValueToItem(token.item.id, name, value);
   }
 
-  async function updateHide(target: HTMLInputElement) {
-    const name = target.name;
+  async function toggleHide() {
+    const name: InputName = "hideStats";
     if (!isInputName(name)) throw "Error: invalid input name.";
 
-    const value = target.checked;
+    const value = !token.hideStats;
     setToken((prev) => ({ ...prev, [name]: value }) as Token);
     writeTokenValueToItem(token.item.id, name, value);
   }
@@ -128,7 +132,7 @@ export default function StatsMenuApp({
   );
 
   const StatsMenu: JSX.Element = (
-    <div className={"stat-grid bg-black/[0.07] dark:bg-white/[0.07]"}>
+    <div className={"stat-grid bg-mirage-950/[0.07] dark:bg-mirage-50/[0.07]"}>
       <div className="grid-item">
         <label className="label">HP</label>
       </div>
@@ -166,19 +170,26 @@ export default function StatsMenuApp({
   );
 
   const HideRow: JSX.Element = (
-    <div
-      className={
-        "mx-2 mt-2 flex justify-between rounded-lg bg-black/[0.07] p-2 px-3 dark:bg-white/[0.07]"
-      }
-    >
-      <label htmlFor="hide" className="label">
-        Dungeon Master Only
-      </label>
-      <ToggleButton
-        isChecked={token.hideStats}
-        changeHandler={updateHide}
-        inputProps={{ name: "hideStats" }}
-      ></ToggleButton>
+    <div className="p-2 pb-0">
+      <Button
+        variant={"ghost"}
+        className={cn(
+          "size-full rounded-lg bg-mirage-950/[0.07] text-base hover:bg-mirage-950/15 dark:bg-mirage-50/[0.07] dark:hover:bg-mirage-50/15",
+        )}
+        onClick={() => toggleHide()}
+      >
+        {token.hideStats && true ? (
+          <div className="dark:text-primary-dark-300 dark:hover:text-primary-dark-300 text-primary-800 hover:text-primary-800 inline-flex items-center gap-2">
+            <BookLock />
+            Dungeon Master Only
+          </div>
+        ) : (
+          <div className="inline-flex items-center gap-2">
+            <BookOpen />
+            <div className="transition-none">Player Editable</div>
+          </div>
+        )}
+      </Button>
     </div>
   );
 

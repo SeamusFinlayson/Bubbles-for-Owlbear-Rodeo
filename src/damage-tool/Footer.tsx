@@ -13,6 +13,7 @@ import StatStyledInput from "./StatStyledInput";
 import ActionButton from "./ActionButton";
 import { applyHealthDiffToItems, overwriteStats } from "./helpers";
 import Token from "@/TokenClass";
+import { Separator } from "@/components/ui/separator";
 
 export default function Footer({
   appState,
@@ -157,15 +158,16 @@ export default function Footer({
       {(appState.operation === "none" ||
         appState.operation === "damage" ||
         appState.operation === "healing") && (
-        <div className="flex flex-wrap gap-4 p-2 px-4">
+        <div className="flex flex-wrap gap-4 gap-y-2 p-2 px-4">
           <Popover open={diceMenuOpen} onOpenChange={setDiceMenuOpen}>
             <PopoverTrigger asChild>
               <Button variant={"outline"}>Roll Log</Button>
             </PopoverTrigger>
             <PopoverContent className="w-72 p-0" align="start">
               <ScrollArea className="h-[420px] px-4">
-                <div className="flex flex-col gap-4 py-4">
-                  <h4 className="font-medium leading-none">Scene Roll Log</h4>
+                <div className="flex flex-col gap-2 py-3">
+                  <h4 className="font-medium">Scene Roll Log</h4>
+                  <Separator />
                   {appState.rolls.length > 0 ? (
                     <div className="flex flex-col justify-start gap-2">
                       {items}
@@ -180,7 +182,7 @@ export default function Footer({
               </ScrollArea>
             </PopoverContent>
           </Popover>
-          <div className="flex h-9 self-start rounded-md border border-mirage-300 text-sm font-medium leading-none dark:border-mirage-800">
+          <div className="flex h-9 self-start rounded-md border border-mirage-300 text-sm font-medium dark:border-mirage-800">
             <div className="flex h-full w-10 min-w-12 items-center justify-center rounded-l-md border-r border-mirage-300 bg-mirage-50 p-2 px-4 text-lg dark:border-mirage-800 dark:bg-mirage-950">
               {appState.animateRoll && (
                 <div className={"absolute animate-inverse-bounce"}>
@@ -199,12 +201,16 @@ export default function Footer({
               {valueDisplayString}
             </div>
           </div>
-          {getOperationButton(appState.operation)}
+          {appState.operation !== "none" && (
+            <div className="ml-auto w-full md:w-fit">
+              {getOperationButton(appState.operation)}
+            </div>
+          )}
         </div>
       )}
       {appState.operation === "overwrite" && (
-        <>
-          <div className="flex items-center gap-2 border-mirage-300 p-2 px-4 dark:border-mirage-800">
+        <div className="gap-2 space-y-2 p-2 px-4">
+          <div className="grid grid-cols-2 items-center justify-items-stretch gap-2 border-mirage-300 dark:border-mirage-800 sm:grid-cols-4">
             <StatStyledInput
               name="health"
               inputProps={{
@@ -219,8 +225,8 @@ export default function Footer({
                     type: "set-hit-points-overwrite",
                     hitPointsOverwrite: toValidIntString(e.target.value),
                   }),
-                className: "w-24 h-[36px]",
-                placeholder: "unchanged",
+                className: "min-w-[90px] w-full h-[36px]",
+                placeholder: "Unchanged",
               }}
             />
             <StatStyledInput
@@ -237,8 +243,8 @@ export default function Footer({
                     type: "set-max-hit-points-overwrite",
                     maxHitPointsOverwrite: toValidIntString(e.target.value),
                   }),
-                className: "w-24 h-[36px]",
-                placeholder: "unchanged",
+                className: "min-w-[90px] w-full h-[36px]",
+                placeholder: "Unchanged",
               }}
             />
             <StatStyledInput
@@ -255,8 +261,8 @@ export default function Footer({
                     type: "set-temp-hit-points-overwrite",
                     tempHitPointsOverwrite: toValidIntString(e.target.value),
                   }),
-                className: "w-24 h-[36px]",
-                placeholder: "unchanged",
+                className: "min-w-[90px] w-full h-[36px]",
+                placeholder: "Unchanged",
               }}
             />
             <StatStyledInput
@@ -273,13 +279,13 @@ export default function Footer({
                     type: "set-armor-class-overwrite",
                     armorClassOverwrite: toValidIntString(e.target.value),
                   }),
-                className: "w-24 h-[36px]",
-                placeholder: "unchanged",
+                className: "min-w-[90px] w-full h-[36px]",
+                placeholder: "Unchanged",
               }}
             />
-            {getOperationButton(appState.operation)}
           </div>
-        </>
+          {getOperationButton(appState.operation)}
+        </div>
       )}
     </>
   );

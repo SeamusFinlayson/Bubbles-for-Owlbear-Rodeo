@@ -10,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ArrowLeftIcon, ArrowRightIcon } from "@radix-ui/react-icons";
 import {
   calculateNewHealth,
@@ -19,8 +18,10 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DEFAULT_DAMAGE_SCALE,
+  focusItem,
   getDamageScaleOption,
   getIncluded,
+  handleTokenClicked,
 } from "./helpers";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -32,17 +33,29 @@ import {
 } from "@/statInputHelpers";
 import StatStyledInput from "./StatStyledInput";
 import { Action, BulkEditorState } from "./types";
+import BookLock from "@/components/icons/BookLock";
+import BookOpen from "@/components/icons/BookOpen";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function SetValuesTable({
-  tokens,
-  setTokens,
   appState,
   dispatch,
+  tokens,
+  setTokens,
+  playerRole,
+  playerSelection,
 }: {
-  tokens: Token[];
-  setTokens: React.Dispatch<React.SetStateAction<Token[]>>;
   appState: BulkEditorState;
   dispatch: React.Dispatch<Action>;
+  tokens: Token[];
+  setTokens: React.Dispatch<React.SetStateAction<Token[]>>;
+  playerRole: "PLAYER" | "GM";
+  playerSelection: string[];
 }): JSX.Element {
   return (
     <Table tabIndex={-1}>
@@ -61,12 +74,13 @@ export function SetValuesTable({
               }
             />
           )}
-          <TableHead>Icon</TableHead>
-          <TableHead>Name</TableHead>
+          <TableHead>Token</TableHead>
+          {appState.operation === "none" && playerRole === "GM" && (
+            <TableHead>Access</TableHead>
+          )}
           <TableHead title="Hit Points / Maximum Hit Points, Temporary Hit Points">
-            Hit Points
+            Stats
           </TableHead>
-          <TableHead>Armor Class</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -89,36 +103,44 @@ export function SetValuesTable({
                   }
                 />
               )}
-              <TokenImageTableCell token={token} fade={!included} />
-              <TokenNameTableCell token={token} fade={!included} />
+              <TokenTableCell
+                token={token}
+                faded={!included && appState.operation !== "none"}
+                enableSelectionButton={appState.showItems === "ALL"}
+                playerSelection={playerSelection}
+              />
+              {appState.operation === "none" && playerRole === "GM" && (
+                <AccessButton token={token} setTokens={setTokens} />
+              )}
               <TableCell>
-                <div className="flex items-center gap-2">
-                  <StatInput
-                    parentValue={token.health}
-                    name={"health"}
-                    updateHandler={(target) =>
-                      handleStatUpdate(
-                        token.item.id,
-                        target,
-                        token.health,
-                        setTokens,
-                      )
-                    }
-                  ></StatInput>
-                  <div>{"/"}</div>
-                  <StatInput
-                    parentValue={token.maxHealth}
-                    name={"maxHealth"}
-                    updateHandler={(target) =>
-                      handleStatUpdate(
-                        token.item.id,
-                        target,
-                        token.maxHealth,
-                        setTokens,
-                      )
-                    }
-                  ></StatInput>
-                  <div>{""}</div>
+                <div className="grid min-w-[140px] grid-cols-2 justify-items-stretch gap-2 sm:min-w-[250px] sm:grid-cols-4">
+                  <div className="col-span-2 flex items-center justify-between gap-1">
+                    <StatInput
+                      parentValue={token.health}
+                      name={"health"}
+                      updateHandler={(target) =>
+                        handleStatUpdate(
+                          token.item.id,
+                          target,
+                          token.health,
+                          setTokens,
+                        )
+                      }
+                    ></StatInput>
+                    <div>{"/"}</div>
+                    <StatInput
+                      parentValue={token.maxHealth}
+                      name={"maxHealth"}
+                      updateHandler={(target) =>
+                        handleStatUpdate(
+                          token.item.id,
+                          target,
+                          token.maxHealth,
+                          setTokens,
+                        )
+                      }
+                    ></StatInput>
+                  </div>
                   <StatInput
                     parentValue={token.tempHealth}
                     name={"tempHealth"}
@@ -131,21 +153,19 @@ export function SetValuesTable({
                       )
                     }
                   ></StatInput>
+                  <StatInput
+                    parentValue={token.armorClass}
+                    name={"armorClass"}
+                    updateHandler={(target) =>
+                      handleStatUpdate(
+                        token.item.id,
+                        target,
+                        token.armorClass,
+                        setTokens,
+                      )
+                    }
+                  ></StatInput>
                 </div>
-              </TableCell>
-              <TableCell>
-                <StatInput
-                  parentValue={token.armorClass}
-                  name={"armorClass"}
-                  updateHandler={(target) =>
-                    handleStatUpdate(
-                      token.item.id,
-                      target,
-                      token.armorClass,
-                      setTokens,
-                    )
-                  }
-                ></StatInput>
               </TableCell>
             </TableRow>
           );
@@ -155,14 +175,58 @@ export function SetValuesTable({
   );
 }
 
+function AccessButton({
+  token,
+  setTokens,
+}: {
+  token: Token;
+  setTokens: React.Dispatch<React.SetStateAction<Token[]>>;
+}): JSX.Element {
+  return (
+    <TableCell>
+      <TooltipProvider delayDuration={500} disableHoverableContent>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={"ghost"}
+              size={"icon"}
+              name={
+                token.hideStats
+                  ? "Make Stats Visible to Players"
+                  : "Hide Stats from players"
+              }
+              onClick={() =>
+                handleHiddenUpdate(token.item.id, token.hideStats, setTokens)
+              }
+            >
+              {token.hideStats ? (
+                <div className="text-primary-500 dark:text-primary-dark">
+                  <BookLock />
+                </div>
+              ) : (
+                <BookOpen />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            {token.hideStats ? "Dungeon Master Only" : "Player Editable"}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </TableCell>
+  );
+}
+
 export function DamageTable({
-  tokens,
   appState,
   dispatch,
+  tokens,
+  playerSelection,
 }: {
-  tokens: Token[];
   appState: BulkEditorState;
   dispatch: React.Dispatch<Action>;
+  tokens: Token[];
+  playerSelection: string[];
 }): JSX.Element {
   return (
     <Table>
@@ -180,7 +244,6 @@ export function DamageTable({
             }
           />
           <TableHead>Icon</TableHead>
-          <TableHead>Name</TableHead>
           <TableHead>Multiplier</TableHead>
           <TableHead>Damage</TableHead>
           <TableHead>New Hit Points</TableHead>
@@ -267,8 +330,12 @@ export function DamageTable({
                   })
                 }
               />
-              <TokenImageTableCell token={token} fade={!included} />
-              <TokenNameTableCell token={token} fade={!included} />
+              <TokenTableCell
+                token={token}
+                faded={!included}
+                enableSelectionButton={appState.showItems === "ALL"}
+                playerSelection={playerSelection}
+              />
               <TableCell>
                 <div className="flex max-w-32 gap-2">
                   <Button
@@ -331,49 +398,77 @@ export function DamageTable({
   );
 }
 
-function TokenImageTableCell({
+function TokenTableCell({
   token,
-  fade,
+  faded,
+  enableSelectionButton,
+  playerSelection,
 }: {
   token: Token;
-  fade: boolean;
+  faded: boolean;
+  enableSelectionButton?: boolean;
+  playerSelection: string[];
 }): JSX.Element {
+  const image = (
+    <img
+      className="min-h-8 min-w-8"
+      src={(token.item as Image).image.url}
+    ></img>
+  );
   return (
-    <TableCell className={cn("font-medium", { "opacity-60": fade })}>
-      <img
-        className="size-8 min-h-8 min-w-8"
-        src={(token.item as Image).image.url}
-      ></img>
+    <TableCell>
+      <TooltipProvider delayDuration={100} disableHoverableContent>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              className={cn(
+                "size-12 font-medium sm:size-8",
+                {
+                  "opacity-60": faded,
+                },
+                {
+                  "outline-image dark:outline-image": playerSelection.includes(
+                    token.item.id,
+                  ),
+                },
+              )}
+              onClick={(e) =>
+                handleTokenClicked(token.item.id, !(e.shiftKey || e.ctrlKey))
+              }
+              onDoubleClick={() => focusItem(token.item.id)}
+            >
+              {image}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right">{token.item.name}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </TableCell>
   );
 }
 
-function TokenNameTableCell({
-  token,
-  fade,
-}: {
-  token: Token;
-  fade: boolean;
-}): JSX.Element {
-  return (
-    <TableCell
-      className={cn("max-w-28 text-sm font-medium", {
-        "text-mirage-500 dark:text-mirage-400": fade,
-      })}
-    >
-      <div className="group">
-        <div
-          className="overflow-hidden text-clip text-nowrap"
-          title={token.item.name}
-        >
-          {token.item.name}
-        </div>
-      </div>
-    </TableCell>
-  );
+async function handleHiddenUpdate(
+  itemId: string,
+  previousValue: boolean,
+  setTokens: React.Dispatch<React.SetStateAction<Token[]>>,
+) {
+  const name: InputName = "hideStats";
+  if (!isInputName(name)) throw "Error: invalid input name.";
+
+  const value = !previousValue;
+
+  setTokens((prevTokens) => {
+    for (let i = 0; i < prevTokens.length; i++) {
+      // console.log(prevTokens[i]);
+      if (prevTokens[i].item.id === itemId)
+        prevTokens[i] = { ...prevTokens[i], [name]: value } as Token;
+    }
+    return [...prevTokens];
+  });
+  writeTokenValueToItem(itemId, name, value);
 }
 
-async function handleStatUpdate(
+function handleStatUpdate(
   itemId: string,
   target: HTMLInputElement,
   previousValue: number,
@@ -401,7 +496,7 @@ function StatInput({
   name,
 }: {
   parentValue: number;
-  updateHandler: (target: HTMLInputElement) => Promise<void>;
+  updateHandler: (target: HTMLInputElement) => void;
   name: InputName;
 }): JSX.Element {
   const [value, setValue] = useState<string>(parentValue.toString());
@@ -421,9 +516,8 @@ function StatInput({
       | React.FocusEvent<HTMLInputElement, Element>
       | React.KeyboardEvent<HTMLInputElement>,
   ) => {
-    updateHandler(e.target as HTMLInputElement).then(() =>
-      setValueInputUpdateFlag(true),
-    );
+    updateHandler(e.target as HTMLInputElement);
+    setValueInputUpdateFlag(true);
   };
 
   // Select text on focus
@@ -432,30 +526,29 @@ function StatInput({
   };
 
   return (
-    <div className="flex items-center">
-      <StatStyledInput
-        name={name}
-        inputProps={{
-          value: value,
-          onChange: (e) => setValue(e.target.value),
-          onBlur: (e) => {
-            if (!ignoreBlur) runUpdateHandler(e);
-          },
-          onKeyDown: (e) => {
-            if (e.key === "Enter") {
-              (e.target as HTMLInputElement).blur();
-            } else if (e.key === "Escape") {
-              ignoreBlur = true;
-              (e.target as HTMLInputElement).blur();
-              ignoreBlur = false;
-              setValue(parentValue.toString());
-            }
-          },
-          onFocus: selectText,
-          onClick: (e) => e.stopPropagation(),
-        }}
-      ></StatStyledInput>
-    </div>
+    <StatStyledInput
+      name={name}
+      inputProps={{
+        className: "w-full",
+        value: value,
+        onChange: (e) => setValue(e.target.value),
+        onBlur: (e) => {
+          if (!ignoreBlur) runUpdateHandler(e);
+        },
+        onKeyDown: (e) => {
+          if (e.key === "Enter") {
+            (e.target as HTMLInputElement).blur();
+          } else if (e.key === "Escape") {
+            ignoreBlur = true;
+            (e.target as HTMLInputElement).blur();
+            ignoreBlur = false;
+            setValue(parentValue.toString());
+          }
+        },
+        onFocus: selectText,
+        onClick: (e) => e.stopPropagation(),
+      }}
+    ></StatStyledInput>
   );
 }
 

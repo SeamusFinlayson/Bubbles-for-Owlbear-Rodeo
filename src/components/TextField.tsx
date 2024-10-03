@@ -27,7 +27,7 @@ export default function TextField({
           runUpdateHandler(e.target as HTMLInputElement);
         }
       }}
-      className={`${animationDuration100} h-[36px] w-full rounded-xl bg-black/[0.07] px-1.5 py-1 text-center text-base text-text-primary outline-none -outline-offset-2 outline-black/5 hover:outline-black/25 focus:outline-primary dark:bg-default-dark/40 dark:text-text-primary-dark dark:outline dark:outline-2 dark:outline-white/20 dark:hover:outline-white/60  dark:focus:outline-primary-dark `}
+      className={`${animationDuration100} h-[36px] w-full rounded-xl bg-mirage-950/5 px-1.5 py-1 text-center text-base text-text-primary outline-none -outline-offset-2 outline-mirage-950/10 hover:outline-black/25 focus:outline-primary dark:bg-mirage-950/40 dark:text-text-primary-dark dark:outline dark:outline-2 dark:outline-white/20 dark:hover:outline-white/60 dark:focus:outline-primary-dark`}
     ></input>
   );
 }
