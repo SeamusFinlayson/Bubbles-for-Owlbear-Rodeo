@@ -42,6 +42,23 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+import {
+  DndContext,
+  closestCenter,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { restrictToFirstScrollableAncestor } from "@dnd-kit/modifiers";
+
+import { SmartPointerSensor } from "./SmartPointerSensor";
+import { SortableTableRow } from "./SortableTableRow";
+
 export function SetValuesTable({
   appState,
   dispatch,
@@ -57,121 +74,155 @@ export function SetValuesTable({
   playerRole: "PLAYER" | "GM";
   playerSelection: string[];
 }): JSX.Element {
-  return (
-    <Table tabIndex={-1}>
-      <TableHeader>
-        <TableRow>
-          {appState.operation !== "none" && (
-            <CheckboxTableHead
-              included={allChecked(tokens, appState.includedItems)}
-              onCheckedChange={(checked) =>
-                dispatch({
-                  type: "set-included-items",
-                  includedItems: new Map(
-                    tokens.map((token) => [token.item.id, checked]),
-                  ),
-                })
-              }
-            />
-          )}
-          <TableHead>Token</TableHead>
-          {appState.operation === "none" && playerRole === "GM" && (
-            <TableHead>Access</TableHead>
-          )}
-          <TableHead title="Hit Points / Maximum Hit Points, Temporary Hit Points">
-            Stats
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {tokens.map((token) => {
-          const included = getIncluded(token.item.id, appState.includedItems);
+  const sensors = useSensors(
+    useSensor(SmartPointerSensor, {
+      activationConstraint: { distance: 10 },
+    }),
+  );
 
-          return (
-            <TableRow key={token.item.id}>
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over?.id && active.id !== over.id) {
+      setTokens((tokens) => {
+        const oldIndex = tokens.findIndex(
+          (token) => token.item.id === active.id,
+        );
+        const newIndex = tokens.findIndex((token) => token.item.id === over.id);
+        return arrayMove(tokens, oldIndex, newIndex);
+      });
+    }
+  }
+
+  return (
+    <DndContext
+      sensors={sensors}
+      modifiers={[restrictToFirstScrollableAncestor]}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={[...tokens.map((token) => token.item.id), 5, 6, 7, 8]}
+        strategy={verticalListSortingStrategy}
+      >
+        <Table tabIndex={-1}>
+          <TableHeader>
+            <TableRow>
               {appState.operation !== "none" && (
-                <CheckboxTableCell
-                  included={included}
+                <CheckboxTableHead
+                  included={allChecked(tokens, appState.includedItems)}
                   onCheckedChange={(checked) =>
                     dispatch({
                       type: "set-included-items",
-                      includedItems: appState.includedItems.set(
-                        token.item.id,
-                        checked,
+                      includedItems: new Map(
+                        tokens.map((token) => [token.item.id, checked]),
                       ),
                     })
                   }
                 />
               )}
-              <TokenTableCell
-                token={token}
-                faded={!included && appState.operation !== "none"}
-                enableSelectionButton={appState.showItems === "ALL"}
-                playerSelection={playerSelection}
-              />
+              <TableHead>Token</TableHead>
               {appState.operation === "none" && playerRole === "GM" && (
-                <AccessButton token={token} setTokens={setTokens} />
+                <TableHead>Access</TableHead>
               )}
-              <TableCell>
-                <div className="grid min-w-[140px] grid-cols-2 justify-items-stretch gap-2 sm:min-w-[250px] sm:grid-cols-4">
-                  <div className="col-span-2 flex items-center justify-between gap-1">
-                    <StatInput
-                      parentValue={token.health}
-                      name={"health"}
-                      updateHandler={(target) =>
-                        handleStatUpdate(
-                          token.item.id,
-                          target,
-                          token.health,
-                          setTokens,
-                        )
-                      }
-                    ></StatInput>
-                    <div>{"/"}</div>
-                    <StatInput
-                      parentValue={token.maxHealth}
-                      name={"maxHealth"}
-                      updateHandler={(target) =>
-                        handleStatUpdate(
-                          token.item.id,
-                          target,
-                          token.maxHealth,
-                          setTokens,
-                        )
-                      }
-                    ></StatInput>
-                  </div>
-                  <StatInput
-                    parentValue={token.tempHealth}
-                    name={"tempHealth"}
-                    updateHandler={(target) =>
-                      handleStatUpdate(
-                        token.item.id,
-                        target,
-                        token.tempHealth,
-                        setTokens,
-                      )
-                    }
-                  ></StatInput>
-                  <StatInput
-                    parentValue={token.armorClass}
-                    name={"armorClass"}
-                    updateHandler={(target) =>
-                      handleStatUpdate(
-                        token.item.id,
-                        target,
-                        token.armorClass,
-                        setTokens,
-                      )
-                    }
-                  ></StatInput>
-                </div>
-              </TableCell>
+              <TableHead title="Hit Points / Maximum Hit Points, Temporary Hit Points">
+                Stats
+              </TableHead>
             </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
+          </TableHeader>
+          <TableBody>
+            {tokens.map((token) => {
+              const included = getIncluded(
+                token.item.id,
+                appState.includedItems,
+              );
+
+              return (
+                <SortableTableRow key={token.item.id} id={token.item.id}>
+                  {appState.operation !== "none" && (
+                    <CheckboxTableCell
+                      included={included}
+                      onCheckedChange={(checked) =>
+                        dispatch({
+                          type: "set-included-items",
+                          includedItems: appState.includedItems.set(
+                            token.item.id,
+                            checked,
+                          ),
+                        })
+                      }
+                    />
+                  )}
+                  <TokenTableCell
+                    token={token}
+                    faded={!included && appState.operation !== "none"}
+                    enableSelectionButton={appState.showItems === "ALL"}
+                    playerSelection={playerSelection}
+                  />
+                  {appState.operation === "none" && playerRole === "GM" && (
+                    <AccessButton token={token} setTokens={setTokens} />
+                  )}
+                  <TableCell>
+                    <div className="grid min-w-[140px] grid-cols-2 justify-items-stretch gap-2 sm:min-w-[250px] sm:grid-cols-4">
+                      <div className="col-span-2 flex items-center justify-between gap-1">
+                        <StatInput
+                          parentValue={token.health}
+                          name={"health"}
+                          updateHandler={(target) =>
+                            handleStatUpdate(
+                              token.item.id,
+                              target,
+                              token.health,
+                              setTokens,
+                            )
+                          }
+                        ></StatInput>
+                        <div>{"/"}</div>
+                        <StatInput
+                          parentValue={token.maxHealth}
+                          name={"maxHealth"}
+                          updateHandler={(target) =>
+                            handleStatUpdate(
+                              token.item.id,
+                              target,
+                              token.maxHealth,
+                              setTokens,
+                            )
+                          }
+                        ></StatInput>
+                      </div>
+                      <StatInput
+                        parentValue={token.tempHealth}
+                        name={"tempHealth"}
+                        updateHandler={(target) =>
+                          handleStatUpdate(
+                            token.item.id,
+                            target,
+                            token.tempHealth,
+                            setTokens,
+                          )
+                        }
+                      ></StatInput>
+                      <StatInput
+                        parentValue={token.armorClass}
+                        name={"armorClass"}
+                        updateHandler={(target) =>
+                          handleStatUpdate(
+                            token.item.id,
+                            target,
+                            token.armorClass,
+                            setTokens,
+                          )
+                        }
+                      ></StatInput>
+                    </div>
+                  </TableCell>
+                </SortableTableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </SortableContext>
+    </DndContext>
   );
 }
 

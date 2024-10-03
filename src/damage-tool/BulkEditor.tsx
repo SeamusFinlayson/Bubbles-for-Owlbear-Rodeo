@@ -95,7 +95,7 @@ export default function BulkEditor(): JSX.Element {
       updateSelection(player.selection);
       updatePlayerRole(player.role);
     });
-  });
+  }, []);
 
   // Sync rolls
   useEffect(
