@@ -17,7 +17,7 @@ export default function StatStyledInput({
   inputProps?: InputHTMLAttributes<HTMLInputElement>;
 }) {
   return (
-    <TooltipProvider delayDuration={300} disableHoverableContent>
+    <TooltipProvider delayDuration={500} disableHoverableContent>
       <Tooltip>
         <TooltipTrigger asChild>
           <Input

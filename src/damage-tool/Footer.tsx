@@ -158,7 +158,7 @@ export default function Footer({
       {(appState.operation === "none" ||
         appState.operation === "damage" ||
         appState.operation === "healing") && (
-        <div className="flex flex-wrap gap-4 gap-y-2 p-2 px-4">
+        <div className="flex flex-wrap gap-2 gap-y-2 p-2 px-4">
           <Popover open={diceMenuOpen} onOpenChange={setDiceMenuOpen}>
             <PopoverTrigger asChild>
               <Button variant={"outline"}>Roll Log</Button>

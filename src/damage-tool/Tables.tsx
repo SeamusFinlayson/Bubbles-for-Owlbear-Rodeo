@@ -86,10 +86,10 @@ export function SetValuesTable({
       sensors={sensors}
       modifiers={[restrictToFirstScrollableAncestor]}
       collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
+      onDragEnd={playerRole === "GM" ? handleDragEnd : () => {}}
     >
       <SortableContext
-        items={tokens.map((token) => token.item.id)}
+        items={playerRole === "GM" ? tokens.map((token) => token.item.id) : []}
         strategy={verticalListSortingStrategy}
       >
         <Table tabIndex={-1}>
@@ -222,7 +222,7 @@ function AccessButton({
   setTokens: React.Dispatch<React.SetStateAction<Token[]>>;
 }): JSX.Element {
   return (
-    <TableCell>
+    <TableCell className="py-0">
       <TooltipProvider delayDuration={500} disableHoverableContent>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -459,25 +459,27 @@ function TokenTableCell({
       <TooltipProvider delayDuration={100} disableHoverableContent>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button
-              className={cn(
-                "size-12 font-medium sm:size-8",
-                {
-                  "opacity-60": faded,
-                },
-                {
-                  "outline-image dark:outline-image": playerSelection.includes(
-                    token.item.id,
-                  ),
-                },
-              )}
-              onClick={(e) =>
-                handleTokenClicked(token.item.id, !(e.shiftKey || e.ctrlKey))
-              }
-              onDoubleClick={() => focusItem(token.item.id)}
-            >
-              {image}
-            </button>
+            <div className="flex items-center">
+              <button
+                className={cn(
+                  "size-12 font-medium outline-none sm:size-8",
+                  {
+                    "opacity-60": faded,
+                  },
+                  {
+                    "outline-image dark:outline-image":
+                      playerSelection.includes(token.item.id),
+                  },
+                )}
+                onClick={(e) =>
+                  handleTokenClicked(token.item.id, !(e.shiftKey || e.ctrlKey))
+                }
+                onDoubleClick={() => focusItem(token.item.id)}
+                tabIndex={-1}
+              >
+                {image}
+              </button>
+            </div>
           </TooltipTrigger>
           <TooltipContent side="right">{token.item.name}</TooltipContent>
         </Tooltip>
