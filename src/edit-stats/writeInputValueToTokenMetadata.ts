@@ -67,7 +67,6 @@ export async function writeInputValueToTokenMetadata(
           if (isNaN(newValueNumber)) {
             // Handle invalid entry
             newMetadata = { [id]: 0 };
-            console.log(inputName, value);
           }
           // Check if new value starts with addition or subtraction operator
           else if (newValue.startsWith("+") || newValue.startsWith("-")) {
@@ -79,7 +78,6 @@ export async function writeInputValueToTokenMetadata(
               if (!(error instanceof TypeError)) throw error;
               previousValue = undefined;
             }
-            console.log(previousValue);
 
             // Previous version erroneously stored some values as strings
             if (typeof previousValue === "string") {

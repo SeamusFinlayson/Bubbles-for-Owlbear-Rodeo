@@ -53,7 +53,7 @@ export default async function startBackground() {
 }
 
 async function refreshAllHealthBars() {
-  console.log("refresh");
+  // console.log("refresh");
   //get shapes from scene
   const items: Image[] = await OBR.scene.items.getItems(
     (item) =>
