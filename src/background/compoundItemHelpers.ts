@@ -1,7 +1,9 @@
 import {
   AttachmentBehavior,
   Item,
+  Math2,
   buildCurve,
+  buildLabel,
   buildShape,
   buildText,
 } from "@owlbear-rodeo/sdk";
@@ -35,9 +37,10 @@ export function createStatBubble(
   value: number,
   color: string,
   position: { x: number; y: number },
-  label: string,
+  backgroundId: string,
+  textId: string,
 ): Item[] {
-  const bubbleShape = buildShape()
+  const backgroundShape = buildShape()
     .width(DIAMETER)
     .height(DIAMETER)
     .shapeType("CIRCLE")
@@ -50,7 +53,7 @@ export function createStatBubble(
     .attachedTo(item.id)
     .layer("ATTACHMENT")
     .locked(LOCKED)
-    .id(`${item.id + label}-background`)
+    .id(backgroundId)
     .visible(item.visible)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
     .disableHit(DISABLE_HIT)
@@ -61,7 +64,7 @@ export function createStatBubble(
   const bubbleText = buildText()
     .position({
       x: position.x - DIAMETER / 2,
-      y: position.y - DIAMETER / 2 + TEXT_VERTICAL_OFFSET - 0.7,
+      y: position.y - DIAMETER / 2 + TEXT_VERTICAL_OFFSET + 0.8,
     })
     .plainText(valueText.length > 3 ? String.fromCharCode(0x2026) : valueText)
     .textAlign("CENTER")
@@ -78,13 +81,13 @@ export function createStatBubble(
     .layer("TEXT")
     .locked(LOCKED)
     .lineHeight(LINE_HEIGHT)
-    .id(`${item.id + label}-label`)
+    .id(textId)
     .visible(item.visible)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
     .disableHit(DISABLE_HIT)
     .build();
 
-  return [bubbleShape, bubbleText];
+  return [backgroundShape, bubbleText];
 }
 
 // Constants used in createHealthBar()
@@ -132,7 +135,7 @@ export function createHealthBar(
     .attachedTo(item.id)
     .layer("ATTACHMENT")
     .locked(LOCKED)
-    .id(`${item.id}health-background`)
+    .id(hpBackgroundId(item.id))
     .visible(setVisibilityProperty)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
     .disableHit(DISABLE_HIT)
@@ -144,7 +147,7 @@ export function createHealthBar(
 
   const healthFillPortion = getFillPortion(health, maxHealth, segments);
 
-  const healthShape = buildCurve()
+  const fillShape = buildCurve()
     .fillColor("red")
     .fillOpacity(HEALTH_OPACITY)
     .zIndex(20000)
@@ -154,7 +157,7 @@ export function createHealthBar(
     .attachedTo(item.id)
     .layer("ATTACHMENT")
     .locked(LOCKED)
-    .id(`${item.id}health`)
+    .id(hpFillId(item.id))
     .visible(setVisibilityProperty)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
     .disableHit(DISABLE_HIT)
@@ -171,7 +174,7 @@ export function createHealthBar(
     .build();
 
   if (variant === "short") {
-    return [backgroundShape, healthShape];
+    return [backgroundShape, fillShape];
   }
 
   const healthText = buildText()
@@ -190,13 +193,13 @@ export function createHealthBar(
     .layer("TEXT")
     .lineHeight(LINE_HEIGHT)
     .locked(LOCKED)
-    .id(`${item.id}health-label`)
+    .id(hpTextId(item.id))
     .visible(setVisibilityProperty)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
     .disableHit(DISABLE_HIT)
     .build();
 
-  return [backgroundShape, healthShape, healthText];
+  return [backgroundShape, fillShape, healthText];
 }
 
 // Constants used in createNameTag()
@@ -204,27 +207,30 @@ export const APPROXIMATE_LETTER_WIDTH = 12;
 export const NAME_TAG_HEIGHT = 26;
 
 /** Create name tag component items */
-export function createNameTagText(
+export function createNameTag(
   item: Item,
+  bounds: { width: number; height: number },
+  sceneDpi: number,
   plainText: string,
-  position: { x: number; y: number },
-  invisible = false,
 ): Item[] {
-  const nameTagText = buildText()
-    .position(position)
+  const nameTagText = buildLabel()
+    .maxViewScale(1)
+    .minViewScale(1)
+    .position(Math2.add(item.position, { x: 0, y: bounds.height / 2 }))
     .plainText(plainText)
-    .textAlign("CENTER")
-    .textAlignVertical("MIDDLE")
     .fontSize(FONT_SIZE)
     .fontFamily(FONT)
-    .textType("PLAIN")
-    .height(NAME_TAG_HEIGHT)
     .fontWeight(400)
-    .attachedTo(invisible ? "none" : item.id)
-    .fillOpacity(invisible ? 0 : 0.87)
+    .pointerHeight(0)
+    .pointerDirection("UP")
+    .attachedTo(item.id)
+    .fillOpacity(0.87)
     .layer("TEXT")
+    .cornerRadius(sceneDpi / 12)
+    .padding(sceneDpi / 50)
+    .backgroundOpacity(BACKGROUND_OPACITY)
     .locked(LOCKED)
-    .id(invisible ? getNameTagTextTestId(item.id) : `${item.id}name-tag-text`)
+    .id(getNameTagId(item.id))
     .visible(item.visible)
     .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
     .disableHit(DISABLE_HIT)
@@ -233,53 +239,21 @@ export function createNameTagText(
   return [nameTagText];
 }
 
-export const TEXT_BG_PADDING = 4;
-const TEXT_BG_CORNER_RADIUS = 12;
+// Item Ids
+export const getNameTagId = (itemId: string) => `${itemId}-name-tag`;
 
-/** Create name tag component items */
-export function createNameTagBackground(
-  item: Item,
-  position: { x: number; y: number },
-  size: { width: number; height: number },
-): Item {
-  const nameTagBackground = buildCurve()
-    .fillColor("#3a3c4d")
-    .fillOpacity(0.6)
-    .strokeWidth(0)
-    .position(position)
-    .attachedTo(item.id)
-    .layer("ATTACHMENT")
-    .locked(LOCKED)
-    .id(`${item.id}name-tag-background`)
-    .visible(item.visible)
-    .disableAttachmentBehavior(DISABLE_ATTACHMENT_BEHAVIORS)
-    .disableHit(DISABLE_HIT)
-    .tension(0)
-    .closed(true)
-    .points(
-      createRoundedRectangle(
-        size.width + TEXT_BG_PADDING * 2,
-        size.height + TEXT_BG_PADDING * 2,
-        TEXT_BG_CORNER_RADIUS,
-      ),
-    )
-    .build();
+export const hpTextId = (itemId: string) => `${itemId}-health-text`;
+export const hpFillId = (itemId: string) => `${itemId}-health-fill`;
+export const hpBackgroundId = (itemId: string) => `${itemId}-health-background`;
 
-  return nameTagBackground;
-}
+export const acTextId = (itemId: string) => `${itemId}-ac-text`;
+export const acBackgroundId = (itemId: string) => `${itemId}-ac-background`;
 
-export function getNameTagTextId(itemId: string) {
-  return `${itemId}name-tag-text`;
-}
+export const thpTextId = (itemId: string) => `${itemId}-temp-hp-text`;
+export const thpBackgroundId = (itemId: string) =>
+  `${itemId}-temp-hp-background`;
 
-export function getNameTagTextTestId(itemId: string) {
-  return `${itemId}name-tag-text-test`;
-}
-
-export function getNameTagBackgroundId(itemId: string) {
-  return `${itemId}name-tag-background`;
-}
-
+// Item Id utilities
 export function addAllExtensionAttachmentsToArray(
   array: any[],
   itemId: string,
@@ -291,29 +265,17 @@ export function addAllExtensionAttachmentsToArray(
 }
 
 export function addHealthAttachmentsToArray(array: any[], itemId: string) {
-  array.push(
-    `${itemId}health-background`,
-    `${itemId}health`,
-    `${itemId}health-label`,
-  );
+  array.push(hpTextId(itemId), hpFillId(itemId), hpBackgroundId(itemId));
 }
 
 export function addArmorAttachmentsToArray(array: any[], itemId: string) {
-  array.push(`${itemId}ac-background`, `${itemId}ac-label`);
+  array.push(acTextId(itemId), acBackgroundId(itemId));
 }
 
 export function addTempHealthAttachmentsToArray(array: any[], itemId: string) {
-  array.push(`${itemId}temp-hp-background`, `${itemId}temp-hp-label`);
+  array.push(thpTextId(itemId), thpBackgroundId(itemId));
 }
 
 export function addNameTagAttachmentsToArray(array: any[], itemId: string) {
-  array.push(
-    `${itemId}name-tag-background`,
-    `${itemId}name-tag-text`,
-    `${itemId}name-tag-text-test`,
-  );
-}
-
-export function addNameTagTestAttachmentsToArray(array: any[], itemId: string) {
-  array.push(`${itemId}name-tag-text-test`);
+  array.push(getNameTagId(itemId));
 }

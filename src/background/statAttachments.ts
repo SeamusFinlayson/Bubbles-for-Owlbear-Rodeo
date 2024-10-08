@@ -3,20 +3,17 @@ import { getPluginId } from "../getPluginId";
 import {
   DIAMETER,
   FULL_BAR_HEIGHT,
-  NAME_TAG_HEIGHT,
+  acBackgroundId,
+  acTextId,
   addArmorAttachmentsToArray,
   addHealthAttachmentsToArray,
   addNameTagAttachmentsToArray,
   addTempHealthAttachmentsToArray,
   createHealthBar,
-  createNameTagText,
-  createNameTagBackground,
+  createNameTag,
   createStatBubble,
-  TEXT_BG_PADDING,
-  TEXT_VERTICAL_OFFSET,
-  addNameTagTestAttachmentsToArray,
-  APPROXIMATE_LETTER_WIDTH,
-  getNameTagTextTestId,
+  thpBackgroundId,
+  thpTextId,
 } from "./compoundItemHelpers";
 import { getOriginAndBounds } from "./mathHelpers";
 import { NAME_METADATA_ID, getName, getTokenMetadata } from "../itemHelpers";
@@ -82,10 +79,6 @@ async function refreshAllHealthBars() {
   for (const item of items) {
     itemIds.push(item.id);
   }
-
-  // Create name tag backgrounds
-  // console.log(globalItemsWithNameTags.length);
-  if (settings.nameTags) await createNameTags(items, sceneDpi);
 }
 
 async function startCallbacks() {
@@ -118,7 +111,6 @@ async function startCallbacks() {
     // Handle item changes (Update health bars)
     const unsubscribeFromItems = OBR.scene.items.onChange(
       async (itemsFromCallback) => {
-        console.log(await OBR.scene.local.getItems());
         // Filter items for only images from character, mount, and prop layers
         const imagesFromCallback: Image[] = [];
         for (const item of itemsFromCallback) {
@@ -131,9 +123,6 @@ async function startCallbacks() {
             imagesFromCallback.push(item);
           }
         }
-
-        //get rid of health bars that no longer attach to anything
-        // await deleteOrphanHealthBars(imagesFromCallback);
 
         //create list of modified and new items, skipping deleted items
         const changedItems: Image[] = getChangedItems(imagesFromCallback);
@@ -149,9 +138,6 @@ async function startCallbacks() {
         }
 
         await sendItemsToScene(addItemsArray, deleteItemsArray);
-
-        // Create name tag backgrounds
-        if (settings.nameTags) await createNameTags(changedItems, sceneDpi);
       },
     );
 
@@ -195,21 +181,19 @@ function getChangedItems(imagesFromCallback: Image[]) {
     } else if (
       //check position, visibility, and metadata changes
       !(
-        // itemsLast[i + s].position.x === imagesFromCallback[i].position.x &&
-        // itemsLast[i + s].position.y === imagesFromCallback[i].position.y &&
-        (
-          itemsLast[i + s].visible === imagesFromCallback[i].visible &&
-          JSON.stringify(itemsLast[i + s].metadata[getPluginId("metadata")]) ===
-            JSON.stringify(
-              imagesFromCallback[i].metadata[getPluginId("metadata")],
-            ) &&
+        itemsLast[i + s].position.x === imagesFromCallback[i].position.x &&
+        itemsLast[i + s].position.y === imagesFromCallback[i].position.y &&
+        itemsLast[i + s].visible === imagesFromCallback[i].visible &&
+        JSON.stringify(itemsLast[i + s].metadata[getPluginId("metadata")]) ===
           JSON.stringify(
-            itemsLast[i + s].metadata[getPluginId(NAME_METADATA_ID)],
-          ) ===
-            JSON.stringify(
-              imagesFromCallback[i].metadata[getPluginId(NAME_METADATA_ID)],
-            )
-        )
+            imagesFromCallback[i].metadata[getPluginId("metadata")],
+          ) &&
+        JSON.stringify(
+          itemsLast[i + s].metadata[getPluginId(NAME_METADATA_ID)],
+        ) ===
+          JSON.stringify(
+            imagesFromCallback[i].metadata[getPluginId(NAME_METADATA_ID)],
+          )
       )
     ) {
       //update items
@@ -218,95 +202,6 @@ function getChangedItems(imagesFromCallback: Image[]) {
   }
   // console.log("changed items", changedItems);
   return changedItems;
-}
-
-async function createNameTags(items: Image[], sceneDpi: number) {
-  console.log("create name tag");
-  if (!(await OBR.scene.isReady())) throw "Error: Scene not available";
-
-  interface NameTag {
-    parent: Image;
-    dimensions: { width: number; height: number };
-  }
-
-  // Get bounds of name tags and test name tag items
-  const nameTags: NameTag[] = [];
-  for (let i = 0; i < items.length; i++) {
-    const name = getName(items[i]);
-    // Check if token should have name tag
-    if (name === "") {
-      // Remove all name tag attachments
-      addNameTagAttachmentsToArray(deleteItemsArray, items[i].id);
-    } else {
-      // Determine bounds of test name tag
-      const testTextId = getNameTagTextTestId(items[i].id);
-
-      const pushWithFallbackDimensions = () => {
-        console.log("Using fallback approximate width");
-        nameTags.push({
-          parent: items[i],
-          dimensions: {
-            width: name.length * APPROXIMATE_LETTER_WIDTH,
-            height: (26 / 150) * sceneDpi,
-          },
-        });
-      };
-      try {
-        let testTextBounds = await OBR.scene.local.getItemBounds([testTextId]);
-
-        // Check if test name tag was retrieved
-        if (testTextBounds === undefined) {
-          // Use fallback value
-          pushWithFallbackDimensions();
-        } else {
-          nameTags.push({
-            parent: items[i],
-            dimensions: {
-              width: testTextBounds.width,
-              height: testTextBounds.height,
-            },
-          });
-        }
-      } catch (error) {
-        pushWithFallbackDimensions();
-
-        // console.log(name, `${i} of ${items.length}`, testTextId);
-        console.log(error);
-      }
-    }
-  }
-
-  //create new name tags and remove invisible test name tags
-  nameTags.forEach((nameTag) => {
-    const { origin } = getOriginAndBounds(settings, nameTag.parent, sceneDpi);
-    const position = {
-      x: nameTag.parent.position.x - nameTag.dimensions.width * 0.5,
-      y: getNameTagPosition(origin, getName(nameTag.parent)).y,
-    };
-
-    addItemsArray.push(
-      ...createNameTagText(nameTag.parent, getName(nameTag.parent), position),
-    );
-    addItemsArray.push(
-      createNameTagBackground(
-        nameTag.parent,
-        {
-          x: position.x - TEXT_BG_PADDING,
-          y: position.y - TEXT_BG_PADDING - TEXT_VERTICAL_OFFSET,
-        },
-        {
-          height: nameTag.dimensions.height,
-          width: nameTag.dimensions.width,
-        },
-      ),
-    );
-
-    // delete invisible test name tags
-    addNameTagTestAttachmentsToArray(deleteItemsArray, nameTag.parent.id);
-  });
-
-  // Actually remove and create name items
-  await sendItemsToScene(addItemsArray, deleteItemsArray);
 }
 
 function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
@@ -333,14 +228,7 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
   // Create invisible test name tag text items to measure name tag width
   const plainText = getName(item);
   if (settings.nameTags && plainText !== "") {
-    addItemsArray.push(
-      ...createNameTagText(
-        item,
-        plainText,
-        getNameTagPosition(origin, plainText),
-        true,
-      ),
-    );
+    addItemsArray.push(...createNameTag(item, bounds, dpi, plainText));
     // globalItemsWithNameTags.push(item);
   } else {
     addNameTagAttachmentsToArray(deleteItemsArray, item.id);
@@ -414,7 +302,8 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
         armorClass,
         "cornflowerblue", //"#5c8fdb"
         armorPosition,
-        "ac",
+        acBackgroundId(item.id),
+        acTextId(item.id),
       ),
     );
 
@@ -449,28 +338,11 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
         tempHealth,
         "olivedrab",
         tempHealthPosition,
-        "temp-hp",
+        thpBackgroundId(item.id),
+        thpTextId(item.id),
       ),
     );
   }
-}
-
-function getNameTagPosition(
-  origin: { x: number; y: number },
-  plainText: string,
-) {
-  const approximateNameTagWidth = APPROXIMATE_LETTER_WIDTH * plainText.length;
-  let position = settings.barAtTop
-    ? {
-        x: origin.x,
-        y: origin.y - NAME_TAG_HEIGHT - FULL_BAR_HEIGHT - 12.4,
-      }
-    : origin;
-  position = {
-    x: position.x - approximateNameTagWidth * 0.5,
-    y: position.y + 4 + 2,
-  };
-  return position;
 }
 
 async function sendItemsToScene(
