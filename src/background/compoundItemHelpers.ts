@@ -1,7 +1,7 @@
 import {
   AttachmentBehavior,
   Item,
-  Math2,
+  Vector2,
   buildCurve,
   buildLabel,
   buildShape,
@@ -94,7 +94,7 @@ export function createStatBubble(
 const BAR_PADDING = 2;
 const HEALTH_OPACITY = 0.5;
 export const FULL_BAR_HEIGHT = 20;
-const SHORT_BAR_HEIGHT = 12;
+export const SHORT_BAR_HEIGHT = 12;
 const BAR_CORNER_RADIUS = FULL_BAR_HEIGHT / 2;
 
 /** Creates health bar component items */
@@ -209,20 +209,21 @@ export const NAME_TAG_HEIGHT = 26;
 /** Create name tag component items */
 export function createNameTag(
   item: Item,
-  bounds: { width: number; height: number },
   sceneDpi: number,
   plainText: string,
+  position: Vector2,
+  pointerDirection: "UP" | "DOWN",
 ): Item[] {
   const nameTagText = buildLabel()
     .maxViewScale(1)
     .minViewScale(1)
-    .position(Math2.add(item.position, { x: 0, y: bounds.height / 2 }))
+    .position(position)
     .plainText(plainText)
     .fontSize(FONT_SIZE)
     .fontFamily(FONT)
     .fontWeight(400)
     .pointerHeight(0)
-    .pointerDirection("UP")
+    .pointerDirection(pointerDirection)
     .attachedTo(item.id)
     .fillOpacity(0.87)
     .layer("TEXT")

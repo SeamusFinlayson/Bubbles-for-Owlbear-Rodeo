@@ -3,6 +3,7 @@ import { getPluginId } from "../getPluginId";
 import {
   DIAMETER,
   FULL_BAR_HEIGHT,
+  SHORT_BAR_HEIGHT,
   acBackgroundId,
   acTextId,
   addArmorAttachmentsToArray,
@@ -225,10 +226,34 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
     createTempHealth(hasHealthBar, hasArmorClassBubble);
   }
 
-  // Create invisible test name tag text items to measure name tag width
+  // Create name tag
   const plainText = getName(item);
   if (settings.nameTags && plainText !== "") {
-    addItemsArray.push(...createNameTag(item, bounds, dpi, plainText));
+    const nameTagPosition = {
+      x: origin.x,
+      y: origin.y,
+    };
+    if (settings.barAtTop) {
+      if (
+        maxHealth <= 0 ||
+        (role === "PLAYER" && !statsVisible && !settings.showBars)
+      ) {
+        nameTagPosition.y = origin.y - 4;
+      } else if (role === "PLAYER" && !statsVisible && settings.showBars) {
+        nameTagPosition.y = origin.y - SHORT_BAR_HEIGHT - 4;
+      } else {
+        nameTagPosition.y = origin.y - FULL_BAR_HEIGHT - 4;
+      }
+    }
+    addItemsArray.push(
+      ...createNameTag(
+        item,
+        dpi,
+        plainText,
+        nameTagPosition,
+        settings.barAtTop ? "DOWN" : "UP",
+      ),
+    );
     // globalItemsWithNameTags.push(item);
   } else {
     addNameTagAttachmentsToArray(deleteItemsArray, item.id);
@@ -310,6 +335,9 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
     return true;
   }
 
+  /**
+   * Create the temp hp bubble.
+   */
   function createTempHealth(
     hasHealthBar: boolean,
     hasArmorClassBubble: boolean,
