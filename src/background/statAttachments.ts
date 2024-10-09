@@ -3,28 +3,24 @@ import { getPluginId } from "../getPluginId";
 import {
   DIAMETER,
   FULL_BAR_HEIGHT,
-  NAME_TAG_HEIGHT,
-  addAllExtensionAttachmentsToArray,
+  SHORT_BAR_HEIGHT,
+  acBackgroundId,
+  acTextId,
   addArmorAttachmentsToArray,
   addHealthAttachmentsToArray,
   addNameTagAttachmentsToArray,
   addTempHealthAttachmentsToArray,
   createHealthBar,
-  createNameTagText,
-  createNameTagBackground,
+  createNameTag,
   createStatBubble,
-  TEXT_BG_PADDING,
-  TEXT_VERTICAL_OFFSET,
-  addNameTagTestAttachmentsToArray,
-  APPROXIMATE_LETTER_WIDTH,
-  getNameTagTextTestId,
+  thpBackgroundId,
+  thpTextId,
 } from "./compoundItemHelpers";
 import { getOriginAndBounds } from "./mathHelpers";
 import { NAME_METADATA_ID, getName, getTokenStats } from "../itemHelpers";
 import { Settings, getGlobalSettings } from "./getGlobalSettings";
 import createContextMenuItems from "./contextMenuItems";
 
-let tokenIds: string[] = []; // for orphan health bar management
 let itemsLast: Image[] = []; // for item change checks
 const addItemsArray: Item[] = []; // for bulk addition or changing of items
 const deleteItemsArray: string[] = []; // for bulk deletion of scene items
@@ -59,6 +55,7 @@ export default async function startBackground() {
 }
 
 async function refreshAllHealthBars() {
+  // console.log("refresh");
   //get shapes from scene
   const items: Image[] = await OBR.scene.items.getItems(
     (item) =>
@@ -85,11 +82,6 @@ async function refreshAllHealthBars() {
   for (const item of items) {
     itemIds.push(item.id);
   }
-  tokenIds = itemIds;
-
-  // Create name tag backgrounds
-  // console.log(globalItemsWithNameTags.length);
-  if (settings.nameTags) await createNameTags(items, sceneDpi);
 }
 
 async function startCallbacks() {
@@ -140,9 +132,6 @@ async function startCallbacks() {
           }
         }
 
-        //get rid of health bars that no longer attach to anything
-        await deleteOrphanHealthBars(imagesFromCallback);
-
         //create list of modified and new items, skipping deleted items
         const changedItems: Image[] = getChangedItems(imagesFromCallback);
 
@@ -157,9 +146,6 @@ async function startCallbacks() {
         }
 
         await sendItemsToScene(addItemsArray, deleteItemsArray);
-
-        // Create name tag backgrounds
-        if (settings.nameTags) await createNameTags(changedItems, sceneDpi);
       },
     );
 
@@ -175,24 +161,6 @@ async function startCallbacks() {
       }
     });
   }
-}
-
-async function deleteOrphanHealthBars(currentItems: Image[]) {
-  const currentItemIds: string[] = [];
-  for (const item of currentItems) {
-    currentItemIds.push(item.id);
-  }
-
-  //check for orphaned health bars
-  for (const oldId of tokenIds) {
-    if (!currentItemIds.includes(oldId)) {
-      // delete orphaned health bar
-      addAllExtensionAttachmentsToArray(deleteItemsArray, oldId);
-    }
-  }
-
-  // update item list with current values
-  tokenIds = currentItemIds;
 }
 
 function getChangedItems(imagesFromCallback: Image[]) {
@@ -241,95 +209,8 @@ function getChangedItems(imagesFromCallback: Image[]) {
       changedItems.push(imagesFromCallback[i]);
     }
   }
+  // console.log("changed items", changedItems);
   return changedItems;
-}
-
-async function createNameTags(items: Image[], sceneDpi: number) {
-  if (!(await OBR.scene.isReady())) throw "Error: Scene not available";
-
-  interface NameTag {
-    parent: Image;
-    dimensions: { width: number; height: number };
-  }
-
-  // Get bounds of name tags and test name tag items
-  const nameTags: NameTag[] = [];
-  for (let i = 0; i < items.length; i++) {
-    const name = getName(items[i]);
-    // Check if token should have name tag
-    if (name === "") {
-      // Remove all name tag attachments
-      addNameTagAttachmentsToArray(deleteItemsArray, items[i].id);
-    } else {
-      // Determine bounds of test name tag
-      const testTextId = getNameTagTextTestId(items[i].id);
-
-      const pushWithFallbackDimensions = () => {
-        console.log("Using fallback approximate width");
-        nameTags.push({
-          parent: items[i],
-          dimensions: {
-            width: name.length * APPROXIMATE_LETTER_WIDTH,
-            height: (26 / 150) * sceneDpi,
-          },
-        });
-      };
-      try {
-        let testTextBounds = await OBR.scene.local.getItemBounds([testTextId]);
-
-        // Check if test name tag was retrieved
-        if (testTextBounds === undefined) {
-          // Use fallback value
-          pushWithFallbackDimensions();
-        } else {
-          nameTags.push({
-            parent: items[i],
-            dimensions: {
-              width: testTextBounds.width,
-              height: testTextBounds.height,
-            },
-          });
-        }
-      } catch (error) {
-        pushWithFallbackDimensions();
-
-        // console.log(name, `${i} of ${items.length}`, testTextId);
-        console.log(error);
-      }
-    }
-  }
-
-  //create new name tags and remove invisible test name tags
-  nameTags.forEach((nameTag) => {
-    const { origin } = getOriginAndBounds(settings, nameTag.parent, sceneDpi);
-    const position = {
-      x: nameTag.parent.position.x - nameTag.dimensions.width * 0.5,
-      y: getNameTagPosition(origin, getName(nameTag.parent)).y,
-    };
-
-    addItemsArray.push(
-      ...createNameTagText(nameTag.parent, getName(nameTag.parent), position),
-    );
-    addItemsArray.push(
-      createNameTagBackground(
-        nameTag.parent,
-        {
-          x: position.x - TEXT_BG_PADDING,
-          y: position.y - TEXT_BG_PADDING - TEXT_VERTICAL_OFFSET,
-        },
-        {
-          height: nameTag.dimensions.height,
-          width: nameTag.dimensions.width,
-        },
-      ),
-    );
-
-    // delete invisible test name tags
-    addNameTagTestAttachmentsToArray(deleteItemsArray, nameTag.parent.id);
-  });
-
-  // Actually remove and create name items
-  await sendItemsToScene(addItemsArray, deleteItemsArray);
 }
 
 function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
@@ -353,15 +234,32 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
     createTempHealth(hasHealthBar, hasArmorClassBubble);
   }
 
-  // Create invisible test name tag text items to measure name tag width
+  // Create name tag
   const plainText = getName(item);
   if (settings.nameTags && plainText !== "") {
+    const nameTagPosition = {
+      x: origin.x,
+      y: origin.y,
+    };
+    if (settings.barAtTop) {
+      if (
+        maxHealth <= 0 ||
+        (role === "PLAYER" && !statsVisible && !settings.showBars)
+      ) {
+        nameTagPosition.y = origin.y - 4;
+      } else if (role === "PLAYER" && !statsVisible && settings.showBars) {
+        nameTagPosition.y = origin.y - SHORT_BAR_HEIGHT - 4;
+      } else {
+        nameTagPosition.y = origin.y - FULL_BAR_HEIGHT - 4;
+      }
+    }
     addItemsArray.push(
-      ...createNameTagText(
+      ...createNameTag(
         item,
+        dpi,
         plainText,
-        getNameTagPosition(origin, plainText),
-        true,
+        nameTagPosition,
+        settings.barAtTop ? "DOWN" : "UP",
       ),
     );
     // globalItemsWithNameTags.push(item);
@@ -434,17 +332,20 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
     addItemsArray.push(
       ...createStatBubble(
         item,
-        bounds,
         armorClass,
         "cornflowerblue", //"#5c8fdb"
         armorPosition,
-        "ac",
+        acBackgroundId(item.id),
+        acTextId(item.id),
       ),
     );
 
     return true;
   }
 
+  /**
+   * Create the temp hp bubble.
+   */
   function createTempHealth(
     hasHealthBar: boolean,
     hasArmorClassBubble: boolean,
@@ -470,38 +371,22 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
     addItemsArray.push(
       ...createStatBubble(
         item,
-        bounds,
         tempHealth,
         "olivedrab",
         tempHealthPosition,
-        "temp-hp",
+        thpBackgroundId(item.id),
+        thpTextId(item.id),
       ),
     );
   }
-}
-
-function getNameTagPosition(
-  origin: { x: number; y: number },
-  plainText: string,
-) {
-  const approximateNameTagWidth = APPROXIMATE_LETTER_WIDTH * plainText.length;
-  let position = settings.barAtTop
-    ? {
-        x: origin.x,
-        y: origin.y - NAME_TAG_HEIGHT - FULL_BAR_HEIGHT - 12.4,
-      }
-    : origin;
-  position = {
-    x: position.x - approximateNameTagWidth * 0.5,
-    y: position.y + 4 + 2,
-  };
-  return position;
 }
 
 async function sendItemsToScene(
   addItemsArray: Item[],
   deleteItemsArray: string[],
 ) {
+  // console.log("added items length", addItemsArray.length);
+  // console.log("deleted items length", deleteItemsArray.length);
   await OBR.scene.local.deleteItems(deleteItemsArray);
   await OBR.scene.local.addItems(addItemsArray);
   deleteItemsArray.length = 0;
