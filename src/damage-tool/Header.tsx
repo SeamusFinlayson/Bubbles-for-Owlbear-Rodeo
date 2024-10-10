@@ -22,14 +22,20 @@ export default function Header({
   appState,
   dispatch,
   playerRole,
+  playerName,
 }: {
   appState: BulkEditorState;
   dispatch: React.Dispatch<Action>;
   playerRole: "PLAYER" | "GM";
+  playerName: string;
 }): JSX.Element {
   return (
     <div className="flex gap-4 p-4 pb-2 pt-3">
-      <Command dispatch={dispatch} playerRole={playerRole}></Command>
+      <Command
+        dispatch={dispatch}
+        playerRole={playerRole}
+        playerName={playerName}
+      ></Command>
       {playerRole === "GM" ? (
         <>
           <Select

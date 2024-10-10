@@ -189,10 +189,16 @@ function isDiceRollArray(rolls: unknown): rolls is StampedDiceRoll[] {
     if (typeof roll?.timeStamp !== "number") return false;
     if (typeof roll?.total !== "number") return false;
     if (typeof roll?.roll !== "string") return false;
+    if (typeof roll?.playerName !== "string") return false;
+    if (typeof roll?.visibility !== "string") return false;
+    if (roll.visibility === "PRIVATE") {
+      if (typeof roll?.userId !== "string") return false;
+    }
   }
   return true;
 }
 
+const MAX_DICE_ROLLS = 100;
 export function reducer(
   state: BulkEditorState,
   action: Action,
@@ -217,12 +223,23 @@ export function reducer(
     case "add-roll":
       const roll = new DiceRoll(action.diceExpression);
       const rolls = [
-        {
-          timeStamp: Date.now(),
-          total: roll.total,
-          roll: roll.toString(),
-        },
-        ...state.rolls.splice(0, 19),
+        action.visibility === "PRIVATE"
+          ? {
+              timeStamp: Date.now(),
+              total: roll.total,
+              roll: roll.toString(),
+              playerName: action.playerName,
+              visibility: action.visibility,
+              playerId: action.playerId,
+            }
+          : {
+              timeStamp: Date.now(),
+              total: roll.total,
+              roll: roll.toString(),
+              playerName: action.playerName,
+              visibility: action.visibility,
+            },
+        ...state.rolls.splice(0, MAX_DICE_ROLLS - 1),
       ];
       setSceneRolls(rolls);
       setTimeout(
@@ -232,6 +249,7 @@ export function reducer(
       return {
         ...state,
         rolls: rolls,
+        value: roll.total,
         animateRoll: true,
       };
     case "set-value":

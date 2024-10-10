@@ -2,11 +2,22 @@ import React from "react";
 
 export type Operation = "none" | "damage" | "healing" | "overwrite";
 
-export type StampedDiceRoll = {
-  timeStamp: number;
-  total: number;
-  roll: string;
-};
+export type StampedDiceRoll =
+  | {
+      timeStamp: number;
+      total: number;
+      roll: string;
+      playerName: string;
+      visibility: "PUBLIC" | "GM";
+    }
+  | {
+      timeStamp: number;
+      total: number;
+      roll: string;
+      playerName: string;
+      visibility: "PRIVATE";
+      playerId: string;
+    };
 
 export type StatOverwriteData = {
   hitPoints: string;
@@ -38,6 +49,16 @@ export type Action =
   | {
       type: "add-roll";
       diceExpression: string;
+      playerName: string;
+      visibility: "PUBLIC" | "GM";
+      dispatch: React.Dispatch<Action>;
+    }
+  | {
+      type: "add-roll";
+      diceExpression: string;
+      playerName: string;
+      visibility: "PRIVATE";
+      playerId: string;
       dispatch: React.Dispatch<Action>;
     }
   | {

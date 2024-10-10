@@ -14,7 +14,7 @@ const buttonVariants = cva(
         destructive:
           "bg-red-500 text-mirage-50 shadow-sm hover:bg-red-500/90 dark:bg-red-900 dark:text-mirage-50 dark:hover:bg-red-900/90",
         outline:
-          "border border-mirage-300 bg-mirage-100 shadow-sm hover:bg-mirage-200 hover:text-mirage-900 dark:border-mirage-800 dark:bg-transparent dark:hover:bg-mirage-800 dark:hover:text-mirage-50",
+          "border border-mirage-300 bg-transparent shadow-sm hover:bg-mirage-200 hover:text-mirage-900 dark:border-mirage-800 dark:bg-transparent dark:hover:bg-mirage-800 dark:hover:text-mirage-50",
         secondary:
           "bg-mirage-300/80 text-mirage-900 shadow-sm hover:bg-mirage-300/60 dark:bg-mirage-800 dark:text-mirage-50 dark:hover:bg-mirage-800/80",
         ghost:

@@ -14,15 +14,29 @@ import ActionButton from "./ActionButton";
 import { applyHealthDiffToItems, overwriteStats } from "./helpers";
 import Token from "@/TokenClass";
 import { Separator } from "@/components/ui/separator";
+import OBR from "@owlbear-rodeo/sdk";
+import { Check } from "@/components/icons/Check";
+import { Dices } from "@/components/icons/Dices";
+import { Equal } from "@/components/icons/Equal";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function Footer({
   appState,
   dispatch,
   tokens,
+  playerRole,
+  playerName,
 }: {
   appState: BulkEditorState;
   dispatch: React.Dispatch<Action>;
   tokens: Token[];
+  playerRole: "PLAYER" | "GM";
+  playerName: string;
 }): JSX.Element {
   const [diceMenuOpen, setDiceMenuOpen] = useState(false);
 
@@ -84,60 +98,119 @@ export default function Footer({
     }
   };
 
-  const items: JSX.Element[] = appState.rolls.map((stampedRoll) => {
-    const rollString = stampedRoll.roll;
-    return (
-      <div
-        key={stampedRoll.timeStamp}
-        className="flex w-full flex-col gap-2 rounded-lg border border-mirage-300 bg-mirage-100 p-2 shadow-sm dark:border-none dark:border-mirage-800 dark:bg-mirage-900"
-      >
-        <div className="">
-          <div className="float-left mb-[2px] mr-2 flex items-center justify-center self-start rounded-md border border-mirage-300 bg-mirage-50 p-2 text-xl font-medium leading-none dark:border-mirage-800 dark:bg-mirage-950">
-            {stampedRoll.total}
-          </div>
-          <div className="text-wrap break-all text-sm">
-            {rollString.substring(0, rollString.indexOf(":"))}
-          </div>
-          <div className="text-wrap break-all text-sm">
-            {rollString.substring(
-              rollString.indexOf(":") + 1,
-              rollString.indexOf(" ="),
+  const rolls: JSX.Element[] = appState.rolls
+    .filter((roll) => {
+      if (roll.visibility === "PUBLIC") return true;
+      if (roll.visibility === "GM" && playerRole === "GM") return true;
+      if (roll.visibility === "PRIVATE" && OBR.player.id === roll.playerId)
+        return true;
+      return false;
+    })
+    .map((roll) => {
+      const rollString = roll.roll;
+      const diceExpression = rollString.substring(0, rollString.indexOf(":"));
+      const dieResults = rollString.substring(
+        rollString.indexOf(":") + 1,
+        rollString.indexOf(" ="),
+      );
+      const titleString = `${roll.playerName} rolled `;
+
+      return (
+        <div
+          key={roll.timeStamp}
+          className="flex w-full flex-col gap-2 overflow-clip rounded-lg border border-mirage-300 bg-mirage-100 p-2 text-sm shadow-sm dark:border-none dark:bg-mirage-900"
+        >
+          <div className="">
+            {roll.visibility === "GM" && (
+              <div className="float-end pr-0.5">GM</div>
             )}
+            {roll.visibility === "PRIVATE" && (
+              <div className="float-end pr-0.5">Private</div>
+            )}
+            <p className="flex flex-wrap items-center gap-x-1">
+              <span className="text-mirage-500 dark:text-mirage-400">
+                {titleString}
+              </span>
+              <span>{`${diceExpression}`}</span>
+            </p>
+          </div>
+          <Separator />
+          <div className="flex w-full justify-center text-mirage-500 dark:text-mirage-400">{` ${dieResults}`}</div>
+          <div className="flex w-full justify-between gap-2">
+            <div className="flex w-full rounded-md border border-mirage-300 bg-slate-50 px-2 font-light dark:border-none dark:bg-mirage-950">
+              <span className="ml-auto flex items-center justify-center text-2xl text-mirage-500 dark:text-mirage-400">
+                <Equal />
+              </span>
+              <span className="ml-auto flex grow items-center justify-center text-lg">
+                {`${roll.total}`}
+              </span>
+            </div>
+            <TooltipProvider>
+              <Tooltip defaultOpen={false}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    size={"icon"}
+                    className="shrink-0"
+                    onClick={() => {
+                      const diceExpression = rollString.substring(
+                        0,
+                        rollString.indexOf(":"),
+                      );
+                      dispatch(
+                        roll.visibility === "PRIVATE"
+                          ? {
+                              type: "add-roll",
+                              diceExpression: diceExpression,
+                              playerName: playerName,
+                              visibility: roll.visibility,
+                              dispatch: dispatch,
+                              playerId: roll.playerId,
+                            }
+                          : {
+                              type: "add-roll",
+                              diceExpression: diceExpression,
+                              playerName: playerName,
+                              visibility: roll.visibility,
+                              dispatch: dispatch,
+                            },
+                      );
+                      setDiceMenuOpen(false);
+                    }}
+                  >
+                    <Dices />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Roll Again</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={"secondary"}
+                    size={"icon"}
+                    className="shrink-0"
+                    onClick={() => {
+                      dispatch({ type: "set-value", value: roll.total });
+                      setDiceMenuOpen(false);
+                    }}
+                  >
+                    <Check />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Use Roll</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={"outline"}
-            className="shrink grow"
-            onClick={() => {
-              const diceExpression = rollString.substring(
-                0,
-                rollString.indexOf(":"),
-              );
-              dispatch({
-                type: "add-roll",
-                diceExpression: diceExpression,
-                dispatch: dispatch,
-              });
-              setDiceMenuOpen(false);
-            }}
-          >
-            Roll Again
-          </Button>
-          <Button
-            variant={"secondary"}
-            className="shrink grow"
-            onClick={() => {
-              dispatch({ type: "set-value", value: stampedRoll.total });
-              setDiceMenuOpen(false);
-            }}
-          >
-            Use Result
-          </Button>
-        </div>
-      </div>
-    );
-  });
+      );
+    });
 
   let valueDisplayString = "Make a roll";
   if (appState.value !== null)
@@ -164,13 +237,17 @@ export default function Footer({
               <Button variant={"outline"}>Roll Log</Button>
             </PopoverTrigger>
             <PopoverContent className="w-72 p-0" align="start">
-              <ScrollArea className="h-[420px] px-4">
+              <ScrollArea className="h-[440px] px-4">
                 <div className="flex flex-col gap-2 py-3">
+                  <button
+                    className="absolute size-0"
+                    name="root, does nothing"
+                  />
                   <h4 className="font-medium">Scene Roll Log</h4>
                   <Separator />
                   {appState.rolls.length > 0 ? (
                     <div className="flex flex-col justify-start gap-2">
-                      {items}
+                      {rolls}
                     </div>
                   ) : (
                     <p className="text-muted-foreground text-sm">

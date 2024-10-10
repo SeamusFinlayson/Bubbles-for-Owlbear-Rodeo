@@ -67,7 +67,7 @@ export default function Settings(): JSX.Element {
       <div className="flex h-full flex-col rounded-2xl border bg-mirage-100 py-4 text-mirage-900 outline outline-2 -outline-offset-1 outline-primary dark:bg-mirage-950 dark:text-mirage-50 dark:outline-primary-dark">
         <div className="flex items-center justify-between px-4">
           <div>
-            <h1 className="text-2xl font-light">Sene Settings</h1>
+            <h1 className="text-2xl font-light">Scene Settings</h1>
             <p className="text-xs text-mirage-400">
               <i>Stat Bubbles for D&D</i>
             </p>
@@ -129,17 +129,16 @@ export default function Settings(): JSX.Element {
                 action={
                   <Button
                     variant={"outline"}
-                    className="w-20"
+                    className="w-20 capitalize"
                     onClick={() => {
-                      const value = justification === "TOP" ? "BOTTOM" : "TOP";
-                      setJustification(value);
+                      setJustification(justification);
                       updateSceneMetadata(
                         BAR_AT_TOP_METADATA_ID,
                         justification === "TOP" ? false : true,
                       );
                     }}
                   >
-                    {justification === "TOP" ? "Top" : "Bottom"}
+                    {justification.toLowerCase()}
                   </Button>
                 }
               />
@@ -262,9 +261,10 @@ function SubSettingsRow({
 }): JSX.Element {
   return (
     <div
-      className={cn("overflow-clip transition-max-height duration-200", {
-        "max-h-20": !collapseElement,
-        "max-h-0": collapseElement,
+      {...{ inert: collapseElement ? "" : undefined }} // type script react does not recognize inert
+      className={cn("overflow-clip transition-max-height duration-300", {
+        "max-h-60 ease-in": !collapseElement,
+        "max-h-0 ease-out": collapseElement,
       })}
     >
       <div className="pt-0.5">

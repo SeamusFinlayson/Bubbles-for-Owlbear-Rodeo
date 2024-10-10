@@ -6,6 +6,7 @@ import { Parser } from "@dice-roller/rpg-dice-roller";
 import { Action } from "./types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import OBR from "@owlbear-rodeo/sdk";
 
 type CommandType = {
   code: string;
@@ -34,6 +35,12 @@ const gmCommands = new Map<string, CommandType>([
       ? `Roll ${extractCommandContent(string)}`
       : "Invalid Roll";
   }),
+  commandFactory("gr", "GM Roll", (string: string) => {
+    return validRoll(extractCommandContent(string))
+      ? `Roll ${extractCommandContent(string)} secretly`
+      : "Invalid Roll";
+  }),
+
   commandFactory("d", "Roll Damage", (string: string) => {
     return validRoll(extractCommandContent(string))
       ? `Roll ${extractCommandContent(string)} damage`
@@ -52,6 +59,11 @@ const playerCommands = new Map<string, CommandType>([
   commandFactory("r", "Roll", (string: string) => {
     return validRoll(extractCommandContent(string))
       ? `Roll ${extractCommandContent(string)}`
+      : "Invalid Roll";
+  }),
+  commandFactory("pr", "Roll privately", (string: string) => {
+    return validRoll(extractCommandContent(string))
+      ? `Roll ${extractCommandContent(string)} privately`
       : "Invalid Roll";
   }),
 ]);
@@ -85,9 +97,11 @@ const validRoll = (string: string) => {
 export default function Command({
   dispatch,
   playerRole,
+  playerName,
 }: {
   dispatch: React.Dispatch<Action>;
   playerRole: "PLAYER" | "GM";
+  playerName: string;
 }): JSX.Element {
   const [inputContent, setInputContent] = useState("");
   const [targetIndex, setTargetIndex] = useState(0);
@@ -125,21 +139,54 @@ export default function Command({
         if (!validRoll(diceExpression)) return null;
         return diceExpression;
       };
-      const addToRolls = (diceExpression: string) => {
-        dispatch({ type: "add-roll", diceExpression, dispatch });
+      const addToRolls = (
+        diceExpression: string,
+        visibility: "PUBLIC" | "GM" | "PRIVATE",
+      ) => {
+        if (visibility === "PRIVATE")
+          dispatch({
+            type: "add-roll",
+            diceExpression,
+            playerName,
+            visibility,
+            playerId: OBR.player.id,
+            dispatch,
+          });
+        else
+          dispatch({
+            type: "add-roll",
+            diceExpression,
+            visibility,
+            playerName,
+            dispatch,
+          });
       };
       switch (commandCode) {
         case "r": {
           const diceExpression = getDiceExpression();
           if (diceExpression) {
-            addToRolls(diceExpression);
+            addToRolls(diceExpression, "PUBLIC");
+          }
+          break;
+        }
+        case "gr": {
+          const diceExpression = getDiceExpression();
+          if (diceExpression) {
+            addToRolls(diceExpression, "GM");
+          }
+          break;
+        }
+        case "pr": {
+          const diceExpression = getDiceExpression();
+          if (diceExpression) {
+            addToRolls(diceExpression, "PRIVATE");
           }
           break;
         }
         case "d": {
           const diceExpression = getDiceExpression();
           if (diceExpression) {
-            addToRolls(diceExpression);
+            addToRolls(diceExpression, "GM");
             dispatch({ type: "set-operation", operation: "damage" });
           }
           break;
@@ -147,7 +194,7 @@ export default function Command({
         case "h": {
           const diceExpression = getDiceExpression();
           if (diceExpression) {
-            addToRolls(diceExpression);
+            addToRolls(diceExpression, "GM");
             dispatch({ type: "set-operation", operation: "healing" });
           }
           break;
@@ -281,6 +328,7 @@ export default function Command({
             ref={inputRef}
             placeholder="Enter a command (shift+s)"
             value={inputContent}
+            spellCheck={false}
             onChange={(e) => {
               setInputContent(e.target.value);
               if (inputContent === "") setIsActive("from-null");

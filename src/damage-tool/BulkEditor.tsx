@@ -39,6 +39,7 @@ export default function BulkEditor(): JSX.Element {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [playerSelection, setPlayerSelection] = useState<string[]>([]);
   const [playerRole, setPlayerRole] = useState<"PLAYER" | "GM">("PLAYER");
+  const [playerName, setPlayerName] = useState("");
   const [sceneReady, setSceneReady] = useState(false);
 
   // Tokens filter state
@@ -95,7 +96,7 @@ export default function BulkEditor(): JSX.Element {
     return OBR.scene.items.onChange(updateTokens);
   }, []);
 
-  // Handle room ready
+  // Handle scene ready
   useEffect(() => {
     const handleReady = (ready: boolean) => {
       setSceneReady(ready);
@@ -126,11 +127,16 @@ export default function BulkEditor(): JSX.Element {
       if (role === "PLAYER")
         dispatch({ type: "set-operation", operation: "none" });
     };
+    const updatePlayerName = (name: string) => {
+      setPlayerName(name);
+    };
     OBR.player.getSelection().then(updateSelection);
     OBR.player.getRole().then(updatePlayerRole);
+    OBR.player.getName().then(updatePlayerName);
     return OBR.player.onChange((player) => {
       updateSelection(player.selection);
       updatePlayerRole(player.role);
+      updatePlayerName(player.name);
     });
   }, []);
 
@@ -151,12 +157,6 @@ export default function BulkEditor(): JSX.Element {
     () => OBR.theme.onChange((theme) => addThemeToBody(theme.mode)),
     [],
   );
-
-  useEffect(() => {
-    const newValue = appState.rolls[0]?.total;
-    if (newValue !== undefined)
-      dispatch({ type: "set-value", value: newValue });
-  }, [appState.rolls[0]?.total]);
 
   const getTable = (operation: Operation) => {
     if (selectedTokens.length === 0)
@@ -197,6 +197,7 @@ export default function BulkEditor(): JSX.Element {
           appState={appState}
           dispatch={dispatch}
           playerRole={playerRole}
+          playerName={playerName}
         ></Header>
         <ScrollArea className="h-full sm:px-4">
           <div className="flex flex-col items-center justify-start gap-2 pb-2">
@@ -206,9 +207,11 @@ export default function BulkEditor(): JSX.Element {
           <ScrollBar orientation="horizontal" forceMount />
         </ScrollArea>
         <Footer
-          tokens={selectedTokens}
           appState={appState}
           dispatch={dispatch}
+          tokens={selectedTokens}
+          playerRole={playerRole}
+          playerName={playerName}
         ></Footer>
       </div>
     </div>
