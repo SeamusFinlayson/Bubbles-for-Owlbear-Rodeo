@@ -13,6 +13,7 @@ import {
   createHealthBar,
   createNameTag,
   createStatBubble,
+  hpTextId,
   thpBackgroundId,
   thpTextId,
 } from "./compoundItemHelpers";
@@ -261,6 +262,7 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
 
   function createLimitedHealthBar() {
     // Clear other attachments
+    deleteItemsArray.push(hpTextId(item.id));
     addArmorAttachmentsToArray(deleteItemsArray, item.id);
     addTempHealthAttachmentsToArray(deleteItemsArray, item.id);
 
