@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { calculateScaledHealthDiff } from "./healthCalculations";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DiceSVG from "./DiceSVG";
 import StatStyledInput from "./StatStyledInput";
 import ActionButton from "./ActionButton";
@@ -21,7 +21,6 @@ import { Equal } from "@/components/icons/Equal";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -145,68 +144,64 @@ export default function Footer({
                 {`${roll.total}`}
               </span>
             </div>
-            <TooltipProvider>
-              <Tooltip defaultOpen={false}>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    size={"icon"}
-                    className="shrink-0"
-                    onClick={() => {
-                      const diceExpression = rollString.substring(
-                        0,
-                        rollString.indexOf(":"),
-                      );
-                      dispatch(
-                        roll.visibility === "PRIVATE"
-                          ? {
-                              type: "add-roll",
-                              diceExpression: diceExpression,
-                              playerName: playerName,
-                              visibility: roll.visibility,
-                              dispatch: dispatch,
-                              playerId: roll.playerId,
-                            }
-                          : {
-                              type: "add-roll",
-                              diceExpression: diceExpression,
-                              playerName: playerName,
-                              visibility: roll.visibility,
-                              dispatch: dispatch,
-                            },
-                      );
-                      setDiceMenuOpen(false);
-                    }}
-                  >
-                    <Dices />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Roll Again</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip defaultOpen={false}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  size={"icon"}
+                  className="shrink-0"
+                  onClick={() => {
+                    const diceExpression = rollString.substring(
+                      0,
+                      rollString.indexOf(":"),
+                    );
+                    dispatch(
+                      roll.visibility === "PRIVATE"
+                        ? {
+                            type: "add-roll",
+                            diceExpression: diceExpression,
+                            playerName: playerName,
+                            visibility: roll.visibility,
+                            dispatch: dispatch,
+                            playerId: roll.playerId,
+                          }
+                        : {
+                            type: "add-roll",
+                            diceExpression: diceExpression,
+                            playerName: playerName,
+                            visibility: roll.visibility,
+                            dispatch: dispatch,
+                          },
+                    );
+                    setDiceMenuOpen(false);
+                  }}
+                >
+                  <Dices />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Roll Again</p>
+              </TooltipContent>
+            </Tooltip>
 
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={"secondary"}
-                    size={"icon"}
-                    className="shrink-0"
-                    onClick={() => {
-                      dispatch({ type: "set-value", value: roll.total });
-                      setDiceMenuOpen(false);
-                    }}
-                  >
-                    <Check />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Use Roll</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={"secondary"}
+                  size={"icon"}
+                  className="shrink-0"
+                  onClick={() => {
+                    dispatch({ type: "set-value", value: roll.total });
+                    setDiceMenuOpen(false);
+                  }}
+                >
+                  <Check />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Use Roll</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
       );
@@ -216,6 +211,7 @@ export default function Footer({
   if (appState.value !== null)
     switch (appState.operation) {
       case "none":
+      case "overwrite":
         valueDisplayString = `Roll Result`;
         break;
       case "damage":
@@ -226,145 +222,150 @@ export default function Footer({
         break;
     }
 
+  const POPOVER_TOP_MARGIN = 60;
+  const [popoverHeight, setPopoverHeight] = useState(
+    window.innerHeight - POPOVER_TOP_MARGIN,
+  );
+  useEffect(() => {
+    const handler = () =>
+      setPopoverHeight(window.innerHeight - POPOVER_TOP_MARGIN);
+    window.addEventListener("resize", handler);
+    return window.removeEventListener("resize", handler);
+  }, []);
+
   return (
-    <>
-      {(appState.operation === "none" ||
-        appState.operation === "damage" ||
-        appState.operation === "healing") && (
-        <div className="flex flex-wrap gap-2 gap-y-2 p-2 px-4">
-          <Popover open={diceMenuOpen} onOpenChange={setDiceMenuOpen}>
-            <PopoverTrigger asChild>
-              <Button variant={"outline"}>Roll Log</Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-0" align="start">
-              <ScrollArea className="h-[440px] px-4">
-                <div className="flex flex-col gap-2 py-3">
-                  <button
-                    className="absolute size-0"
-                    name="root, does nothing"
-                  />
-                  <h4 className="font-medium">Scene Roll Log</h4>
-                  <Separator />
-                  {appState.rolls.length > 0 ? (
-                    <div className="flex flex-col justify-start gap-2">
-                      {rolls}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-sm">
-                      Your last 20 dice rolls, made in this scene, will be
-                      available here.
-                    </p>
-                  )}
-                </div>
-              </ScrollArea>
-            </PopoverContent>
-          </Popover>
-          <div className="flex h-9 self-start rounded-md border border-mirage-300 text-sm font-medium dark:border-mirage-800">
-            <div className="flex h-full w-10 min-w-12 items-center justify-center rounded-l-md border-r border-mirage-300 bg-mirage-50 p-2 px-4 text-lg dark:border-mirage-800 dark:bg-mirage-950">
-              {appState.animateRoll && (
-                <div className={"absolute animate-inverse-bounce"}>
-                  <DiceSVG />
-                </div>
-              )}
-              {!appState.animateRoll && (
-                <div>
-                  {appState.value
-                    ? calculateScaledHealthDiff(3, appState.value)
-                    : ""}
-                </div>
-              )}
-            </div>
-            <div className="flex h-full items-center justify-center rounded-md p-2 px-4">
-              {valueDisplayString}
-            </div>
-          </div>
-          {appState.operation !== "none" && (
-            <div className="ml-auto w-full md:w-fit">
-              {getOperationButton(appState.operation)}
-            </div>
-          )}
-        </div>
-      )}
+    <div className="space-y-2 p-2 px-4">
       {appState.operation === "overwrite" && (
-        <div className="gap-2 space-y-2 p-2 px-4">
-          <div className="grid grid-cols-2 items-center justify-items-stretch gap-2 border-mirage-300 dark:border-mirage-800 sm:grid-cols-4">
-            <StatStyledInput
-              name="health"
-              inputProps={{
-                value: appState.statOverwrites.hitPoints,
-                onChange: (e) =>
-                  dispatch({
-                    type: "set-hit-points-overwrite",
-                    hitPointsOverwrite: e.target.value,
-                  }),
-                onBlur: (e) =>
-                  dispatch({
-                    type: "set-hit-points-overwrite",
-                    hitPointsOverwrite: toValidIntString(e.target.value),
-                  }),
-                className: "min-w-[90px] w-full h-[36px]",
-                placeholder: "Unchanged",
-              }}
-            />
-            <StatStyledInput
-              name="maxHealth"
-              inputProps={{
-                value: appState.statOverwrites.maxHitPoints,
-                onChange: (e) =>
-                  dispatch({
-                    type: "set-max-hit-points-overwrite",
-                    maxHitPointsOverwrite: e.target.value,
-                  }),
-                onBlur: (e) =>
-                  dispatch({
-                    type: "set-max-hit-points-overwrite",
-                    maxHitPointsOverwrite: toValidIntString(e.target.value),
-                  }),
-                className: "min-w-[90px] w-full h-[36px]",
-                placeholder: "Unchanged",
-              }}
-            />
-            <StatStyledInput
-              name="tempHealth"
-              inputProps={{
-                value: appState.statOverwrites.tempHitPoints,
-                onChange: (e) =>
-                  dispatch({
-                    type: "set-temp-hit-points-overwrite",
-                    tempHitPointsOverwrite: e.target.value,
-                  }),
-                onBlur: (e) =>
-                  dispatch({
-                    type: "set-temp-hit-points-overwrite",
-                    tempHitPointsOverwrite: toValidIntString(e.target.value),
-                  }),
-                className: "min-w-[90px] w-full h-[36px]",
-                placeholder: "Unchanged",
-              }}
-            />
-            <StatStyledInput
-              name="armorClass"
-              inputProps={{
-                value: appState.statOverwrites.armorClass,
-                onChange: (e) =>
-                  dispatch({
-                    type: "set-armor-class-overwrite",
-                    armorClassOverwrite: e.target.value,
-                  }),
-                onBlur: (e) =>
-                  dispatch({
-                    type: "set-armor-class-overwrite",
-                    armorClassOverwrite: toValidIntString(e.target.value),
-                  }),
-                className: "min-w-[90px] w-full h-[36px]",
-                placeholder: "Unchanged",
-              }}
-            />
-          </div>
-          {getOperationButton(appState.operation)}
+        <div className="grid grid-cols-2 items-center justify-items-stretch gap-2 border-mirage-300 dark:border-mirage-800 sm:grid-cols-4">
+          <StatStyledInput
+            name="health"
+            inputProps={{
+              value: appState.statOverwrites.hitPoints,
+              onChange: (e) =>
+                dispatch({
+                  type: "set-hit-points-overwrite",
+                  hitPointsOverwrite: e.target.value,
+                }),
+              onBlur: (e) =>
+                dispatch({
+                  type: "set-hit-points-overwrite",
+                  hitPointsOverwrite: toValidIntString(e.target.value),
+                }),
+              className: "min-w-[90px] w-full h-[36px]",
+              placeholder: "Unchanged",
+            }}
+          />
+          <StatStyledInput
+            name="maxHealth"
+            inputProps={{
+              value: appState.statOverwrites.maxHitPoints,
+              onChange: (e) =>
+                dispatch({
+                  type: "set-max-hit-points-overwrite",
+                  maxHitPointsOverwrite: e.target.value,
+                }),
+              onBlur: (e) =>
+                dispatch({
+                  type: "set-max-hit-points-overwrite",
+                  maxHitPointsOverwrite: toValidIntString(e.target.value),
+                }),
+              className: "min-w-[90px] w-full h-[36px]",
+              placeholder: "Unchanged",
+            }}
+          />
+          <StatStyledInput
+            name="tempHealth"
+            inputProps={{
+              value: appState.statOverwrites.tempHitPoints,
+              onChange: (e) =>
+                dispatch({
+                  type: "set-temp-hit-points-overwrite",
+                  tempHitPointsOverwrite: e.target.value,
+                }),
+              onBlur: (e) =>
+                dispatch({
+                  type: "set-temp-hit-points-overwrite",
+                  tempHitPointsOverwrite: toValidIntString(e.target.value),
+                }),
+              className: "min-w-[90px] w-full h-[36px]",
+              placeholder: "Unchanged",
+            }}
+          />
+          <StatStyledInput
+            name="armorClass"
+            inputProps={{
+              value: appState.statOverwrites.armorClass,
+              onChange: (e) =>
+                dispatch({
+                  type: "set-armor-class-overwrite",
+                  armorClassOverwrite: e.target.value,
+                }),
+              onBlur: (e) =>
+                dispatch({
+                  type: "set-armor-class-overwrite",
+                  armorClassOverwrite: toValidIntString(e.target.value),
+                }),
+              className: "min-w-[90px] w-full h-[36px]",
+              placeholder: "Unchanged",
+            }}
+          />
         </div>
       )}
-    </>
+      <div className="flex flex-wrap gap-2">
+        <Popover open={diceMenuOpen} onOpenChange={setDiceMenuOpen}>
+          <PopoverTrigger asChild>
+            <Button variant={"outline"}>Roll Log</Button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-72 p-0"
+            align="start"
+            style={{ height: popoverHeight }}
+          >
+            <ScrollArea className="h-full px-4">
+              <div className="flex flex-col gap-2 py-3">
+                <button className="absolute size-0" name="root, does nothing" />
+                <h4 className="font-medium">Scene Roll Log</h4>
+                <Separator />
+                {appState.rolls.length > 0 ? (
+                  <div className="flex flex-col justify-start gap-2">
+                    {rolls}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-sm">
+                    Your last 20 dice rolls, made in this scene, will be
+                    available here.
+                  </p>
+                )}
+              </div>
+            </ScrollArea>
+          </PopoverContent>
+        </Popover>
+        <div className="flex h-9 self-start rounded-md border border-mirage-300 text-sm font-medium dark:border-mirage-800">
+          <div className="flex h-full w-10 min-w-12 items-center justify-center rounded-l-md border-r border-mirage-300 bg-mirage-50 p-2 px-4 text-lg dark:border-mirage-800 dark:bg-mirage-950">
+            {appState.animateRoll && (
+              <div className={"absolute animate-inverse-bounce"}>
+                <DiceSVG />
+              </div>
+            )}
+            {!appState.animateRoll && (
+              <div>
+                {appState.value
+                  ? calculateScaledHealthDiff(3, appState.value)
+                  : ""}
+              </div>
+            )}
+          </div>
+          <div className="flex h-full items-center justify-center rounded-md p-2 px-4">
+            {valueDisplayString}
+          </div>
+        </div>
+        {appState.operation !== "none" && (
+          <div className="ml-auto w-full md:w-fit">
+            {getOperationButton(appState.operation)}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

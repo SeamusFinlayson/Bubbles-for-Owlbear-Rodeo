@@ -18,6 +18,20 @@ import {
 } from "./types";
 import { DiceRoll } from "@dice-roller/rpg-dice-roller";
 
+/* Action Open */
+
+export const COMMAND_INPUT_ID = "commandInput";
+export const BROADCAST_CHANNEL = getPluginId("channel");
+export const TOGGLE_ACTION_OPEN = "toggleActionOpen";
+
+export function toggleActionOpen(isOpen: boolean) {
+  if (isOpen) OBR.action.close();
+  else {
+    OBR.action.open();
+    setTimeout(() => document.getElementById(COMMAND_INPUT_ID)?.focus(), 100);
+  }
+}
+
 /* Items */
 
 export const DEFAULT_DAMAGE_SCALE = 3;

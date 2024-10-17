@@ -26,6 +26,7 @@ import LinkButton from "./LinkButton";
 import { Patreon } from "@/components/icons/Patreon";
 import { QuestionMark } from "@/components/icons/QuestionMark";
 import { History } from "@/components/icons/History";
+import { Bug } from "@/components/icons/bug";
 
 export default function Settings(): JSX.Element {
   const [offset, setOffset] = useState("0");
@@ -65,7 +66,7 @@ export default function Settings(): JSX.Element {
   return (
     <div className="h-full">
       <div className="flex h-full flex-col rounded-2xl border bg-mirage-100 py-4 text-mirage-900 outline outline-2 -outline-offset-1 outline-primary dark:bg-mirage-950 dark:text-mirage-50 dark:outline-primary-dark">
-        <div className="flex items-center justify-between px-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4">
           <div>
             <h1 className="text-2xl font-light">Scene Settings</h1>
             <p className="text-xs text-mirage-400">
@@ -74,21 +75,30 @@ export default function Settings(): JSX.Element {
           </div>
           <div className="flex gap-2">
             <LinkButton
+              name="Patreon"
               size="large"
               icon={<Patreon />}
               href={"https://www.patreon.com/SeamusFinlayson"}
             />
             <LinkButton
+              name="Change Log"
               size="large"
               icon={<History />}
               href={"https://www.patreon.com/collection/306916?view=expanded"}
             />
             <LinkButton
+              name="Instructions"
               size="large"
               icon={<QuestionMark />}
               href={
                 "https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo?tab=readme-ov-file#how-it-works"
               }
+            />
+            <LinkButton
+              name="Report Bug"
+              size="large"
+              icon={<Bug />}
+              href="https://discord.gg/WMp9bky4be"
             />
           </div>
         </div>

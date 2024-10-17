@@ -38,7 +38,6 @@ import BookOpen from "@/components/icons/BookOpen";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -223,35 +222,33 @@ function AccessButton({
 }): JSX.Element {
   return (
     <TableCell className="py-0">
-      <TooltipProvider delayDuration={500} disableHoverableContent>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant={"ghost"}
-              size={"icon"}
-              name={
-                token.hideStats
-                  ? "Make Stats Visible to Players"
-                  : "Hide Stats from players"
-              }
-              onClick={() =>
-                handleHiddenUpdate(token.item.id, token.hideStats, setTokens)
-              }
-            >
-              {token.hideStats ? (
-                <div className="text-primary-500 dark:text-primary-dark">
-                  <BookLock />
-                </div>
-              ) : (
-                <BookOpen />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            {token.hideStats ? "Dungeon Master Only" : "Player Editable"}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={"ghost"}
+            size={"icon"}
+            name={
+              token.hideStats
+                ? "Make Stats Visible to Players"
+                : "Hide Stats from players"
+            }
+            onClick={() =>
+              handleHiddenUpdate(token.item.id, token.hideStats, setTokens)
+            }
+          >
+            {token.hideStats ? (
+              <div className="text-primary-500 dark:text-primary-dark">
+                <BookLock />
+              </div>
+            ) : (
+              <BookOpen />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          {token.hideStats ? "Dungeon Master Only" : "Player Editable"}
+        </TooltipContent>
+      </Tooltip>
     </TableCell>
   );
 }
@@ -456,34 +453,33 @@ function TokenTableCell({
   );
   return (
     <TableCell>
-      <TooltipProvider delayDuration={100} disableHoverableContent>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex items-center">
-              <button
-                className={cn(
-                  "size-12 font-medium outline-none sm:size-8",
-                  {
-                    "opacity-60": faded,
-                  },
-                  {
-                    "outline-image dark:outline-image":
-                      playerSelection.includes(token.item.id),
-                  },
-                )}
-                onClick={(e) =>
-                  handleTokenClicked(token.item.id, !(e.shiftKey || e.ctrlKey))
-                }
-                onDoubleClick={() => focusItem(token.item.id)}
-                tabIndex={-1}
-              >
-                {image}
-              </button>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent side="right">{token.item.name}</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center">
+            <button
+              className={cn(
+                "size-12 font-medium outline-none sm:size-8",
+                {
+                  "opacity-60": faded,
+                },
+                {
+                  "outline-image dark:outline-image": playerSelection.includes(
+                    token.item.id,
+                  ),
+                },
+              )}
+              onClick={(e) =>
+                handleTokenClicked(token.item.id, !(e.shiftKey || e.ctrlKey))
+              }
+              onDoubleClick={() => focusItem(token.item.id)}
+              tabIndex={-1}
+            >
+              {image}
+            </button>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="right">{token.item.name}</TooltipContent>
+      </Tooltip>
     </TableCell>
   );
 }

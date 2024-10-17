@@ -37,8 +37,7 @@ function createPlayerMenu(
           every: [
             { key: "type", value: "IMAGE" },
             { key: "layer", value: "CHARACTER", coordinator: "||" },
-            { key: "layer", value: "MOUNT", coordinator: "||" },
-            { key: "layer", value: "PROP" },
+            { key: "layer", value: "MOUNT" },
             {
               key: [
                 "metadata",
@@ -74,8 +73,7 @@ function createGmMenu(themeMode: "DARK" | "LIGHT", gmMenuHeight: number) {
           every: [
             { key: "type", value: "IMAGE" },
             { key: "layer", value: "CHARACTER", coordinator: "||" },
-            { key: "layer", value: "MOUNT", coordinator: "||" },
-            { key: "layer", value: "PROP" },
+            { key: "layer", value: "MOUNT" },
           ],
           roles: ["GM"],
           max: 1,

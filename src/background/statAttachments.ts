@@ -60,10 +60,7 @@ async function refreshAllHealthBars() {
   //get shapes from scene
   const items: Image[] = await OBR.scene.items.getItems(
     (item) =>
-      (item.layer === "CHARACTER" ||
-        item.layer === "MOUNT" ||
-        item.layer === "PROP") &&
-      isImage(item),
+      (item.layer === "CHARACTER" || item.layer === "MOUNT") && isImage(item),
   );
 
   //store array of all items currently on the board for change monitoring
@@ -120,13 +117,11 @@ async function startCallbacks() {
     // Handle item changes (Update health bars)
     const unsubscribeFromItems = OBR.scene.items.onChange(
       async (itemsFromCallback) => {
-        // Filter items for only images from character, mount, and prop layers
+        // Filter items for only images from character and mount layers
         const imagesFromCallback: Image[] = [];
         for (const item of itemsFromCallback) {
           if (
-            (item.layer === "CHARACTER" ||
-              item.layer === "MOUNT" ||
-              item.layer === "PROP") &&
+            (item.layer === "CHARACTER" || item.layer === "MOUNT") &&
             isImage(item)
           ) {
             imagesFromCallback.push(item);

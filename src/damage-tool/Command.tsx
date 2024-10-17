@@ -7,6 +7,7 @@ import { Action } from "./types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import OBR from "@owlbear-rodeo/sdk";
+import { COMMAND_INPUT_ID } from "./helpers";
 
 type CommandType = {
   code: string;
@@ -109,20 +110,6 @@ export default function Command({
     "initial",
   );
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const focusInputShortcut = (e: KeyboardEvent) => {
-      if (e.code === "KeyS" && e.shiftKey) {
-        e.stopPropagation();
-        e.preventDefault();
-        if (inputRef.current) {
-          inputRef.current.focus();
-          inputRef.current.select();
-        }
-      }
-    };
-    document.addEventListener("keydown", focusInputShortcut);
-  }, []);
 
   const commands = playerRole === "GM" ? gmCommands : playerCommands;
 
@@ -326,7 +313,8 @@ export default function Command({
         <div className="absolute w-full rounded-md border border-mirage-300 bg-mirage-50 shadow-sm dark:border-mirage-800 dark:bg-mirage-950 focus-within:[&:has(:focus-visible)]:border-transparent focus-within:[&:has(:focus-visible)]:ring-2 focus-within:[&:has(:focus-visible)]:ring-primary dark:focus-within:[&:has(:focus-visible)]:ring-primary-dark">
           <Input2
             ref={inputRef}
-            placeholder="Enter a command (shift+s)"
+            id={COMMAND_INPUT_ID}
+            placeholder="Enter a command"
             value={inputContent}
             spellCheck={false}
             onChange={(e) => {
