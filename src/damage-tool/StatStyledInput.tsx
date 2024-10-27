@@ -25,12 +25,11 @@ export default function StatStyledInput({
             "h-[32px]",
             "w-[60px]",
             {
-              "bg-stat-light-health/10 dark:bg-stat-dark-health/5":
+              "bg-stat-red/10 dark:bg-stat-red-dark/5":
                 name === "health" || name === "maxHealth",
-              "bg-stat-light-temp/10 dark:bg-stat-dark-temp/5":
+              "bg-stat-green/10 dark:bg-stat-green-dark/5":
                 name === "tempHealth",
-              "bg-stat-light-armor/10 dark:bg-stat-dark-armor/5":
-                name === "armorClass",
+              "bg-stat-blue/10 dark:bg-stat-blue-dark/5": name === "armorClass",
             },
             inputProps?.className,
           )}

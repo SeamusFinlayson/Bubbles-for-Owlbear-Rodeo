@@ -1,5 +1,9 @@
-import { InputHTMLAttributes, useEffect, useState } from "react";
-import { getBackgroundColor } from "../colorHelpers";
+import { cn } from "@/lib/utils";
+import PartiallyControlledInput from "./StatInput";
+import { InputName } from "@/statInputHelpers";
+import { InputColor } from "@/colorHelpers";
+import StatToolTip from "./StatToolTip";
+import { useState } from "react";
 
 export default function BarInput({
   parentValue,
@@ -7,124 +11,133 @@ export default function BarInput({
   color,
   valueUpdateHandler,
   maxUpdateHandler,
-  valueInputProps,
-  maxInputProps,
+  valueName,
+  maxName,
   animateOnlyWhenRootActive = false,
 }: {
   parentValue: number;
   parentMax: number;
-  color: number;
+  color: InputColor;
   valueUpdateHandler: (target: HTMLInputElement) => Promise<void>;
   maxUpdateHandler: (target: HTMLInputElement) => Promise<void>;
-  valueInputProps?: InputHTMLAttributes<HTMLInputElement>;
-  maxInputProps?: InputHTMLAttributes<HTMLInputElement>;
+  valueName: InputName;
+  maxName: InputName;
   animateOnlyWhenRootActive?: boolean;
 }): JSX.Element {
-  const [value, setValue] = useState<string>(parentValue.toString());
-  const [valueInputUpdateFlag, setValueInputUpdateFlag] = useState(false);
-  let ignoreBlur = false;
-
-  if (valueInputUpdateFlag) {
-    setValue(parentValue.toString());
-    setValueInputUpdateFlag(false);
-  }
-
-  useEffect(() => setValueInputUpdateFlag(true), [parentValue]);
-
-  const [max, setMax] = useState<string>(parentMax.toString());
-  const [maxInputUpdateFlag, setMaxInputUpdateFlag] = useState(false);
-
-  if (maxInputUpdateFlag) {
-    setMax(parentMax.toString());
-    setMaxInputUpdateFlag(false);
-  }
-
-  useEffect(() => setMaxInputUpdateFlag(true), [parentMax]);
-
-  const handleFocus = (event: React.FocusEvent<HTMLInputElement, Element>) => {
-    event.target.select();
-  };
-
-  const runUpdateHandler = (
-    e:
-      | React.FocusEvent<HTMLInputElement, Element>
-      | React.KeyboardEvent<HTMLInputElement>,
-    field: "value" | "max",
-  ) => {
-    if (field === "value") {
-      valueUpdateHandler(e.target as HTMLInputElement).then(() =>
-        setValueInputUpdateFlag(true),
-      );
-    } else {
-      maxUpdateHandler(e.target as HTMLInputElement).then(() =>
-        setMaxInputUpdateFlag(true),
-      );
-    }
-  };
+  const [valueHasFocus, setValueHasFocus] = useState(false);
+  const [maxHasFocus, setMaxHasFocus] = useState(false);
 
   const animationDuration75 = animateOnlyWhenRootActive
     ? "group-focus-within/root:duration-75 group-hover/root:duration-75"
     : "duration-75";
-  const animationDuration100 = animateOnlyWhenRootActive
-    ? "group-focus-within/root:duration-100 group-hover/root:duration-100"
-    : "duration-100";
 
   return (
     <div
-      className={`${animationDuration75} grid grid-cols-1 grid-rows-1 place-items-center drop-shadow-sm focus-within:drop-shadow-md`}
+      className={`grid grid-cols-1 grid-rows-1 place-items-center drop-shadow-sm focus-within:bg-transparent focus-within:drop-shadow-md`}
     >
       <div
-        className={`${animationDuration75} ${getBackgroundColor(color)} peer col-span-full row-span-full flex h-[44px] w-[100px] flex-row justify-between rounded-xl pb-[2px] outline-0 dark:outline dark:outline-2 dark:-outline-offset-2 dark:outline-white/40 dark:focus-within:outline-offset-0 dark:focus-within:outline-white/60`}
+        className={cn(
+          animationDuration75,
+          "peer col-span-full row-span-full flex h-[44px] w-[100px] justify-between rounded-xl pb-[2px] outline-0 dark:outline dark:outline-2 dark:-outline-offset-2 dark:outline-white/40",
+          {
+            "bg-stat-red/10 fill-stat-red/25 dark:bg-stat-red-dark/10 dark:fill-stat-red-dark/20 dark:focus-within:outline-stat-red-highlight-dark":
+              color === "RED",
+          },
+        )}
       >
-        <input
-          {...valueInputProps}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onBlur={(e) => {
-            if (!ignoreBlur) runUpdateHandler(e, "value");
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              (e.target as HTMLInputElement).blur();
-            } else if (e.key === "Escape") {
-              ignoreBlur = true;
-              (e.target as HTMLInputElement).blur();
-              ignoreBlur = false;
-              setValue(parentValue.toString());
-            }
-          }}
-          onFocus={handleFocus}
-          className={`${animationDuration100} size-[44px] rounded-xl bg-transparent text-center font-medium text-text-primary outline-none hover:bg-white/10 focus:bg-white/15 dark:text-text-primary-dark dark:hover:bg-black/10 dark:focus:bg-black/15`}
-          placeholder=""
-        ></input>
-        <div className="self-center pt-[2px] text-text-primary dark:text-text-primary-dark">
+        <div className={"absolute -z-30"}>
+          {valueHasFocus && <LeftCutoutBackground />}
+          {maxHasFocus && <RightCutoutBackground />}
+          {!valueHasFocus && !maxHasFocus && (
+            <div
+              className={cn("h-[44px] w-[100px] rounded-xl", {
+                "bg-stat-red/25 dark:bg-stat-red-dark/20": color === "RED",
+              })}
+            ></div>
+          )}
+        </div>
+        <StatToolTip
+          open={valueHasFocus && parentValue !== 0}
+          text={parentValue.toString()}
+          color={color}
+        >
+          <PartiallyControlledInput
+            parentValue={parentValue.toString()}
+            name={valueName}
+            onUserConfirm={valueUpdateHandler}
+            onFocus={() => setValueHasFocus(true)}
+            onBlur={() => setValueHasFocus(false)}
+            className={cn(
+              "size-[44px] rounded-xl bg-transparent text-center font-normal text-text-primary outline-none dark:text-text-primary-dark",
+            )}
+          />
+        </StatToolTip>
+        <div
+          className={cn(
+            "flex h-full items-center justify-center pt-[2px] text-text-primary dark:text-text-primary-dark",
+          )}
+        >
           /
         </div>
-        <input
-          {...maxInputProps}
-          value={max}
-          onChange={(e) => setMax(e.target.value)}
-          onBlur={(e) => {
-            if (!ignoreBlur) runUpdateHandler(e, "max");
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              (e.target as HTMLInputElement).blur();
-            } else if (e.key === "Escape") {
-              ignoreBlur = true;
-              (e.target as HTMLInputElement).blur();
-              ignoreBlur = false;
-              setMax(parentMax.toString());
-            }
-          }}
-          onFocus={handleFocus}
-          className={`${animationDuration100} size-[44px] rounded-xl bg-transparent text-center font-medium text-text-primary outline-none hover:bg-white/10 focus:bg-white/15 dark:text-text-primary-dark dark:hover:bg-black/10 dark:focus:bg-black/15`}
-          placeholder=""
-        ></input>
+        <StatToolTip
+          open={maxHasFocus && parentMax !== 0}
+          text={parentMax.toString()}
+          color={color}
+        >
+          <PartiallyControlledInput
+            parentValue={parentMax.toString()}
+            name={maxName}
+            onUserConfirm={maxUpdateHandler}
+            onFocus={() => setMaxHasFocus(true)}
+            onBlur={() => setMaxHasFocus(false)}
+            className={cn(
+              "size-[44px] rounded-xl bg-transparent text-center font-normal text-text-primary outline-none dark:text-text-primary-dark",
+            )}
+          />
+        </StatToolTip>
       </div>
-      <div
-        className={`${animationDuration75} ${getBackgroundColor(color)} -z-10 col-span-full row-span-full h-[44px] w-[100px] rounded-xl peer-focus-within:scale-x-[1.08] peer-focus-within:scale-y-[1.18] dark:bg-transparent`}
-      ></div>
     </div>
+  );
+}
+
+function LeftCutoutBackground() {
+  return (
+    <svg>
+      <path
+        d="
+          M 44 22
+          l 0 -10 
+          a 12 12 -90 0 0 -12 -12
+          l 56 0
+          a 12 12 90 0 1 12 12
+          l 0 20
+          a 12 12 90 0 1 -12 12
+          l -56 0
+          a 12 12 -90 0 0 12 -12
+          l 0 -10
+        "
+      />
+    </svg>
+  );
+}
+
+function RightCutoutBackground() {
+  return (
+    <svg>
+      <path
+        d="
+          M 56 22
+          l 0 -10 
+          a 12 12 -90 0 1 12 -12
+          l -56 0
+          a 12 12 90 0 0 -12 12
+          l 0 20
+          a 12 12 90 0 0 12 12
+          l 56 0
+          a 12 12 -90 0 1 -12 -12
+          l 0 -10
+        "
+      />
+    </svg>
   );
 }

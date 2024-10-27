@@ -4,6 +4,7 @@ import StatsMenuApp from "./StatsMenuApp";
 import { getName, getSelectedItems, parseItems } from "../itemHelpers";
 import { getPluginId } from "../getPluginId";
 import { addThemeToBody } from "@/colorHelpers";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 OBR.onReady(async () => {
   const [selectedItems, role, sceneMetadata] = await Promise.all([
@@ -29,16 +30,18 @@ OBR.onReady(async () => {
       document.getElementById("mother-flex") as HTMLDivElement,
     );
     root.render(
-      <StatsMenuApp
-        initialToken={initialTokens[0]}
-        initialTokenName={initialName}
-        initialNameTagsEnabled={
-          typeof initialNameTagsEnabled === "boolean"
-            ? initialNameTagsEnabled
-            : false
-        }
-        role={role}
-      />,
+      <TooltipProvider>
+        <StatsMenuApp
+          initialToken={initialTokens[0]}
+          initialTokenName={initialName}
+          initialNameTagsEnabled={
+            typeof initialNameTagsEnabled === "boolean"
+              ? initialNameTagsEnabled
+              : false
+          }
+          role={role}
+        />
+      </TooltipProvider>,
     );
   }
 });

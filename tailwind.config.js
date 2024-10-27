@@ -15,7 +15,6 @@ export default {
     },
     extend: {
       animation: { "inverse-bounce": "hiThere 0.5s infinite" },
-
       keyframes: {
         hiThere: {
           "0%": { transform: "scale(0.6) rotate(-180deg)" },
@@ -23,7 +22,6 @@ export default {
             transform: "translateX(-100%) rotate(-180deg)",
             animationTimingFunction: "linear",
           },
-
           "70%": {
             transform: "translateX(30%) rotate(54deg)",
             animationTimingFunction: "linear",
@@ -56,15 +54,29 @@ export default {
           950: "#222639",
         },
         stat: {
-          light: {
-            health: "rgb(212, 110, 111)",
-            temp: "rgb(156, 172, 130)",
-            armor: "rgb(150, 169, 206)",
+          red: {
+            DEFAULT: "hsl(0, 100%, 50%)",
+            dark: "hsl(0, 100%, 50%)",
+            highlight: {
+              DEFAULT: "hsl(0, 70%, 45%)",
+              dark: "hsl(0, 70%, 45%)",
+            },
           },
-          dark: {
-            health: "rgba(255, 0, 0, 0.4)",
-            temp: "rgba(106, 142, 35, 0.4)",
-            armor: "rgba(100, 148, 237, 0.4)",
+          blue: {
+            DEFAULT: "hsl(219, 79%, 66%)",
+            dark: "hsl(219, 79%, 66%)",
+            highlight: {
+              DEFAULT: "hsl(219, 79%, 66%)",
+              dark: "hsl(219, 79%, 66%)",
+            },
+          },
+          green: {
+            DEFAULT: "hsl(80, 60%, 35%)",
+            dark: "hsl(80, 60%, 35%)",
+            highlight: {
+              DEFAULT: "hsla(80, 60%, 35%)",
+              dark: "hsla(80, 60%, 35%)",
+            },
           },
         },
         default: {

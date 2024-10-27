@@ -142,13 +142,14 @@ export default function BulkEditor(): JSX.Element {
 
   // Sync rolls
   useEffect(
-    OBR.scene.onMetadataChange(async (sceneMetadata) => {
-      if (sceneReady)
-        dispatch({
-          type: "set-rolls",
-          rolls: await getRollsFromScene(sceneMetadata),
-        });
-    }),
+    () =>
+      OBR.scene.onMetadataChange(async (sceneMetadata) => {
+        if (sceneReady)
+          dispatch({
+            type: "set-rolls",
+            rolls: await getRollsFromScene(sceneMetadata),
+          });
+      }),
     [],
   );
 

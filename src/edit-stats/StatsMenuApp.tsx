@@ -1,3 +1,5 @@
+import "../index.css";
+import "./editStatsStyle.css";
 import Token from "../TokenClass";
 import { useEffect, useState } from "react";
 import {
@@ -15,9 +17,7 @@ import {
   writeNameToSelectedItem,
 } from "../itemHelpers";
 import BarInput from "../components/BarInput";
-import "../index.css";
 import BubbleInput from "../components/BubbleInput";
-import "./editStatsStyle.css";
 import TextField from "../components/TextField";
 import IconButton from "../components/IconButton";
 import MagicIcon from "../components/MagicIcon";
@@ -55,10 +55,7 @@ export default function StatsMenuApp({
     [],
   );
 
-  async function handleStatUpdate(
-    target: HTMLInputElement,
-    previousValue: number,
-  ) {
+  function handleStatUpdate(target: HTMLInputElement, previousValue: number) {
     const name = target.name;
     if (!isInputName(name)) throw "Error: invalid input name.";
 
@@ -68,7 +65,7 @@ export default function StatsMenuApp({
     writeTokenValueToItem(token.item.id, name, value);
   }
 
-  async function toggleHide() {
+  function toggleHide() {
     const name: InputName = "hideStats";
     if (!isInputName(name)) throw "Error: invalid input name.";
 
@@ -95,7 +92,7 @@ export default function StatsMenuApp({
   );
 
   const NameField: JSX.Element = (
-    <div className="grid grid-cols-[1fr,auto,1fr] place-items-center px-2 pt-1">
+    <div className="grid grid-cols-[1fr,auto,1fr] place-items-center">
       <div></div>
       <div className="w-[144px]">
         <TextField
@@ -132,61 +129,92 @@ export default function StatsMenuApp({
   );
 
   const StatsMenu: JSX.Element = (
-    <div className={"stat-grid bg-mirage-950/[0.07] dark:bg-mirage-50/[0.07]"}>
-      <div className="grid-item">
-        <label className="label">HP</label>
+    <div
+      className={
+        "grid grid-cols-4 rounded-lg bg-mirage-950/[0.07] fill-text-secondary p-1 py-1 dark:bg-mirage-50/[0.07] dark:fill-text-secondary-dark"
+      }
+    >
+      <div className="col-span-2 grid grid-cols-1 grid-rows-[12px_1fr_12px] justify-items-center gap-y-[1px]">
+        <h2 className="col-span-2 flex justify-center self-start text-[9px] font-medium tracking-wider text-text-secondary dark:text-text-secondary-dark">
+          HIT POINTS
+        </h2>
+        <BarInput
+          parentValue={token.health}
+          parentMax={token.maxHealth}
+          color={"RED"}
+          valueUpdateHandler={async (target) =>
+            handleStatUpdate(target, token.health)
+          }
+          maxUpdateHandler={async (target) =>
+            handleStatUpdate(target, token.maxHealth)
+          }
+          valueName="health"
+          maxName="maxHealth"
+          animateOnlyWhenRootActive={true}
+        ></BarInput>
+        <h2 className="col-span-2 flex justify-center self-start text-[9px] font-medium tracking-wider text-text-secondary dark:text-text-secondary-dark">
+          + MAXIMUM
+        </h2>
       </div>
-      <div className="grid-item">
-        <label className="label">Temp</label>
+
+      <div className="relative flex h-full w-full items-center justify-center">
+        <div className="pointer-events-none absolute flex items-center justify-center">
+          <TextRing
+            topText={"TEMPORARY"}
+            bottomText={"HIT POINTS"}
+            letterSpacing={1.5}
+          />
+        </div>
+        <div className="absolute">
+          <BubbleInput
+            parentValue={token.tempHealth}
+            color="GREEN"
+            updateHandler={(target) =>
+              handleStatUpdate(target, token.tempHealth)
+            }
+            name="tempHealth"
+            animateOnlyWhenRootActive={true}
+          ></BubbleInput>
+        </div>
       </div>
-      <div className="grid-item">
-        <label className="label">AC</label>
+
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="pointer-events-none absolute flex items-center justify-center">
+          <TextRing topText={"ARMOR"} bottomText={"CLASS"} letterSpacing={3} />
+        </div>
+        <div className="absolute">
+          <BubbleInput
+            parentValue={token.armorClass}
+            color="BLUE"
+            updateHandler={(target) =>
+              handleStatUpdate(target, token.armorClass)
+            }
+            name={"armorClass"}
+            animateOnlyWhenRootActive={true}
+          ></BubbleInput>
+        </div>
       </div>
-      <BarInput
-        parentValue={token.health}
-        parentMax={token.maxHealth}
-        color={0}
-        valueUpdateHandler={(target) => handleStatUpdate(target, token.health)}
-        maxUpdateHandler={(target) => handleStatUpdate(target, token.maxHealth)}
-        valueInputProps={{ name: "health" }}
-        maxInputProps={{ name: "maxHealth" }}
-        animateOnlyWhenRootActive={true}
-      ></BarInput>
-      <BubbleInput
-        parentValue={token.tempHealth}
-        color={1}
-        updateHandler={(target) => handleStatUpdate(target, token.tempHealth)}
-        inputProps={{ name: "tempHealth" }}
-        animateOnlyWhenRootActive={true}
-      ></BubbleInput>
-      <BubbleInput
-        parentValue={token.armorClass}
-        color={2}
-        updateHandler={(target) => handleStatUpdate(target, token.armorClass)}
-        inputProps={{ name: "armorClass" }}
-        animateOnlyWhenRootActive={true}
-      ></BubbleInput>
     </div>
   );
 
-  const HideRow: JSX.Element = (
-    <div className="p-2 pb-0">
+  const HideButton: JSX.Element = (
+    <div>
       <Button
         variant={"ghost"}
         className={cn(
-          "size-full rounded-lg bg-mirage-950/[0.07] text-base hover:bg-mirage-950/15 dark:bg-mirage-50/[0.07] dark:hover:bg-mirage-50/15",
+          "size-full rounded-lg bg-mirage-950/[0.07] text-base font-normal text-text-primary hover:bg-mirage-950/15 dark:bg-mirage-50/[0.07] dark:text-text-primary-dark dark:hover:bg-mirage-50/15",
         )}
         onClick={() => toggleHide()}
       >
         {token.hideStats && true ? (
-          <div className="dark:text-primary-dark-300 dark:hover:text-primary-dark-300 text-primary-800 hover:text-primary-800 inline-flex items-center gap-2">
+          <div className="inline-flex items-center gap-2 text-primary-800 hover:text-primary-800 dark:text-primary-dark-300 dark:hover:text-primary-dark-300">
             <BookLock />
-            Dungeon Master Only
+            <div>Dungeon Master Only</div>
           </div>
         ) : (
           <div className="inline-flex items-center gap-2">
             <BookOpen />
-            <div className="transition-none">Player Editable</div>
+            <div>Player Editable</div>
           </div>
         )}
       </Button>
@@ -194,10 +222,68 @@ export default function StatsMenuApp({
   );
 
   return (
-    <div className="text-text-primary dark:text-text-primary-dark">
+    <div className="h-full space-y-2 overflow-clip px-2 py-1">
       {nameTagsEnabled && NameField}
       {StatsMenu}
-      {role === "GM" && HideRow}
+      {role === "GM" && HideButton}
     </div>
   );
 }
+
+const TextRing = ({
+  topText,
+  bottomText,
+  letterSpacing,
+}: {
+  topText: string;
+  bottomText: string;
+  letterSpacing: number;
+}): JSX.Element => {
+  const fillOpacity = 0;
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      xmlns="http://www.w3.org/2000/svg"
+      className="absolute size-[70px] text-xs"
+    >
+      <path
+        id="topCirclePath"
+        d="
+          M 10, 50
+          a 40,40 0 1,1 80,0
+        "
+        fillOpacity={fillOpacity}
+      />
+      <path
+        id="bottomCirclePath"
+        d="
+          M 10, 50
+          a 40,40 0 1,0 80,0
+        "
+        fillOpacity={fillOpacity}
+      />
+      <text>
+        <textPath
+          href="#topCirclePath"
+          startOffset="50%"
+          dominantBaseline="central"
+          textAnchor="middle"
+          letterSpacing={letterSpacing}
+        >
+          {topText}
+        </textPath>
+      </text>
+      <text>
+        <textPath
+          href="#bottomCirclePath"
+          startOffset="50%"
+          dominantBaseline="central"
+          textAnchor="middle"
+          letterSpacing={letterSpacing}
+        >
+          {bottomText}
+        </textPath>
+      </text>
+    </svg>
+  );
+};
