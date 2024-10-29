@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { GearIcon } from "@radix-ui/react-icons";
 import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "@/getPluginId";
-import LinkButton from "@/action/LinkButton";
+import LinkButton from "@/settings/LinkButton";
 import { Patreon } from "@/components/icons/Patreon";
 import { QuestionMark } from "@/components/icons/QuestionMark";
 import { History } from "@/components/icons/History";
@@ -69,7 +69,7 @@ export default function Header({
               const themeMode = (await OBR.theme.getTheme()).mode;
               OBR.popover.open({
                 id: getPluginId("settings"),
-                url: `/src/action/actionPopover.html?themeMode=${themeMode}`,
+                url: `/src/settings/settings.html?themeMode=${themeMode}`,
                 height: 500,
                 width: 400,
               });

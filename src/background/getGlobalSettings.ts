@@ -1,6 +1,6 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "../getPluginId";
-import { ActionMetadataId, actionInputs } from "../action/ActionInputClass";
+import { ActionMetadataId, actionInputs } from "../settings/ActionInputClass";
 
 export interface Settings {
   verticalOffset: number;

@@ -46,15 +46,14 @@ export default function BulkEditor(): JSX.Element {
   const [mostRecentSelection, setMostRecentSelection] =
     useState<string[]>(playerSelection);
 
-  const selectedTokens = tokens.filter(
-    (token) =>
-      (appState.showItems === "ALL" ||
-        mostRecentSelection.includes(token.item.id) ||
-        getIncluded(token.item.id, appState.includedItems)) &&
-      (playerRole === "GM" || !token.hideStats) &&
-      !(appState.operation === "damage" && token.maxHealth <= 0) &&
-      !(appState.operation === "healing" && token.maxHealth <= 0),
-  );
+  const selectionFilter = (token: Token) =>
+    (appState.showItems === "ALL" ||
+      mostRecentSelection.includes(token.item.id) ||
+      getIncluded(token.item.id, appState.includedItems)) &&
+    (playerRole === "GM" || !token.hideStats) &&
+    !(appState.operation === "damage" && token.maxHealth <= 0) &&
+    !(appState.operation === "healing" && token.maxHealth <= 0);
+  const selectedTokens = tokens.filter(selectionFilter);
 
   function handleDragEnd(event: DragEndEvent) {
     //group is unhandled
@@ -118,9 +117,18 @@ export default function BulkEditor(): JSX.Element {
 
   // Sync player
   useEffect(() => {
-    const updateSelection = (selection: string[] | undefined) => {
+    const updateSelection = async (selection: string[] | undefined) => {
       setPlayerSelection(selection ? selection : []);
-      if (selection) setMostRecentSelection(selection);
+      const validTokenIds = (await OBR.scene.items.getItems(itemFilter)).map(
+        (item) => item.id,
+      );
+      if (selection) {
+        const selectedTokenIds = selection.filter((id) =>
+          validTokenIds.includes(id),
+        );
+        if (selectedTokenIds.length > 0)
+          setMostRecentSelection(selectedTokenIds);
+      }
     };
     const updatePlayerRole = (role: "PLAYER" | "GM") => {
       setPlayerRole(role);

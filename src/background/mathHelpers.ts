@@ -1,4 +1,4 @@
-import { Vector2, Image } from "@owlbear-rodeo/sdk";
+import { Vector2, Image, Math2 } from "@owlbear-rodeo/sdk";
 import { Settings } from "./getGlobalSettings";
 
 /**
@@ -195,15 +195,16 @@ export function getOriginAndBounds(
   dpi: number,
 ) {
   // Determine bounds
-  const bounds = getImageBounds(image, dpi);
+  const bounds = getImageDimensions(image, dpi);
   bounds.width = Math.abs(bounds.width);
   bounds.height = Math.abs(bounds.height);
 
   // Determine coordinate origin for drawing stats
+  const position = getImageCenter(image, dpi);
   const origin = {
-    x: image.position.x,
+    x: position.x,
     y:
-      image.position.y +
+      position.y +
       ((settings.barAtTop ? -1 : 1) * bounds.height) / 2 -
       settings.verticalOffset +
       (settings.barAtTop ? 1 : 0),
@@ -211,9 +212,37 @@ export function getOriginAndBounds(
   return { origin, bounds };
 }
 
-function getImageBounds(item: Image, dpi: number) {
+function getImageDimensions(item: Image, dpi: number) {
   const dpiScale = dpi / item.grid.dpi;
   const width = item.image.width * dpiScale * item.scale.x;
   const height = item.image.height * dpiScale * item.scale.y;
   return { width, height };
+}
+
+export function getImageCenter(image: Image, sceneDpi: number) {
+  // Image center with respect to image center
+  let imageCenter = { x: 0, y: 0 };
+
+  // Find image center with respect to image top left corner
+  imageCenter = Math2.add(
+    imageCenter,
+    Math2.multiply(
+      {
+        x: image.image.width,
+        y: image.image.height,
+      },
+      0.5,
+    ),
+  );
+
+  // Find image center with respect to item position
+  imageCenter = Math2.subtract(imageCenter, image.grid.offset);
+  imageCenter = Math2.multiply(imageCenter, sceneDpi / image.grid.dpi); // scale switch from image to scene
+  imageCenter = Math2.multiply(imageCenter, image.scale);
+  imageCenter = Math2.rotate(imageCenter, { x: 0, y: 0 }, image.rotation);
+
+  // find image center with respect to world
+  imageCenter = Math2.add(imageCenter, image.position);
+
+  return imageCenter;
 }
