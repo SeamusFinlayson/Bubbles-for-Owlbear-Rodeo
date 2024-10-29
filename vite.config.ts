@@ -10,9 +10,9 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, "index.html"),
         background: resolve(__dirname, "src/background/background.html"),
-        action: resolve(__dirname, "src/action/actionPopover.html"),
-        editStats: resolve(__dirname, "src/edit-stats/editStats.html"),
-        damageTool: resolve(__dirname, "src/damage-tool/damageTool.html"),
+        action: resolve(__dirname, "src/action/action.html"),
+        settings: resolve(__dirname, "src/settings/settings.html"),
+        contextMenu: resolve(__dirname, "src/contextMenu/contextMenu.html"),
       },
     },
   },

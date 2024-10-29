@@ -18,7 +18,7 @@ import {
 } from "../itemHelpers";
 import BarInput from "../components/BarInput";
 import BubbleInput from "../components/BubbleInput";
-import TextField from "../components/TextField";
+import NameInput from "../components/NameInput";
 import IconButton from "../components/IconButton";
 import MagicIcon from "../components/MagicIcon";
 import { getPluginId } from "../getPluginId";
@@ -95,7 +95,7 @@ export default function StatsMenuApp({
     <div className="grid grid-cols-[1fr,auto,1fr] place-items-center">
       <div></div>
       <div className="w-[144px]">
-        <TextField
+        <NameInput
           updateHandler={(target) => {
             const updateName = target.value.replaceAll(" ", "") !== "";
             writeNameToSelectedItem(target.value, updateName);
@@ -108,7 +108,7 @@ export default function StatsMenuApp({
             },
           }}
           animateOnlyWhenRootActive={true}
-        ></TextField>
+        ></NameInput>
       </div>
       {tokenName === "" && (
         <div className="right-0 top-0">

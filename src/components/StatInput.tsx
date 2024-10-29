@@ -5,6 +5,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   onUserConfirm: (target: HTMLInputElement) => void;
 }
 
+// Input with on confirm method that encapsulates the logic for stat inputs in the context menu
 export default function PartiallyControlledInput({
   parentValue,
   onUserConfirm,
@@ -45,11 +46,6 @@ export default function PartiallyControlledInput({
     setInputContentUpdateFlag(true);
   };
 
-  const handleFocus = (event: React.FocusEvent<HTMLInputElement, Element>) => {
-    event.target.select();
-    setInputContent("");
-  };
-
   return (
     <input
       {...inputProps}
@@ -77,7 +73,7 @@ export default function PartiallyControlledInput({
       }}
       onFocus={(e) => {
         if (inputProps.onFocus) inputProps.onFocus(e);
-        handleFocus(e);
+        setInputContent("");
       }}
       className={className}
       placeholder=""

@@ -1,6 +1,6 @@
 import { InputHTMLAttributes } from "react";
 
-export default function TextField({
+export default function NameInput({
   updateHandler,
   inputProps,
   animateOnlyWhenRootActive = false,

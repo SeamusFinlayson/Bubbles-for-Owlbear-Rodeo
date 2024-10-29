@@ -53,7 +53,7 @@ function createPlayerMenu(
     ],
     shortcut: "Shift + S",
     embed: {
-      url: `/src/edit-stats/editStats.html?themeMode=${themeMode}`,
+      url: `/src/contextMenu/contextMenu.html?themeMode=${themeMode}`,
       height: playerMenuHeight,
     },
   });
@@ -79,7 +79,7 @@ function createGmMenu(themeMode: "DARK" | "LIGHT", gmMenuHeight: number) {
     ],
     shortcut: "Shift + S",
     embed: {
-      url: `/src/edit-stats/editStats.html?themeMode=${themeMode}`,
+      url: `/src/contextMenu/contextMenu.html?themeMode=${themeMode}`,
       height: gmMenuHeight,
     },
   });
