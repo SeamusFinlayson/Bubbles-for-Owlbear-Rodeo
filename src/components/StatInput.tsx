@@ -77,6 +77,7 @@ export default function PartiallyControlledInput({
       }}
       className={className}
       placeholder=""
+      autoComplete="off"
     />
   );
 }

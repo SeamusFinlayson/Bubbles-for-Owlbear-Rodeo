@@ -14,6 +14,7 @@ export default {
       lg: "500px",
     },
     extend: {
+      fontSize: { "2xs": "9px" },
       animation: { "inverse-bounce": "hiThere 0.5s infinite" },
       keyframes: {
         hiThere: {

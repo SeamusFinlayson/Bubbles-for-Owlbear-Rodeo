@@ -135,7 +135,7 @@ export default function StatsMenuApp({
       }
     >
       <div className="col-span-2 grid grid-cols-1 grid-rows-[12px_1fr_12px] justify-items-center gap-y-[1px]">
-        <h2 className="col-span-2 flex justify-center self-start text-[9px] font-medium tracking-wider text-text-secondary dark:text-text-secondary-dark">
+        <h2 className="text-2xs col-span-2 flex justify-center self-start font-medium tracking-wider text-text-secondary dark:text-text-secondary-dark">
           HIT POINTS
         </h2>
         <BarInput
@@ -152,47 +152,43 @@ export default function StatsMenuApp({
           maxName="maxHealth"
           animateOnlyWhenRootActive={true}
         ></BarInput>
-        <h2 className="col-span-2 flex justify-center self-start text-[9px] font-medium tracking-wider text-text-secondary dark:text-text-secondary-dark">
+        <h2 className="text-2xs col-span-2 flex justify-center self-start font-medium tracking-wider text-text-secondary dark:text-text-secondary-dark">
           + MAXIMUM
         </h2>
       </div>
 
-      <div className="relative flex h-full w-full items-center justify-center">
-        <div className="pointer-events-none absolute flex items-center justify-center">
+      <div className="col-start-3 row-start-1 flex items-center justify-center">
+        <div className="size-0">
           <TextRing
             topText={"TEMPORARY"}
             bottomText={"HIT POINTS"}
-            letterSpacing={1.5}
+            letterSpacing={0.8}
           />
         </div>
-        <div className="absolute">
-          <BubbleInput
-            parentValue={token.tempHealth}
-            color="GREEN"
-            updateHandler={(target) =>
-              handleStatUpdate(target, token.tempHealth)
-            }
-            name="tempHealth"
-            animateOnlyWhenRootActive={true}
-          ></BubbleInput>
-        </div>
+      </div>
+      <div className="col-start-3 row-start-1 flex size-full items-center justify-center">
+        <BubbleInput
+          parentValue={token.tempHealth}
+          color="GREEN"
+          updateHandler={(target) => handleStatUpdate(target, token.tempHealth)}
+          name="tempHealth"
+          animateOnlyWhenRootActive={true}
+        />
       </div>
 
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="pointer-events-none absolute flex items-center justify-center">
-          <TextRing topText={"ARMOR"} bottomText={"CLASS"} letterSpacing={3} />
+      <div className="col-start-4 row-start-1 flex items-center justify-center">
+        <div className="size-0">
+          <TextRing topText={"ARMOR"} bottomText={"CLASS"} letterSpacing={1} />
         </div>
-        <div className="absolute">
-          <BubbleInput
-            parentValue={token.armorClass}
-            color="BLUE"
-            updateHandler={(target) =>
-              handleStatUpdate(target, token.armorClass)
-            }
-            name={"armorClass"}
-            animateOnlyWhenRootActive={true}
-          ></BubbleInput>
-        </div>
+      </div>
+      <div className="col-start-4 row-start-1 flex size-full items-center justify-center">
+        <BubbleInput
+          parentValue={token.armorClass}
+          color="BLUE"
+          updateHandler={(target) => handleStatUpdate(target, token.armorClass)}
+          name={"armorClass"}
+          animateOnlyWhenRootActive={true}
+        />
       </div>
     </div>
   );
@@ -240,26 +236,26 @@ const TextRing = ({
   letterSpacing: number;
 }): JSX.Element => {
   const fillOpacity = 0;
+  const radius = 29;
   return (
     <svg
-      viewBox="0 0 100 100"
       xmlns="http://www.w3.org/2000/svg"
-      className="absolute size-[70px] text-xs"
+      className="text-2xs overflow-visible font-medium"
     >
       <path
         id="topCirclePath"
-        d="
-          M 10, 50
-          a 40,40 0 1,1 80,0
-        "
+        d={`
+          M ${(-radius).toString()} 0
+          A ${radius.toString()} ${radius.toString()} 0 0,1 ${radius.toString()},0
+        `}
         fillOpacity={fillOpacity}
       />
       <path
         id="bottomCirclePath"
-        d="
-          M 10, 50
-          a 40,40 0 1,0 80,0
-        "
+        d={`
+            M ${(-radius).toString()} 0
+            A ${radius.toString()} ${radius.toString()} 0 0,0 ${radius.toString()},0
+          `}
         fillOpacity={fillOpacity}
       />
       <text>
