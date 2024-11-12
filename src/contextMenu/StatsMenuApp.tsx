@@ -18,7 +18,6 @@ import BubbleInput from "../components/BubbleInput";
 import NameInput from "../components/NameInput";
 import IconButton from "../components/IconButton";
 import MagicIcon from "../components/MagicIcon";
-import { getPluginId } from "../getPluginId";
 import { Button } from "@/components/ui/button";
 import BookLock from "@/components/icons/BookLock";
 import BookOpen from "@/components/icons/BookOpen";
@@ -28,6 +27,7 @@ import {
   getSelectedItemNameProperty,
   writeNameToSelectedItem,
 } from "@/metadataHelpers/nameHelpers";
+import getGlobalSettings from "@/background/getGlobalSettings";
 
 export default function StatsMenuApp({
   initialToken,
@@ -83,13 +83,19 @@ export default function StatsMenuApp({
   );
 
   useEffect(() =>
-    OBR.scene.onMetadataChange((metadata) => {
+    OBR.scene.onMetadataChange(async (sceneMetadata) => {
       const nameTagsEnabled = (
-        metadata[getPluginId("metadata")] as {
-          "name-tags": boolean | undefined;
-        }
-      )["name-tags"];
-      if (nameTagsEnabled !== undefined) setNameTagsEnabled(nameTagsEnabled);
+        await getGlobalSettings(undefined, sceneMetadata, undefined)
+      ).settings.nameTags;
+      setNameTagsEnabled(nameTagsEnabled);
+    }),
+  );
+  useEffect(() =>
+    OBR.room.onMetadataChange(async (roomMetadata) => {
+      const nameTagsEnabled = (
+        await getGlobalSettings(undefined, undefined, roomMetadata)
+      ).settings.nameTags;
+      setNameTagsEnabled(nameTagsEnabled);
     }),
   );
 

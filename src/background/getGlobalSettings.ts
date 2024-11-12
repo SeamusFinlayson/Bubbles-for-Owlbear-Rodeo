@@ -6,7 +6,7 @@ import {
 import { getPluginMetadata } from "@/metadataHelpers/metadataHelpers";
 
 export default async function getGlobalSettings(
-  settings: Settings,
+  settings?: Settings,
   sceneMetadata?: Metadata,
   roomMetadata?: Metadata,
 ) {
@@ -21,6 +21,9 @@ export default async function getGlobalSettings(
   };
 
   const newSettings = parseSettings(mergedSettings);
+
+  if (settings === undefined)
+    return { settings: newSettings, isChanged: false };
 
   let isChanged = false;
   for (const key of Object.keys(newSettings)) {

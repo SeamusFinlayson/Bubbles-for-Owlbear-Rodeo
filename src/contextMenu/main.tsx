@@ -5,16 +5,17 @@ import {
   getSelectedItems,
   parseItems,
 } from "../metadataHelpers/itemMetadataHelpers";
-import { getPluginId } from "../getPluginId";
 import { addThemeToBody } from "@/colorHelpers";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { getName } from "@/metadataHelpers/nameHelpers";
+import getGlobalSettings from "@/background/getGlobalSettings";
 
 OBR.onReady(async () => {
-  const [selectedItems, role, sceneMetadata] = await Promise.all([
+  const [selectedItems, role, sceneMetadata, roomMetadata] = await Promise.all([
     getSelectedItems(),
     OBR.player.getRole(),
     OBR.scene.getMetadata(),
+    OBR.room.getMetadata(),
   ]);
 
   const initialTokens = parseItems(selectedItems);
@@ -22,9 +23,9 @@ OBR.onReady(async () => {
 
   addThemeToBody();
 
-  let initialNameTagsEnabled: unknown = (sceneMetadata as any)[
-    getPluginId("metadata")
-  ]?.["name-tags"];
+  const initialNameTagsEnabled = (
+    await getGlobalSettings(undefined, sceneMetadata, roomMetadata)
+  ).settings.nameTags;
 
   if (selectedItems.length !== 1) {
     throw "Error: Invalid Tokens Selection";
