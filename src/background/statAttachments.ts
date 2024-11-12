@@ -18,14 +18,16 @@ import {
   thpTextId,
 } from "./compoundItemHelpers";
 import { getOriginAndBounds } from "./mathHelpers";
-import { NAME_METADATA_ID, getName, getTokenMetadata } from "../itemHelpers";
-import { Settings, getGlobalSettings } from "./getGlobalSettings";
+import { getTokenStats } from "../metadataHelpers/itemMetadataHelpers";
 import createContextMenuItems from "./contextMenuItems";
+import { getName, NAME_METADATA_ID } from "@/metadataHelpers/nameHelpers";
+import { Settings } from "@/metadataHelpers/settingMetadataHelpers";
+import getGlobalSettings from "./getGlobalSettings";
 
 let itemsLast: Image[] = []; // for item change checks
 const addItemsArray: Item[] = []; // for bulk addition or changing of items
 const deleteItemsArray: string[] = []; // for bulk deletion of scene items
-const settings: Settings = {
+let settings: Settings = {
   verticalOffset: 0,
   barAtTop: false,
   showBars: false,
@@ -34,11 +36,13 @@ const settings: Settings = {
 };
 let callbacksStarted = false;
 let userRoleLast: "GM" | "PLAYER";
+let themeMode: "DARK" | "LIGHT";
 
 export default async function startBackground() {
   const start = async () => {
-    await getGlobalSettings(settings);
-    createContextMenuItems(settings);
+    settings = (await getGlobalSettings(settings)).settings;
+    themeMode = (await OBR.theme.getTheme()).mode;
+    createContextMenuItems(settings, themeMode);
     await refreshAllHealthBars();
     await startCallbacks();
   };
@@ -58,10 +62,7 @@ async function refreshAllHealthBars() {
   //get shapes from scene
   const items: Image[] = await OBR.scene.items.getItems(
     (item) =>
-      (item.layer === "CHARACTER" ||
-        item.layer === "MOUNT" ||
-        item.layer === "PROP") &&
-      isImage(item),
+      (item.layer === "CHARACTER" || item.layer === "MOUNT") && isImage(item),
   );
 
   //store array of all items currently on the board for change monitoring
@@ -88,6 +89,12 @@ async function startCallbacks() {
     // Don't run this again unless the listeners have been unsubscribed
     callbacksStarted = true;
 
+    // Handle theme changes
+    const unSubscribeFromTheme = OBR.theme.onChange((theme) => {
+      themeMode = theme.mode;
+      createContextMenuItems(settings, themeMode);
+    });
+
     // Handle role changes
     userRoleLast = await OBR.player.getRole();
     const unSubscribeFromPlayer = OBR.player.onChange(async () => {
@@ -102,9 +109,22 @@ async function startCallbacks() {
     // Handle metadata changes
     const unsubscribeFromSceneMetadata = OBR.scene.onMetadataChange(
       async (metadata) => {
-        // Do a refresh if an item change is detected
-        if (await getGlobalSettings(settings, metadata)) {
-          createContextMenuItems(settings);
+        const { settings: newSettings, isChanged: doRefresh } =
+          await getGlobalSettings(settings, metadata);
+        settings = newSettings;
+        if (doRefresh) {
+          createContextMenuItems(settings, themeMode);
+          refreshAllHealthBars();
+        }
+      },
+    );
+    const unsubscribeFromRoomMetadata = OBR.room.onMetadataChange(
+      async (metadata) => {
+        const { settings: newSettings, isChanged: doRefresh } =
+          await getGlobalSettings(settings, undefined, metadata);
+        settings = newSettings;
+        if (doRefresh) {
+          createContextMenuItems(settings, themeMode);
           refreshAllHealthBars();
         }
       },
@@ -113,13 +133,11 @@ async function startCallbacks() {
     // Handle item changes (Update health bars)
     const unsubscribeFromItems = OBR.scene.items.onChange(
       async (itemsFromCallback) => {
-        // Filter items for only images from character, mount, and prop layers
+        // Filter items for only images from character and mount layers
         const imagesFromCallback: Image[] = [];
         for (const item of itemsFromCallback) {
           if (
-            (item.layer === "CHARACTER" ||
-              item.layer === "MOUNT" ||
-              item.layer === "PROP") &&
+            (item.layer === "CHARACTER" || item.layer === "MOUNT") &&
             isImage(item)
           ) {
             imagesFromCallback.push(item);
@@ -146,8 +164,10 @@ async function startCallbacks() {
     // Unsubscribe listeners that rely on the scene if it stops being ready
     const unsubscribeFromScene = OBR.scene.onReadyChange((isReady) => {
       if (!isReady) {
+        unSubscribeFromTheme();
         unSubscribeFromPlayer();
         unsubscribeFromSceneMetadata();
+        unsubscribeFromRoomMetadata();
         unsubscribeFromItems();
         unsubscribeFromScene();
         callbacksStarted = false;
@@ -211,7 +231,7 @@ function createAttachments(item: Image, role: "PLAYER" | "GM", dpi: number) {
 
   // Create stats
   const [health, maxHealth, tempHealth, armorClass, statsVisible] =
-    getTokenMetadata(item);
+    getTokenStats(item);
   if (role === "PLAYER" && !statsVisible && !settings.showBars) {
     // Display nothing, explicitly remove all attachments
     addHealthAttachmentsToArray(deleteItemsArray, item.id);

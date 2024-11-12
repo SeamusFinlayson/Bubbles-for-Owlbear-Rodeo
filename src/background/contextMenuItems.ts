@@ -1,26 +1,29 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "../getPluginId";
-import { Settings } from "./getGlobalSettings";
-export const menuIcon = new URL(
-  "../status.svg#icon",
-  import.meta.url,
-).toString();
+import menuIcon from "@/menuIcon";
+import { Settings } from "@/metadataHelpers/settingMetadataHelpers";
 
 const NAME_HEIGHT = 40;
 const STATS_HEIGHT = 84;
 const HIDE_HEIGHT = 50;
 const BOTTOM_PADDING = 2;
 
-export default function createContextMenuItems(settings: Settings) {
+export default async function createContextMenuItems(
+  settings: Settings,
+  themeMode: "DARK" | "LIGHT",
+) {
   let menuHeight = STATS_HEIGHT + BOTTOM_PADDING;
   if (settings.nameTags) menuHeight += NAME_HEIGHT;
 
-  createPlayerMenu(menuHeight);
-  createGmMenu(menuHeight + HIDE_HEIGHT);
-  createDamageToolContextItem();
+  createPlayerMenu(themeMode, menuHeight);
+  createGmMenu(themeMode, menuHeight + HIDE_HEIGHT);
+  // createDamageToolContextItem(themeMode);
 }
 
-function createPlayerMenu(playerMenuHeight: number) {
+function createPlayerMenu(
+  themeMode: "DARK" | "LIGHT",
+  playerMenuHeight: number,
+) {
   OBR.contextMenu.create({
     id: getPluginId("player-menu"),
     icons: [
@@ -31,8 +34,7 @@ function createPlayerMenu(playerMenuHeight: number) {
           every: [
             { key: "type", value: "IMAGE" },
             { key: "layer", value: "CHARACTER", coordinator: "||" },
-            { key: "layer", value: "MOUNT", coordinator: "||" },
-            { key: "layer", value: "PROP" },
+            { key: "layer", value: "MOUNT" },
             {
               key: [
                 "metadata",
@@ -51,13 +53,13 @@ function createPlayerMenu(playerMenuHeight: number) {
     ],
     shortcut: "Shift + S",
     embed: {
-      url: "/src/edit-stats/editStats.html",
+      url: `/src/contextMenu/contextMenu.html?themeMode=${themeMode}`,
       height: playerMenuHeight,
     },
   });
 }
 
-function createGmMenu(gmMenuHeight: number) {
+function createGmMenu(themeMode: "DARK" | "LIGHT", gmMenuHeight: number) {
   OBR.contextMenu.create({
     id: getPluginId("gm-menu"),
     icons: [
@@ -68,8 +70,7 @@ function createGmMenu(gmMenuHeight: number) {
           every: [
             { key: "type", value: "IMAGE" },
             { key: "layer", value: "CHARACTER", coordinator: "||" },
-            { key: "layer", value: "MOUNT", coordinator: "||" },
-            { key: "layer", value: "PROP" },
+            { key: "layer", value: "MOUNT" },
           ],
           roles: ["GM"],
           max: 1,
@@ -78,13 +79,13 @@ function createGmMenu(gmMenuHeight: number) {
     ],
     shortcut: "Shift + S",
     embed: {
-      url: "/src/edit-stats/editStats.html",
+      url: `/src/contextMenu/contextMenu.html?themeMode=${themeMode}`,
       height: gmMenuHeight,
     },
   });
 }
 
-function createDamageToolContextItem() {
+function createDamageToolContextItem(themeMode: "DARK" | "LIGHT") {
   OBR.contextMenu.create({
     id: getPluginId("damage-tool"),
     icons: [
@@ -98,10 +99,10 @@ function createDamageToolContextItem() {
       },
     ],
     shortcut: "Shift + S",
-    onClick(_, elementId) {
+    onClick: async (_, elementId) => {
       OBR.popover.open({
         id: getPluginId("damage-tool-popover"),
-        url: "/src/damage-tool/damageTool.html",
+        url: `/src/damage-tool/damageTool.html?themeMode=${themeMode}`,
         height: 522,
         width: 600,
         anchorElementId: elementId,
