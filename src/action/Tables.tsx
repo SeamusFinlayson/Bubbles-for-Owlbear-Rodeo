@@ -1,4 +1,4 @@
-import Token from "../TokenClass";
+import Token from "../metadataHelpers/TokenType";
 import "../index.css";
 import { Image } from "@owlbear-rodeo/sdk";
 import { Button } from "@/components/ui/button";

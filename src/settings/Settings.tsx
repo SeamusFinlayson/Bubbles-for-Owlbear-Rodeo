@@ -1,22 +1,14 @@
-import { Separator } from "@/components/ui/separator";
 import "../index.css";
 import Switch from "@/components/Switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import OBR, { Metadata } from "@owlbear-rodeo/sdk";
 import {
-  BAR_AT_TOP_METADATA_ID,
-  NAME_TAGS_METADATA_ID,
-  OFFSET_METADATA_ID,
-  readBooleanFromMetadata,
-  readNumberFromMetadata,
-  SEGMENTS_METADATA_ID,
-  SHOW_BARS_METADATA_ID,
-  updateSceneMetadata,
-} from "@/sceneMetadataHelpers";
+  SaveLocation,
+  updateSettingMetadata,
+} from "@/metadataHelpers/settingMetadataHelpers";
 import { MoveVertical } from "../components/icons/MoveVertical";
 import { AlignVerticalJustifyEnd } from "../components/icons/AlignVerticalJustifyEnd";
 import { AlignVerticalJustifyStart } from "../components/icons/AlignVerticalJustifyStart";
@@ -27,195 +19,485 @@ import { Patreon } from "@/components/icons/Patreon";
 import { QuestionMark } from "@/components/icons/QuestionMark";
 import { History } from "@/components/icons/History";
 import { Bug } from "@/components/icons/bug";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  OFFSET_METADATA_ID,
+  BAR_AT_TOP_METADATA_ID,
+  SHOW_BARS_METADATA_ID,
+  SEGMENTS_METADATA_ID,
+  NAME_TAGS_METADATA_ID,
+} from "@/metadataHelpers/settingMetadataIds";
+import useSettings from "./useSettings";
 
 export default function Settings(): JSX.Element {
-  const [offset, setOffset] = useState("0");
-  const [justification, setJustification] = useState<"TOP" | "BOTTOM">("TOP");
-  const [healthBarVisible, setHealthBarVisible] = useState(false);
-  const [segments, setSegments] = useState("0");
-  const [nameTags, setNameTags] = useState(false);
-
-  // UI state
-  const [initializationDone, setInitializationDone] = useState(false);
-
-  useEffect(() => {
-    const handleSceneMetadataChange = (sceneMetadata: Metadata) => {
-      setOffset(
-        readNumberFromMetadata(sceneMetadata, OFFSET_METADATA_ID).toString(),
-      );
-      setJustification(
-        readBooleanFromMetadata(sceneMetadata, BAR_AT_TOP_METADATA_ID)
-          ? "TOP"
-          : "BOTTOM",
-      );
-      setHealthBarVisible(
-        readBooleanFromMetadata(sceneMetadata, SHOW_BARS_METADATA_ID),
-      );
-      setSegments(
-        readNumberFromMetadata(sceneMetadata, SEGMENTS_METADATA_ID).toString(),
-      );
-      setNameTags(
-        readBooleanFromMetadata(sceneMetadata, NAME_TAGS_METADATA_ID),
-      );
-      setInitializationDone(true);
-    };
-    OBR.scene.getMetadata().then(handleSceneMetadataChange);
-    return OBR.scene.onMetadataChange(handleSceneMetadataChange);
-  }, []);
+  const roomSettings = useSettings("ROOM");
+  const sceneSettings = useSettings("SCENE");
 
   return (
     <div className="h-full">
-      <div className="flex h-full flex-col rounded-2xl border bg-mirage-100 py-4 text-mirage-900 outline outline-2 -outline-offset-1 outline-primary dark:bg-mirage-950 dark:text-mirage-50 dark:outline-primary-dark">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-4">
-          <div>
-            <h1 className="text-2xl font-light">Scene Settings</h1>
-            <p className="text-xs text-mirage-400">
-              <i>Stat Bubbles for D&D</i>
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <LinkButton
-              name="Patreon"
-              size="large"
-              icon={<Patreon />}
-              href={"https://www.patreon.com/SeamusFinlayson"}
-            />
-            <LinkButton
-              name="Change Log"
-              size="large"
-              icon={<History />}
-              href={"https://www.patreon.com/collection/306916?view=expanded"}
-            />
-            <LinkButton
-              name="Instructions"
-              size="large"
-              icon={<QuestionMark />}
-              href={
-                "https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo?tab=readme-ov-file#how-it-works"
-              }
-            />
-            <LinkButton
-              name="Report Bug"
-              size="large"
-              icon={<Bug />}
-              href="https://discord.gg/WMp9bky4be"
-            />
-          </div>
-        </div>
-        <div className="px-4 py-2">
-          <Separator />{" "}
-        </div>
-        {initializationDone && (
-          <ScrollArea className="h-full 2xs:px-3 xs:px-4">
-            <div className="flex h-max flex-col justify-start gap-2 text-base">
-              <SettingsRow
-                icon={<MoveVertical />}
-                label="Offset"
-                description="Move stat bubbles up or down"
-                action={
-                  <Input
-                    className="w-20 bg-mirage-50/30 focus:bg-mirage-50/40 dark:bg-mirage-950/40 dark:focus:bg-mirage-950/80"
-                    value={offset}
-                    onChange={(e) => setOffset(e.target.value)}
-                    onBlur={(e) => {
-                      let value = Math.trunc(parseFloat(e.target.value));
-                      if (Number.isNaN(value)) value = 0;
-                      setOffset(value.toString());
-                      updateSceneMetadata(OFFSET_METADATA_ID, value);
-                    }}
-                  />
+      <div className="flex h-full flex-col rounded-2xl border bg-mirage-100 text-mirage-900 outline outline-2 -outline-offset-1 outline-primary dark:bg-mirage-950 dark:text-mirage-50 dark:outline-primary-dark">
+        <ScrollArea className="h-full 2xs:px-3 xs:px-4" type="scroll">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-4">
+            <div>
+              <h1 className="text-2xl font-light">Settings</h1>
+              <p className="text-xs text-mirage-400">
+                <i>Stat Bubbles for D&D</i>
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <LinkButton
+                name="Patreon"
+                size="large"
+                icon={<Patreon />}
+                href={"https://www.patreon.com/SeamusFinlayson"}
+              />
+              <LinkButton
+                name="Change Log"
+                size="large"
+                icon={<History />}
+                href={"https://www.patreon.com/collection/306916?view=expanded"}
+              />
+              <LinkButton
+                name="Instructions"
+                size="large"
+                icon={<QuestionMark />}
+                href={
+                  "https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo?tab=readme-ov-file#how-it-works"
                 }
               />
-              <SettingsRow
-                icon={
-                  justification === "TOP" ? (
-                    <AlignVerticalJustifyStart />
-                  ) : (
-                    <AlignVerticalJustifyEnd />
-                  )
-                }
-                label="Justification"
-                description="Snap stat bubbles to the top or bottom of tokens"
-                action={
-                  <Button
-                    variant={"outline"}
-                    className="w-20 capitalize"
-                    onClick={() => {
-                      setJustification(justification);
-                      updateSceneMetadata(
-                        BAR_AT_TOP_METADATA_ID,
-                        justification === "TOP" ? false : true,
-                      );
-                    }}
-                  >
-                    {justification.toLowerCase()}
-                  </Button>
-                }
-              />
-              <SettingsRow
-                icon={<Drama />}
-                label="Show Health Bars"
-                description="Show dungeon master only health bars, but not the text, to players "
-                action={
-                  <Switch
-                    inputProps={{
-                      checked: healthBarVisible,
-                      onChange: (e) => {
-                        setHealthBarVisible(e.target.checked);
-                        updateSceneMetadata(
-                          SHOW_BARS_METADATA_ID,
-                          e.target.checked,
-                        );
-                      },
-                    }}
-                  />
-                }
-                last={healthBarVisible}
-              >
-                <SubSettingsRow
-                  label="Segments"
-                  description="Only show when creatures drop to certain fractions of their health"
-                  action={
-                    <Input
-                      className="w-20 bg-mirage-50/30 focus:bg-mirage-50/40 dark:bg-mirage-950/40 dark:focus:bg-mirage-950/80"
-                      value={segments}
-                      onChange={(e) => setSegments(e.target.value)}
-                      onBlur={(e) => {
-                        let value = Math.trunc(parseFloat(e.target.value));
-                        if (Number.isNaN(value)) value = 0;
-                        setSegments(value.toString());
-                        updateSceneMetadata(SEGMENTS_METADATA_ID, value);
-                      }}
-                    />
-                  }
-                  collapseElement={!healthBarVisible}
-                  last
-                />
-              </SettingsRow>
-              <SettingsRow
-                icon={<NameTag />}
-                label="Name Tags"
-                description="Custom name tags that never overlap with stat bubbles"
-                action={
-                  <Switch
-                    inputProps={{
-                      checked: nameTags,
-                      onChange: (e) => {
-                        setNameTags(e.target.checked);
-                        updateSceneMetadata(
-                          NAME_TAGS_METADATA_ID,
-                          e.target.checked,
-                        );
-                      },
-                    }}
-                  />
-                }
+              <LinkButton
+                name="Report Bug"
+                size="large"
+                icon={<Bug />}
+                href="https://discord.gg/WMp9bky4be"
               />
             </div>
-          </ScrollArea>
-        )}
+          </div>
+
+          <Tabs defaultValue="room" className="w-full py-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="room">Room</TabsTrigger>
+              <TabsTrigger value="scene">Scene</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="room">
+              {roomSettings.initializationDone &&
+                roomSettings.offset !== undefined &&
+                roomSettings.justification !== undefined &&
+                roomSettings.healthBarsVisible !== undefined &&
+                roomSettings.segments !== undefined &&
+                roomSettings.nameTags !== undefined && (
+                  <div className="flex h-max flex-col justify-start gap-2 text-base">
+                    <VerticalOffsetSettings
+                      offset={roomSettings.offset}
+                      setOffset={roomSettings.setOffset}
+                      saveLocation="ROOM"
+                    />
+                    <JustificationSettings
+                      justification={roomSettings.justification}
+                      setJustification={roomSettings.setJustification}
+                      saveLocation="ROOM"
+                    />
+                    <ShowHealthBarsSettings
+                      healthBarsVisible={roomSettings.healthBarsVisible}
+                      setHealthBarsVisible={roomSettings.setHealthBarsVisible}
+                      segments={roomSettings.segments}
+                      setSegments={roomSettings.setSegments}
+                      saveLocation="ROOM"
+                    />
+                    <NameTagSettings
+                      nameTags={roomSettings.nameTags}
+                      setNameTags={roomSettings.setNameTags}
+                      saveLocation="ROOM"
+                    />
+                  </div>
+                )}
+            </TabsContent>
+
+            <TabsContent value="scene">
+              {sceneSettings.initializationDone && (
+                <div>
+                  <div className="flex flex-wrap justify-center gap-2 px-4">
+                    <AddSceneSettingButton
+                      isUndefined={sceneSettings.offset === undefined}
+                      initializeSettings={() => {
+                        sceneSettings.setOffset(roomSettings.offset);
+                        updateSettingMetadata(
+                          OFFSET_METADATA_ID,
+                          parseFloat(roomSettings.offset as string),
+                          "SCENE",
+                        );
+                      }}
+                    >
+                      + Offset
+                    </AddSceneSettingButton>
+                    <AddSceneSettingButton
+                      isUndefined={sceneSettings.justification === undefined}
+                      initializeSettings={() => {
+                        sceneSettings.setJustification(
+                          roomSettings.justification,
+                        );
+                        updateSettingMetadata(
+                          BAR_AT_TOP_METADATA_ID,
+                          roomSettings.justification === "TOP" ? true : false,
+                          "SCENE",
+                        );
+                      }}
+                    >
+                      + Justification
+                    </AddSceneSettingButton>
+                    <AddSceneSettingButton
+                      isUndefined={
+                        sceneSettings.healthBarsVisible === undefined
+                      }
+                      initializeSettings={async () => {
+                        sceneSettings.setHealthBarsVisible(
+                          roomSettings.healthBarsVisible,
+                        );
+                        sceneSettings.setSegments(roomSettings.segments);
+                        await updateSettingMetadata(
+                          SHOW_BARS_METADATA_ID,
+                          roomSettings.healthBarsVisible,
+                          "SCENE",
+                        );
+                        updateSettingMetadata(
+                          SEGMENTS_METADATA_ID,
+                          parseFloat(roomSettings.segments as string),
+                          "SCENE",
+                        );
+                      }}
+                    >
+                      + Show Health Bars
+                    </AddSceneSettingButton>
+                    <AddSceneSettingButton
+                      isUndefined={sceneSettings.nameTags === undefined}
+                      initializeSettings={() => {
+                        sceneSettings.setNameTags(roomSettings.nameTags);
+                        updateSettingMetadata(
+                          NAME_TAGS_METADATA_ID,
+                          roomSettings.nameTags,
+                          "SCENE",
+                        );
+                      }}
+                    >
+                      + Name Tags
+                    </AddSceneSettingButton>
+                  </div>
+
+                  <div
+                    className={cn(
+                      "flex h-max flex-col justify-start gap-2 pt-2 text-base",
+                      {
+                        "pt-0":
+                          sceneSettings.offset !== undefined &&
+                          sceneSettings.justification !== undefined &&
+                          sceneSettings.healthBarsVisible !== undefined &&
+                          sceneSettings.nameTags !== undefined,
+                      },
+                    )}
+                  >
+                    {sceneSettings.offset !== undefined && (
+                      <VerticalOffsetSettings
+                        offset={sceneSettings.offset}
+                        setOffset={sceneSettings.setOffset}
+                        saveLocation="SCENE"
+                        removeHandler={() => {
+                          sceneSettings.setOffset(undefined);
+                          updateSettingMetadata(
+                            OFFSET_METADATA_ID,
+                            undefined,
+                            "SCENE",
+                          );
+                        }}
+                      />
+                    )}
+                    {sceneSettings.justification !== undefined && (
+                      <JustificationSettings
+                        justification={sceneSettings.justification}
+                        setJustification={sceneSettings.setJustification}
+                        saveLocation="SCENE"
+                        removeHandler={() => {
+                          sceneSettings.setJustification(undefined);
+                          updateSettingMetadata(
+                            BAR_AT_TOP_METADATA_ID,
+                            undefined,
+                            "SCENE",
+                          );
+                        }}
+                      />
+                    )}
+                    {sceneSettings.healthBarsVisible !== undefined &&
+                      sceneSettings.segments && (
+                        <ShowHealthBarsSettings
+                          healthBarsVisible={sceneSettings.healthBarsVisible}
+                          setHealthBarsVisible={
+                            sceneSettings.setHealthBarsVisible
+                          }
+                          segments={sceneSettings.segments}
+                          setSegments={sceneSettings.setSegments}
+                          saveLocation="SCENE"
+                          removeHandler={() => {
+                            sceneSettings.setHealthBarsVisible(undefined);
+                            updateSettingMetadata(
+                              SHOW_BARS_METADATA_ID,
+                              undefined,
+                              "SCENE",
+                            );
+                          }}
+                        />
+                      )}
+                    {sceneSettings.nameTags !== undefined && (
+                      <NameTagSettings
+                        nameTags={sceneSettings.nameTags}
+                        setNameTags={sceneSettings.setNameTags}
+                        saveLocation="SCENE"
+                        removeHandler={() => {
+                          sceneSettings.setNameTags(undefined);
+                          updateSettingMetadata(
+                            NAME_TAGS_METADATA_ID,
+                            undefined,
+                            "SCENE",
+                          );
+                        }}
+                      />
+                    )}
+                    {sceneSettings.offset === undefined &&
+                      sceneSettings.justification === undefined &&
+                      sceneSettings.healthBarsVisible === undefined &&
+                      sceneSettings.nameTags === undefined && (
+                        <div className="w-full text-center text-mirage-500">
+                          Override Room Settings
+                        </div>
+                      )}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </ScrollArea>
       </div>
     </div>
+  );
+}
+
+function AddSceneSettingButton({
+  isUndefined,
+  initializeSettings,
+  children,
+}: {
+  isUndefined: boolean;
+  initializeSettings: () => void;
+  children: any;
+}) {
+  if (!isUndefined) return <></>;
+  return (
+    <Button
+      className="h-[28px] rounded-full px-3"
+      variant={"outline"}
+      onClick={initializeSettings}
+    >
+      {children}
+    </Button>
+  );
+}
+
+function VerticalOffsetSettings({
+  offset,
+  setOffset,
+  saveLocation,
+  removeHandler,
+}: {
+  offset: string;
+  setOffset: React.Dispatch<React.SetStateAction<string | undefined>>;
+  saveLocation: SaveLocation;
+  removeHandler?: () => void;
+}) {
+  return (
+    <SettingsRow
+      icon={<MoveVertical />}
+      label="Offset"
+      description="Move stat bubbles up or down"
+      action={
+        <Input
+          className="w-20 bg-mirage-50/30 focus:bg-mirage-50/40 dark:bg-mirage-950/40 dark:focus:bg-mirage-950/80"
+          value={offset}
+          onChange={(e) => setOffset(e.target.value)}
+          onBlur={(e) => {
+            let value = Math.trunc(parseFloat(e.target.value));
+            if (Number.isNaN(value)) value = 0;
+            setOffset(value.toString());
+            updateSettingMetadata(OFFSET_METADATA_ID, value, saveLocation);
+          }}
+        />
+      }
+      last={removeHandler === undefined}
+    >
+      {removeHandler === undefined ? (
+        <></>
+      ) : (
+        <RemoveSetting removeHandler={removeHandler} />
+      )}
+    </SettingsRow>
+  );
+}
+
+function JustificationSettings({
+  justification,
+  setJustification,
+  saveLocation,
+  removeHandler,
+}: {
+  justification: "TOP" | "BOTTOM";
+  setJustification: React.Dispatch<
+    React.SetStateAction<"TOP" | "BOTTOM" | undefined>
+  >;
+  saveLocation: SaveLocation;
+  removeHandler?: () => void;
+}) {
+  return (
+    <SettingsRow
+      icon={
+        justification === "TOP" ? (
+          <AlignVerticalJustifyStart />
+        ) : (
+          <AlignVerticalJustifyEnd />
+        )
+      }
+      label="Justification"
+      description="Snap stat bubbles to the top or bottom of tokens"
+      action={
+        <Button
+          variant={"outline"}
+          className="w-20 capitalize"
+          onClick={() => {
+            setJustification(justification);
+            updateSettingMetadata(
+              BAR_AT_TOP_METADATA_ID,
+              justification === "TOP" ? false : true,
+              saveLocation,
+            );
+          }}
+        >
+          {justification.toLowerCase()}
+        </Button>
+      }
+      last={removeHandler === undefined}
+    >
+      {removeHandler === undefined ? (
+        <></>
+      ) : (
+        <RemoveSetting removeHandler={removeHandler} />
+      )}
+    </SettingsRow>
+  );
+}
+
+function ShowHealthBarsSettings({
+  healthBarsVisible,
+  setHealthBarsVisible,
+  segments,
+  setSegments,
+  saveLocation,
+  removeHandler,
+}: {
+  healthBarsVisible: boolean;
+  setHealthBarsVisible: React.Dispatch<
+    React.SetStateAction<boolean | undefined>
+  >;
+  segments: string;
+  setSegments: React.Dispatch<React.SetStateAction<string | undefined>>;
+  saveLocation: SaveLocation;
+  removeHandler?: () => void;
+}) {
+  return (
+    <SettingsRow
+      icon={<Drama />}
+      label="Show Health Bars"
+      description="Show dungeon master only health bars, but not the text, to players "
+      action={
+        <Switch
+          inputProps={{
+            checked: healthBarsVisible,
+            onChange: (e) => {
+              setHealthBarsVisible(e.target.checked);
+              updateSettingMetadata(
+                SHOW_BARS_METADATA_ID,
+                e.target.checked,
+                saveLocation,
+              );
+            },
+          }}
+        />
+      }
+      last={!healthBarsVisible && removeHandler === undefined}
+    >
+      <SubSettingsRow
+        label="Segments"
+        description="Only show when creatures drop to certain fractions of their health"
+        action={
+          <Input
+            className="w-20 bg-mirage-50/30 focus:bg-mirage-50/40 dark:bg-mirage-950/40 dark:focus:bg-mirage-950/80"
+            value={segments}
+            onChange={(e) => setSegments(e.target.value)}
+            onBlur={(e) => {
+              let value = Math.trunc(parseFloat(e.target.value));
+              if (Number.isNaN(value)) value = 0;
+              setSegments(value.toString());
+              updateSettingMetadata(SEGMENTS_METADATA_ID, value, saveLocation);
+            }}
+          />
+        }
+        collapseElement={!healthBarsVisible}
+        last={removeHandler === undefined}
+      />
+      {removeHandler === undefined ? (
+        <></>
+      ) : (
+        <RemoveSetting removeHandler={removeHandler} />
+      )}
+    </SettingsRow>
+  );
+}
+
+function NameTagSettings({
+  nameTags,
+  setNameTags,
+  saveLocation,
+  removeHandler,
+}: {
+  nameTags: boolean;
+  setNameTags: React.Dispatch<React.SetStateAction<boolean | undefined>>;
+  saveLocation: SaveLocation;
+  removeHandler?: () => void;
+}) {
+  return (
+    <SettingsRow
+      icon={<NameTag />}
+      label="Name Tags"
+      description="Custom name tags that never overlap with stat bubbles"
+      action={
+        <Switch
+          inputProps={{
+            checked: nameTags,
+            onChange: (e) => {
+              setNameTags(e.target.checked);
+              updateSettingMetadata(
+                NAME_TAGS_METADATA_ID,
+                e.target.checked,
+                saveLocation,
+              );
+            },
+          }}
+        />
+      }
+      last={removeHandler === undefined}
+    >
+      {removeHandler === undefined ? (
+        <></>
+      ) : (
+        <RemoveSetting removeHandler={removeHandler} />
+      )}
+    </SettingsRow>
   );
 }
 
@@ -239,7 +521,7 @@ function SettingsRow({
       <div
         className={cn(
           "flex min-h-16 items-center justify-start gap-4 rounded bg-mirage-200 p-2 dark:bg-mirage-900",
-          { "rounded-b-none": last },
+          { "rounded-b-none": last === false },
         )}
       >
         <div className="size-10 min-w-10 stroke-mirage-950 p-2 dark:stroke-mirage-50">
@@ -291,6 +573,31 @@ function SubSettingsRow({
           </div>
           <div className="ml-auto">{action}</div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function RemoveSetting({
+  removeHandler,
+}: {
+  removeHandler: () => void;
+}): JSX.Element {
+  return (
+    <div className="pt-0.5">
+      <div
+        className={cn(
+          "flex items-center justify-start gap-4 rounded-none bg-mirage-200 dark:bg-mirage-900",
+          { "rounded-b": true },
+        )}
+      >
+        <Button
+          className="w-full rounded-t-none hover:bg-red-500/10 hover:text-red-800 dark:hover:bg-red-500/10 dark:hover:text-red-500"
+          variant={"ghost"}
+          onClick={removeHandler}
+        >
+          Restore Room Default
+        </Button>
       </div>
     </div>
   );

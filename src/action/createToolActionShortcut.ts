@@ -13,7 +13,10 @@ export default async function createToolActionShortcut() {
         label: "Open Stat Bubbles for D&D",
         filter: {
           roles: ["GM"],
-          activeTools: ["rodeo.owlbear.tool/select", "rodeo.owlbear.tool/move"],
+          activeTools: [
+            // "rodeo.owlbear.tool/move",
+            "rodeo.owlbear.tool/select",
+          ],
         },
       },
     ],

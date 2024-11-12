@@ -1,7 +1,7 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { getPluginId } from "../getPluginId";
-import { Settings } from "./getGlobalSettings";
 import menuIcon from "@/menuIcon";
+import { Settings } from "@/metadataHelpers/settingMetadataHelpers";
 
 const NAME_HEIGHT = 40;
 const STATS_HEIGHT = 84;

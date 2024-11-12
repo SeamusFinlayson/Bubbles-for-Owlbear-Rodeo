@@ -1,4 +1,4 @@
-import Token from "../TokenClass";
+import Token from "../metadataHelpers/TokenType";
 import "../index.css";
 import { useEffect, useReducer, useState } from "react";
 import { Action, BulkEditorState, Operation } from "./types";
@@ -13,7 +13,7 @@ import {
   writeTokenSortingToItems,
 } from "./helpers";
 import OBR, { Item } from "@owlbear-rodeo/sdk";
-import { itemFilter, parseItems } from "@/itemHelpers";
+import { itemFilter, parseItems } from "@/metadataHelpers/itemMetadataHelpers";
 import { addThemeToBody } from "@/colorHelpers";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";

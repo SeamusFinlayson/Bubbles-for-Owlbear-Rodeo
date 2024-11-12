@@ -1,6 +1,6 @@
 import "../index.css";
 import "./editStatsStyle.css";
-import Token from "../TokenClass";
+import Token from "../metadataHelpers/TokenType";
 import { useEffect, useState } from "react";
 import {
   getNewStatValue,
@@ -10,12 +10,9 @@ import {
 } from "../statInputHelpers";
 import OBR from "@owlbear-rodeo/sdk";
 import {
-  getName,
-  getSelectedItemNameProperty,
   getSelectedItems,
   parseItems,
-  writeNameToSelectedItem,
-} from "../itemHelpers";
+} from "../metadataHelpers/itemMetadataHelpers";
 import BarInput from "../components/BarInput";
 import BubbleInput from "../components/BubbleInput";
 import NameInput from "../components/NameInput";
@@ -26,6 +23,11 @@ import { Button } from "@/components/ui/button";
 import BookLock from "@/components/icons/BookLock";
 import BookOpen from "@/components/icons/BookOpen";
 import { cn } from "@/lib/utils";
+import {
+  getName,
+  getSelectedItemNameProperty,
+  writeNameToSelectedItem,
+} from "@/metadataHelpers/nameHelpers";
 
 export default function StatsMenuApp({
   initialToken,
@@ -135,7 +137,7 @@ export default function StatsMenuApp({
       }
     >
       <div className="col-span-2 grid grid-cols-1 grid-rows-[12px_1fr_12px] justify-items-center gap-y-[1px]">
-        <h2 className="text-2xs col-span-2 flex justify-center self-start font-medium tracking-wider text-text-secondary dark:text-text-secondary-dark">
+        <h2 className="col-span-2 flex justify-center self-start text-2xs font-medium tracking-wider text-text-secondary dark:text-text-secondary-dark">
           HIT POINTS
         </h2>
         <BarInput
@@ -152,7 +154,7 @@ export default function StatsMenuApp({
           maxName="maxHealth"
           animateOnlyWhenRootActive={true}
         ></BarInput>
-        <h2 className="text-2xs col-span-2 flex justify-center self-start font-medium tracking-wider text-text-secondary dark:text-text-secondary-dark">
+        <h2 className="col-span-2 flex justify-center self-start text-2xs font-medium tracking-wider text-text-secondary dark:text-text-secondary-dark">
           + MAXIMUM
         </h2>
       </div>
@@ -240,7 +242,7 @@ const TextRing = ({
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      className="text-2xs overflow-visible font-medium"
+      className="overflow-visible text-2xs font-medium"
     >
       <path
         id="topCirclePath"

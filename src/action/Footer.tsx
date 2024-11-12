@@ -12,7 +12,7 @@ import DiceSVG from "./DiceSVG";
 import StatStyledInput from "./StatStyledInput";
 import ActionButton from "./ActionButton";
 import { applyHealthDiffToItems, overwriteStats } from "./helpers";
-import Token from "@/TokenClass";
+import Token from "@/metadataHelpers/TokenType";
 import { Separator } from "@/components/ui/separator";
 import OBR from "@owlbear-rodeo/sdk";
 import { Check } from "@/components/icons/Check";

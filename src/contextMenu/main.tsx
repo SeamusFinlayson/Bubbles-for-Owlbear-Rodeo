@@ -1,10 +1,14 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { createRoot } from "react-dom/client";
 import StatsMenuApp from "./StatsMenuApp";
-import { getName, getSelectedItems, parseItems } from "../itemHelpers";
+import {
+  getSelectedItems,
+  parseItems,
+} from "../metadataHelpers/itemMetadataHelpers";
 import { getPluginId } from "../getPluginId";
 import { addThemeToBody } from "@/colorHelpers";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { getName } from "@/metadataHelpers/nameHelpers";
 
 OBR.onReady(async () => {
   const [selectedItems, role, sceneMetadata] = await Promise.all([

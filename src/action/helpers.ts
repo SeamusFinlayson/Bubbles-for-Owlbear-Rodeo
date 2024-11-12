@@ -1,4 +1,4 @@
-import Token from "@/TokenClass";
+import Token from "@/metadataHelpers/TokenType";
 import OBR, { Math2, Metadata, Vector2 } from "@owlbear-rodeo/sdk";
 import {
   calculateNewHealth,
@@ -8,7 +8,7 @@ import {
   HEALTH_METADATA_ID,
   StatMetadataID,
   TEMP_HEALTH_METADATA_ID,
-} from "@/itemMetadataIds";
+} from "@/metadataHelpers/itemMetadataIds";
 import { getPluginId } from "@/getPluginId";
 import {
   Action,

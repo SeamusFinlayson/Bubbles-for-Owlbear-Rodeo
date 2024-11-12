@@ -1,5 +1,5 @@
+import { Settings } from "@/metadataHelpers/settingMetadataHelpers";
 import { Vector2, Image, Math2 } from "@owlbear-rodeo/sdk";
-import { Settings } from "./getGlobalSettings";
 
 /**
  * Calculate the fill of a bar tracker to display.

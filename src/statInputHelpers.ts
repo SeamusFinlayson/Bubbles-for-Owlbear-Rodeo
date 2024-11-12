@@ -7,7 +7,7 @@ import {
   MAX_HEALTH_METADATA_ID,
   StatMetadataID,
   TEMP_HEALTH_METADATA_ID,
-} from "./itemMetadataIds";
+} from "./metadataHelpers/itemMetadataIds";
 
 export type InputName =
   | "health"

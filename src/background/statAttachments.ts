@@ -18,14 +18,16 @@ import {
   thpTextId,
 } from "./compoundItemHelpers";
 import { getOriginAndBounds } from "./mathHelpers";
-import { NAME_METADATA_ID, getName, getTokenStats } from "../itemHelpers";
-import { Settings, getGlobalSettings } from "./getGlobalSettings";
+import { getTokenStats } from "../metadataHelpers/itemMetadataHelpers";
 import createContextMenuItems from "./contextMenuItems";
+import { getName, NAME_METADATA_ID } from "@/metadataHelpers/nameHelpers";
+import { Settings } from "@/metadataHelpers/settingMetadataHelpers";
+import getGlobalSettings from "./getGlobalSettings";
 
 let itemsLast: Image[] = []; // for item change checks
 const addItemsArray: Item[] = []; // for bulk addition or changing of items
 const deleteItemsArray: string[] = []; // for bulk deletion of scene items
-const settings: Settings = {
+let settings: Settings = {
   verticalOffset: 0,
   barAtTop: false,
   showBars: false,
@@ -38,7 +40,7 @@ let themeMode: "DARK" | "LIGHT";
 
 export default async function startBackground() {
   const start = async () => {
-    await getGlobalSettings(settings);
+    settings = (await getGlobalSettings(settings)).settings;
     themeMode = (await OBR.theme.getTheme()).mode;
     createContextMenuItems(settings, themeMode);
     await refreshAllHealthBars();
@@ -107,7 +109,21 @@ async function startCallbacks() {
     // Handle metadata changes
     const unsubscribeFromSceneMetadata = OBR.scene.onMetadataChange(
       async (metadata) => {
-        if (await getGlobalSettings(settings, metadata)) {
+        const { settings: newSettings, isChanged: doRefresh } =
+          await getGlobalSettings(settings, metadata);
+        settings = newSettings;
+        if (doRefresh) {
+          createContextMenuItems(settings, themeMode);
+          refreshAllHealthBars();
+        }
+      },
+    );
+    const unsubscribeFromRoomMetadata = OBR.room.onMetadataChange(
+      async (metadata) => {
+        const { settings: newSettings, isChanged: doRefresh } =
+          await getGlobalSettings(settings, undefined, metadata);
+        settings = newSettings;
+        if (doRefresh) {
           createContextMenuItems(settings, themeMode);
           refreshAllHealthBars();
         }
@@ -151,6 +167,7 @@ async function startCallbacks() {
         unSubscribeFromTheme();
         unSubscribeFromPlayer();
         unsubscribeFromSceneMetadata();
+        unsubscribeFromRoomMetadata();
         unsubscribeFromItems();
         unsubscribeFromScene();
         callbacksStarted = false;
