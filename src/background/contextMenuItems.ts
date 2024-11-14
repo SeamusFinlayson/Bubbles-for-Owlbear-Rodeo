@@ -84,29 +84,3 @@ function createGmMenu(themeMode: "DARK" | "LIGHT", gmMenuHeight: number) {
     },
   });
 }
-
-function createDamageToolContextItem(themeMode: "DARK" | "LIGHT") {
-  OBR.contextMenu.create({
-    id: getPluginId("damage-tool"),
-    icons: [
-      {
-        icon: menuIcon,
-        label: "AOE Tool",
-        filter: {
-          every: [],
-          roles: ["GM"],
-        },
-      },
-    ],
-    shortcut: "Shift + S",
-    onClick: async (_, elementId) => {
-      OBR.popover.open({
-        id: getPluginId("damage-tool-popover"),
-        url: `/src/damage-tool/damageTool.html?themeMode=${themeMode}`,
-        height: 522,
-        width: 600,
-        anchorElementId: elementId,
-      });
-    },
-  });
-}
