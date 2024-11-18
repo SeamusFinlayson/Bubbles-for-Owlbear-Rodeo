@@ -227,7 +227,7 @@ export default function Settings(): JSX.Element {
                       />
                     )}
                     {sceneSettings.healthBarsVisible !== undefined &&
-                      sceneSettings.segments && (
+                      sceneSettings.segments !== undefined && (
                         <ShowHealthBarsSettings
                           healthBarsVisible={sceneSettings.healthBarsVisible}
                           setHealthBarsVisible={

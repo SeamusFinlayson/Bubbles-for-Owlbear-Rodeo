@@ -3,7 +3,10 @@ import {
   parseSettings,
   Settings,
 } from "@/metadataHelpers/settingMetadataHelpers";
-import { getPluginMetadata } from "@/metadataHelpers/metadataHelpers";
+import {
+  getPluginMetadata,
+  readNumberFromObject,
+} from "@/metadataHelpers/metadataHelpers";
 
 export default async function getGlobalSettings(
   settings?: Settings,
@@ -15,12 +18,24 @@ export default async function getGlobalSettings(
     sceneMetadata = await OBR.scene.getMetadata();
   if (roomMetadata === undefined) roomMetadata = await OBR.room.getMetadata();
 
+  const roomExtensionMetadata = getPluginMetadata(roomMetadata);
+  const sceneExtensionMetadata = getPluginMetadata(sceneMetadata);
+
   const mergedSettings = {
-    ...getPluginMetadata(roomMetadata),
-    ...getPluginMetadata(sceneMetadata),
+    ...roomExtensionMetadata,
+    ...sceneExtensionMetadata,
   };
 
   const newSettings = parseSettings(mergedSettings);
+
+  // Ignore scene segments if the room settings is not being overridden
+  const sceneSegmentsEnabled = sceneExtensionMetadata?.["show-bars"];
+  if (sceneSegmentsEnabled === undefined) {
+    newSettings.segments = readNumberFromObject(
+      roomExtensionMetadata,
+      "segments",
+    );
+  }
 
   if (settings === undefined)
     return { settings: newSettings, isChanged: false };
