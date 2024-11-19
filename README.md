@@ -12,8 +12,8 @@ Visit the [Owlbear Rodeo store](https://extensions.owlbear.rodeo/bubble-tracker)
 
 This extension provides a simple way to track:
 
-- Hit Points
-- Maximum Hit Points
+- Current Hit Points
+- Hit Point Maximum
 - Temporary Hit Points
 - and Armor Class
 
@@ -21,19 +21,19 @@ Stat Bubbles also features:
 
 - A per token setting to hide stats from players
 - Name tags that will never overlap with health bars
-- A tool for applying area of effect (AEO) spells
+- A tools for applying area of effect (AEO) spells
 - Settings to configure health bar positions
 - An option to show the players segmented enemy health bars
 
 ### The Basics
 
-**Right click** on a token to access the **context menu embed** and edit a token's stats.
+**Right click** on a token to access the **context menu** and edit its stats.
 
-![Player Edit Stats Menu](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/dde2df48-cb42-4a92-9a44-400a3ae1c2af)
+<img name="Player Context Menu" src="https://github.com/user-attachments/assets/476d0377-19ff-4f3c-a50f-df62c38adaa7" width=300>
 
-**This extension does math for you!** To add 6 to your HP type +6 and press Enter. To subtract 6 from your HP type -6 and press Enter. This works for every stat.
+**This extension does math for you!** The inline math feature makes repetitive calculations effortless. To add 6 to your HP type +6 and press Enter. To subtract 6 from your HP type -6 and press Enter. This works for every stat.
 
-<img name="Inline Math Demo" src="https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/b261ac10-c4be-4a39-bdb1-53c11005d8db" width=600>
+<img name="Inline Math Demo" src="https://github.com/user-attachments/assets/440423a0-3ee7-4f2e-9a36-c65da92b354e" width=600>
 
 In a hurry? press **Tab** to cycle through the bubbles.
 
@@ -41,38 +41,35 @@ This extension works with tokens on the **Prop**, **Mount**, and **Character** l
 
 The health bar is **created automatically** if a number greater than 0 is in the max health field. The temporary HP and armor class bubbles work the same way.
 
-### Name tags
-
-Name tags can be enabled from the settings menu. Once enabled both players and GMs can set a token's name in the context menu embed. The autofill icon sets the name tag to the token's name property found under the accessibility settings. The name that you give the token will also be displayed in initiative tracking extensions.
-
-![Menu with name tag](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/d33baca1-b430-4251-b326-26cd2e446b7d)
-
 ### Game / Dungeon Masters
 
 The GM gets access to more configuration options.
 
-Use the **hide stats from players** switch in the context menu to prevent your players from seeing a creature's stats, both in the context menu and on the map. A creature's health bar background turns black to indicate that it is hidden.
+By clicking the button at the bottom of the context menu the GM can lock their players out of viewing tokens' stats.
 
-![GM Edit Stats Menu](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/f2d8c675-a115-43a6-827e-a9a24c2f4324)
+<img name="GM Context Menu" src="https://github.com/user-attachments/assets/fbdc127d-41cc-4023-90fd-575909ad5569" width=300>
 
-The **AOE Tool** allows GMs to quickly apply AEO damage and healing. Great for spells like fireball or mass healing word.
+### Action Menu
 
-Use the select tool to select all the creatures you want to include, right click to open the context menu, then use the Shift + S shortcut to open the tool. Any creature that has a maximum health greater than zero will be added to the list. Accidentally select something that shouldn't be included? No need to restart, just set the multiplier to none. Set the multiplier according to whether creatures pass their saving throw or not and whether they are vulnerable or resistant to the damage type. Press confirm, and you're done. If you made a mistake the damage or healing can be undone using the undo button.
+The action menu provides access to all of a rooms tokens in one place.
 
-![AEO Tool](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/5d9a0f64-606f-47c4-97b5-6a9770db44eb)
+Quickly apply AOE effects or modify multiple tokens using the built in operations.
 
-The **settings** menu allows GMs to customize the extension to better fit their use case.
+Roll dice either publicly or secretly using the command line. Your rolls are stored in the scene roll log. Check out [RPG Dice Roller](https://dice-roller.github.io/documentation/guide/notation/) for details on the supported dice notations.
 
-![Settings Menu](https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo/assets/77430559/9237a415-9dce-41fc-bab8-2e758cd909e6)
+![Action Menu](https://github.com/user-attachments/assets/86d39c02-219d-47b6-986d-6f5785e71d07)
 
-| Setting                             | Description                                                                                                                                                                                                                                                                                                   |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vertical offset                     | Move all tokens' stats up and down to accommodate name tags or other extensions.                                                                                                                                                                                                                              |
-| Origin above token                  | Move all tokens' stats above them.                                                                                                                                                                                                                                                                            |
-| Show monster health bars to players | Show just the health bar of hidden tokens to players. This won't allow players to edit the stats or see the exact health numbers.                                                                                                                                                                             |
-| Monster health bar segments         | When _Show monster health bars to players_ is enabled the GM has the option to show a less granular version of the monsters' health to players. For example: say you only want to show when a monster drops to half health, write 2 in this field. Leaving this setting at 0 shows the exact health bar fill. |
-| Name tags                           | This feature adds a custom implementation of name tags to Owlbear Rodeo that will never overlap with a token's health bar.                                                                                                                                                                                    |
-| Report Bug                          | This button links to the [Owlbear Rodeo Discord](https://discord.gg/WMp9bky4be) where you can report bugs. Including @Seamus in your post will help me find it faster.                                                                                                                                        |
+### Name tags
+
+Name tags can be enabled from the settings menu. Once enabled both players and GMs can set a token's name in the context menu embed. The autofill icon sets the name tag to the token's name property found under the accessibility settings. The name that you give the token will also be displayed in initiative tracking extensions.
+
+<img name="Name tag context menu" src="https://github.com/user-attachments/assets/9f349b52-4918-464c-99ff-7db63550e31d" width=300>
+
+### Settings
+
+The settings menu allows GMs to customize the extension to better fit their use case. There are room level settings that apply to every scene opened in the current room, and scene level settings which override the room settings and apply no matter what room the scene is being viewed in.
+
+![Settings Menu](https://github.com/user-attachments/assets/a8758eca-e727-4509-933d-456c57210fc9)
 
 ### Uninstalling
 
