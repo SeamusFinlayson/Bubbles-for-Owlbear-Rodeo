@@ -142,7 +142,6 @@ export function SetValuesTable({
                   <TokenTableCell
                     token={token}
                     faded={!included && appState.operation !== "none"}
-                    enableSelectionButton={appState.showItems === "ALL"}
                     playerSelection={playerSelection}
                   />
                   {appState.operation === "none" && playerRole === "GM" && (
@@ -369,7 +368,6 @@ export function DamageTable({
               <TokenTableCell
                 token={token}
                 faded={!included}
-                enableSelectionButton={appState.showItems === "ALL"}
                 playerSelection={playerSelection}
               />
               <TableCell>
@@ -437,12 +435,10 @@ export function DamageTable({
 function TokenTableCell({
   token,
   faded,
-  enableSelectionButton,
   playerSelection,
 }: {
   token: Token;
   faded: boolean;
-  enableSelectionButton?: boolean;
   playerSelection: string[];
 }): JSX.Element {
   const image = (
