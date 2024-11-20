@@ -168,6 +168,12 @@ export default function BulkEditor(): JSX.Element {
   );
 
   const getTable = (operation: Operation) => {
+    if (playerRole === "PLAYER")
+      return (
+        <div className="flex h-full items-start justify-center p-2 text-mirage-400 dark:text-mirage-600">
+          Token list is GM only.
+        </div>
+      );
     if (selectedTokens.length === 0)
       return (
         <div className="flex h-full items-start justify-center p-2 text-mirage-400 dark:text-mirage-600">
@@ -211,7 +217,9 @@ export default function BulkEditor(): JSX.Element {
         <ScrollArea className="h-full sm:px-4">
           <div className="flex flex-col items-center justify-start gap-2 pb-2">
             {getTable(appState.operation)}
-            <ChangeShowItemsButton appState={appState} dispatch={dispatch} />
+            {playerRole === "GM" && (
+              <ChangeShowItemsButton appState={appState} dispatch={dispatch} />
+            )}
           </div>
           <ScrollBar orientation="horizontal" forceMount />
         </ScrollArea>
