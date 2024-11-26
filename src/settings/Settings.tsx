@@ -33,6 +33,12 @@ export default function Settings(): JSX.Element {
   const roomSettings = useSettings("ROOM");
   const sceneSettings = useSettings("SCENE");
 
+  const sceneOverridesCount =
+    (sceneSettings.offset === undefined ? 0 : 1) +
+    (sceneSettings.justification === undefined ? 0 : 1) +
+    (sceneSettings.healthBarsVisible === undefined ? 0 : 1) +
+    (sceneSettings.nameTags === undefined ? 0 : 1);
+
   return (
     <div className="h-full">
       <div className="flex h-full flex-col rounded-2xl border bg-mirage-100 text-mirage-900 outline outline-2 -outline-offset-1 outline-primary dark:bg-mirage-950 dark:text-mirage-50 dark:outline-primary-dark">
@@ -44,7 +50,7 @@ export default function Settings(): JSX.Element {
                 <i>Stat Bubbles for D&D</i>
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 pr-0.5">
               <LinkButton
                 name="Patreon"
                 size="large"
@@ -77,7 +83,12 @@ export default function Settings(): JSX.Element {
           <Tabs defaultValue="room" className="w-full py-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="room">Room</TabsTrigger>
-              <TabsTrigger value="scene">Scene</TabsTrigger>
+              <TabsTrigger value="scene">
+                {"Scene" +
+                  (sceneOverridesCount === 0
+                    ? ""
+                    : ` (${sceneOverridesCount})`)}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="room">
@@ -116,160 +127,151 @@ export default function Settings(): JSX.Element {
 
             <TabsContent value="scene">
               {sceneSettings.initializationDone && (
-                <div>
-                  <div className="flex flex-wrap justify-center gap-2 px-4">
-                    <AddSceneSettingButton
-                      isUndefined={sceneSettings.offset === undefined}
-                      initializeSettings={() => {
-                        sceneSettings.setOffset(roomSettings.offset);
-                        updateSettingMetadata(
-                          OFFSET_METADATA_ID,
-                          parseFloat(roomSettings.offset as string),
-                          "SCENE",
-                        );
-                      }}
-                    >
-                      + Offset
-                    </AddSceneSettingButton>
-                    <AddSceneSettingButton
-                      isUndefined={sceneSettings.justification === undefined}
-                      initializeSettings={() => {
-                        sceneSettings.setJustification(
-                          roomSettings.justification,
-                        );
-                        updateSettingMetadata(
-                          BAR_AT_TOP_METADATA_ID,
-                          roomSettings.justification === "TOP" ? true : false,
-                          "SCENE",
-                        );
-                      }}
-                    >
-                      + Justification
-                    </AddSceneSettingButton>
-                    <AddSceneSettingButton
-                      isUndefined={
-                        sceneSettings.healthBarsVisible === undefined
-                      }
-                      initializeSettings={async () => {
-                        sceneSettings.setHealthBarsVisible(
-                          roomSettings.healthBarsVisible,
-                        );
-                        sceneSettings.setSegments(roomSettings.segments);
-                        await updateSettingMetadata(
-                          SHOW_BARS_METADATA_ID,
-                          roomSettings.healthBarsVisible,
-                          "SCENE",
-                        );
-                        updateSettingMetadata(
-                          SEGMENTS_METADATA_ID,
-                          parseFloat(roomSettings.segments as string),
-                          "SCENE",
-                        );
-                      }}
-                    >
-                      + Show Health Bars
-                    </AddSceneSettingButton>
-                    <AddSceneSettingButton
-                      isUndefined={sceneSettings.nameTags === undefined}
-                      initializeSettings={() => {
-                        sceneSettings.setNameTags(roomSettings.nameTags);
-                        updateSettingMetadata(
-                          NAME_TAGS_METADATA_ID,
-                          roomSettings.nameTags,
-                          "SCENE",
-                        );
-                      }}
-                    >
-                      + Name Tags
-                    </AddSceneSettingButton>
+                <div className="space-y-4">
+                  <div className="text-balance pl-1">
+                    Override the active room's settings for this scene.
                   </div>
 
-                  <div
-                    className={cn(
-                      "flex h-max flex-col justify-start gap-2 pt-2 text-base",
-                      {
-                        "pt-0":
-                          sceneSettings.offset !== undefined &&
-                          sceneSettings.justification !== undefined &&
-                          sceneSettings.healthBarsVisible !== undefined &&
-                          sceneSettings.nameTags !== undefined,
-                      },
-                    )}
-                  >
-                    {sceneSettings.offset !== undefined && (
-                      <VerticalOffsetSettings
-                        offset={sceneSettings.offset}
-                        setOffset={sceneSettings.setOffset}
-                        saveLocation="SCENE"
-                        removeHandler={() => {
-                          sceneSettings.setOffset(undefined);
-                          updateSettingMetadata(
-                            OFFSET_METADATA_ID,
-                            undefined,
-                            "SCENE",
-                          );
-                        }}
-                      />
-                    )}
-                    {sceneSettings.justification !== undefined && (
-                      <JustificationSettings
-                        justification={sceneSettings.justification}
-                        setJustification={sceneSettings.setJustification}
-                        saveLocation="SCENE"
-                        removeHandler={() => {
-                          sceneSettings.setJustification(undefined);
-                          updateSettingMetadata(
-                            BAR_AT_TOP_METADATA_ID,
-                            undefined,
-                            "SCENE",
-                          );
-                        }}
-                      />
-                    )}
-                    {sceneSettings.healthBarsVisible !== undefined &&
-                      sceneSettings.segments !== undefined && (
-                        <ShowHealthBarsSettings
-                          healthBarsVisible={sceneSettings.healthBarsVisible}
-                          setHealthBarsVisible={
-                            sceneSettings.setHealthBarsVisible
-                          }
-                          segments={sceneSettings.segments}
-                          setSegments={sceneSettings.setSegments}
+                  {sceneOverridesCount > 0 && (
+                    <div
+                      className={cn(
+                        "flex h-max flex-col justify-start gap-2 text-base",
+                      )}
+                    >
+                      {sceneSettings.offset !== undefined && (
+                        <VerticalOffsetSettings
+                          offset={sceneSettings.offset}
+                          setOffset={sceneSettings.setOffset}
                           saveLocation="SCENE"
                           removeHandler={() => {
-                            sceneSettings.setHealthBarsVisible(undefined);
+                            sceneSettings.setOffset(undefined);
                             updateSettingMetadata(
-                              SHOW_BARS_METADATA_ID,
+                              OFFSET_METADATA_ID,
                               undefined,
                               "SCENE",
                             );
                           }}
                         />
                       )}
-                    {sceneSettings.nameTags !== undefined && (
-                      <NameTagSettings
-                        nameTags={sceneSettings.nameTags}
-                        setNameTags={sceneSettings.setNameTags}
-                        saveLocation="SCENE"
-                        removeHandler={() => {
-                          sceneSettings.setNameTags(undefined);
+                      {sceneSettings.justification !== undefined && (
+                        <JustificationSettings
+                          justification={sceneSettings.justification}
+                          setJustification={sceneSettings.setJustification}
+                          saveLocation="SCENE"
+                          removeHandler={() => {
+                            sceneSettings.setJustification(undefined);
+                            updateSettingMetadata(
+                              BAR_AT_TOP_METADATA_ID,
+                              undefined,
+                              "SCENE",
+                            );
+                          }}
+                        />
+                      )}
+                      {sceneSettings.healthBarsVisible !== undefined &&
+                        sceneSettings.segments !== undefined && (
+                          <ShowHealthBarsSettings
+                            healthBarsVisible={sceneSettings.healthBarsVisible}
+                            setHealthBarsVisible={
+                              sceneSettings.setHealthBarsVisible
+                            }
+                            segments={sceneSettings.segments}
+                            setSegments={sceneSettings.setSegments}
+                            saveLocation="SCENE"
+                            removeHandler={() => {
+                              sceneSettings.setHealthBarsVisible(undefined);
+                              updateSettingMetadata(
+                                SHOW_BARS_METADATA_ID,
+                                undefined,
+                                "SCENE",
+                              );
+                            }}
+                          />
+                        )}
+                      {sceneSettings.nameTags !== undefined && (
+                        <NameTagSettings
+                          nameTags={sceneSettings.nameTags}
+                          setNameTags={sceneSettings.setNameTags}
+                          saveLocation="SCENE"
+                          removeHandler={() => {
+                            sceneSettings.setNameTags(undefined);
+                            updateSettingMetadata(
+                              NAME_TAGS_METADATA_ID,
+                              undefined,
+                              "SCENE",
+                            );
+                          }}
+                        />
+                      )}
+                    </div>
+                  )}
+
+                  {sceneOverridesCount < 4 && (
+                    <div className="flex flex-wrap gap-2 pl-0.5 pr-8">
+                      <AddSceneSettingButton
+                        visible={sceneSettings.offset === undefined}
+                        initializeSettings={() => {
+                          sceneSettings.setOffset(roomSettings.offset);
                           updateSettingMetadata(
-                            NAME_TAGS_METADATA_ID,
-                            undefined,
+                            OFFSET_METADATA_ID,
+                            parseFloat(roomSettings.offset as string),
                             "SCENE",
                           );
                         }}
-                      />
-                    )}
-                    {sceneSettings.offset === undefined &&
-                      sceneSettings.justification === undefined &&
-                      sceneSettings.healthBarsVisible === undefined &&
-                      sceneSettings.nameTags === undefined && (
-                        <div className="w-full text-center text-mirage-500">
-                          Override Room Settings
-                        </div>
-                      )}
-                  </div>
+                      >
+                        + Offset
+                      </AddSceneSettingButton>
+                      <AddSceneSettingButton
+                        visible={sceneSettings.justification === undefined}
+                        initializeSettings={() => {
+                          sceneSettings.setJustification(
+                            roomSettings.justification,
+                          );
+                          updateSettingMetadata(
+                            BAR_AT_TOP_METADATA_ID,
+                            roomSettings.justification === "TOP" ? true : false,
+                            "SCENE",
+                          );
+                        }}
+                      >
+                        + Justification
+                      </AddSceneSettingButton>
+                      <AddSceneSettingButton
+                        visible={sceneSettings.healthBarsVisible === undefined}
+                        initializeSettings={async () => {
+                          sceneSettings.setHealthBarsVisible(
+                            roomSettings.healthBarsVisible,
+                          );
+                          sceneSettings.setSegments(roomSettings.segments);
+                          await updateSettingMetadata(
+                            SHOW_BARS_METADATA_ID,
+                            roomSettings.healthBarsVisible,
+                            "SCENE",
+                          );
+                          updateSettingMetadata(
+                            SEGMENTS_METADATA_ID,
+                            parseFloat(roomSettings.segments as string),
+                            "SCENE",
+                          );
+                        }}
+                      >
+                        + Show Health Bars
+                      </AddSceneSettingButton>
+                      <AddSceneSettingButton
+                        visible={sceneSettings.nameTags === undefined}
+                        initializeSettings={() => {
+                          sceneSettings.setNameTags(roomSettings.nameTags);
+                          updateSettingMetadata(
+                            NAME_TAGS_METADATA_ID,
+                            roomSettings.nameTags,
+                            "SCENE",
+                          );
+                        }}
+                      >
+                        + Name Tags
+                      </AddSceneSettingButton>
+                    </div>
+                  )}
                 </div>
               )}
             </TabsContent>
@@ -281,15 +283,15 @@ export default function Settings(): JSX.Element {
 }
 
 function AddSceneSettingButton({
-  isUndefined,
+  visible,
   initializeSettings,
   children,
 }: {
-  isUndefined: boolean;
+  visible: boolean;
   initializeSettings: () => void;
   children: any;
 }) {
-  if (!isUndefined) return <></>;
+  if (!visible) return <></>;
   return (
     <Button
       className="h-[28px] rounded-full px-3"

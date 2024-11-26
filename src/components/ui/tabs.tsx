@@ -12,7 +12,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-9 items-center justify-center rounded bg-mirage-100 p-1 text-mirage-500 dark:bg-mirage-800 dark:text-mirage-400",
+      "inline-flex h-9 items-center justify-center rounded bg-mirage-200 p-1 text-mirage-500 dark:bg-mirage-900 dark:text-mirage-400",
       className,
     )}
     {...props}
@@ -27,7 +27,7 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded px-3 py-1 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mirage-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-white data-[state=active]:text-mirage-950 data-[state=active]:shadow dark:ring-offset-mirage-950 dark:focus-visible:ring-mirage-300 dark:data-[state=active]:bg-mirage-950 dark:data-[state=active]:text-mirage-50",
+      "inline-flex items-center justify-center whitespace-nowrap rounded px-3 py-1 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-white data-[state=active]:text-mirage-950 data-[state=active]:shadow dark:ring-offset-mirage-950 dark:focus-visible:ring-primary-dark dark:data-[state=active]:bg-mirage-950 dark:data-[state=active]:text-mirage-50",
       className,
     )}
     {...props}
@@ -42,7 +42,7 @@ const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
-      "mt-2 ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mirage-950 focus-visible:ring-offset-2 dark:ring-offset-mirage-950 dark:focus-visible:ring-mirage-300",
+      "mt-4 ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:ring-offset-mirage-950 dark:focus-visible:ring-primary-dark",
       className,
     )}
     {...props}
