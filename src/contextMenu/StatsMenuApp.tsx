@@ -161,7 +161,7 @@ export default function StatsMenuApp({
           animateOnlyWhenRootActive={true}
         ></BarInput>
         <h2 className="col-span-2 flex justify-center self-start text-2xs font-medium tracking-wider text-text-secondary dark:text-text-secondary-dark">
-          + MAXIMUM
+          & MAXIMUM
         </h2>
       </div>
 

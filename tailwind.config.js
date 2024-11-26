@@ -60,7 +60,7 @@ export default {
             dark: "hsl(0, 100%, 50%)",
             highlight: {
               DEFAULT: "hsl(0, 70%, 45%)",
-              dark: "hsl(0, 70%, 45%)",
+              dark: "hsl(0, 70%, 40%)",
             },
           },
           blue: {
@@ -68,7 +68,7 @@ export default {
             dark: "hsl(219, 79%, 66%)",
             highlight: {
               DEFAULT: "hsl(219, 79%, 66%)",
-              dark: "hsl(219, 79%, 66%)",
+              dark: "hsl(219, 55%, 55%)",
             },
           },
           green: {
@@ -76,7 +76,7 @@ export default {
             dark: "hsl(80, 60%, 35%)",
             highlight: {
               DEFAULT: "hsla(80, 60%, 35%)",
-              dark: "hsla(80, 60%, 35%)",
+              dark: "hsla(80, 60%, 31%)",
             },
           },
         },
