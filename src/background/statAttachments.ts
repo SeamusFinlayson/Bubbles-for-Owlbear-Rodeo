@@ -197,14 +197,17 @@ function getChangedItems(imagesFromCallback: Image[]) {
       )
     ) {
       // Attachments must be deleted to prevent ghost selection highlight bug
-      deleteItemsArray.push(`${imagesFromCallback[i].id}health-label`);
-      deleteItemsArray.push(`${imagesFromCallback[i].id}name-tag-text`);
+      deleteItemsArray.push(hpTextId(imagesFromCallback[i].id));
       changedItems.push(imagesFromCallback[i]);
     } else if (
       //check position, visibility, and metadata changes
       !(
         itemsLast[i + s].position.x === imagesFromCallback[i].position.x &&
         itemsLast[i + s].position.y === imagesFromCallback[i].position.y &&
+        itemsLast[i + s].grid.offset.x ===
+          imagesFromCallback[i].grid.offset.x &&
+        itemsLast[i + s].grid.offset.y ===
+          imagesFromCallback[i].grid.offset.y &&
         itemsLast[i + s].visible === imagesFromCallback[i].visible &&
         JSON.stringify(itemsLast[i + s].metadata[getPluginId("metadata")]) ===
           JSON.stringify(
@@ -222,7 +225,6 @@ function getChangedItems(imagesFromCallback: Image[]) {
       changedItems.push(imagesFromCallback[i]);
     }
   }
-  // console.log("changed items", changedItems);
   return changedItems;
 }
 

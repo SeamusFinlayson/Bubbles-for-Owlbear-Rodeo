@@ -31,9 +31,7 @@ OBR.onReady(async () => {
     throw "Error: Invalid Tokens Selection";
   } else {
     // Render React component
-    const root = createRoot(
-      document.getElementById("mother-flex") as HTMLDivElement,
-    );
+    const root = createRoot(document.getElementById("app") as HTMLDivElement);
     root.render(
       <TooltipProvider>
         <StatsMenuApp
