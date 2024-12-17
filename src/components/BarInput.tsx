@@ -45,7 +45,7 @@ export default function BarInput({
           },
         )}
       >
-        <div className={"absolute -z-30"}>
+        <div className={"pointer-events-none absolute -z-30"}>
           {valueHasFocus && <LeftCutoutBackground />}
           {maxHasFocus && <RightCutoutBackground />}
           {!valueHasFocus && !maxHasFocus && (
