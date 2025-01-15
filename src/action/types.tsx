@@ -35,6 +35,7 @@ export type BulkEditorState = {
   damageScaleOptions: Map<string, number>;
   includedItems: Map<string, boolean>;
   showItems: "ALL" | "SELECTED";
+  mostRecentSelection: string[];
 };
 
 export type Action =
@@ -103,4 +104,8 @@ export type Action =
   | {
       type: "set-show-items";
       showItems: "ALL" | "SELECTED";
+    }
+  | {
+      type: "set-most-recent-selection";
+      mostRecentSelection: string[];
     };

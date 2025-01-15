@@ -228,7 +228,12 @@ export function reducer(
               includedItems:
                 action.operation === "none"
                   ? new Map<string, boolean>()
-                  : state.includedItems,
+                  : new Map([
+                      ...state.mostRecentSelection.map(
+                        (id): [string, boolean] => [id, true],
+                      ),
+                      ...state.includedItems,
+                    ]),
             }
           : {}),
       };
@@ -318,6 +323,8 @@ export function reducer(
       };
     case "set-show-items":
       return { ...state, showItems: action.showItems };
+    case "set-most-recent-selection":
+      return { ...state, mostRecentSelection: action.mostRecentSelection };
     default:
       console.log("unhandled action");
       return state;

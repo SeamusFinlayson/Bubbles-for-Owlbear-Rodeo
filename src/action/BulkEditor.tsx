@@ -32,6 +32,7 @@ export default function BulkEditor(): JSX.Element {
       statOverwrites: unsetStatOverwrites(),
       damageScaleOptions: new Map<string, number>(),
       includedItems: new Map<string, boolean>(),
+      mostRecentSelection: [],
     };
   });
 
@@ -43,12 +44,9 @@ export default function BulkEditor(): JSX.Element {
   const [sceneReady, setSceneReady] = useState(false);
 
   // Tokens filter state
-  const [mostRecentSelection, setMostRecentSelection] =
-    useState<string[]>(playerSelection);
-
   const selectionFilter = (token: Token) =>
     (appState.showItems === "ALL" ||
-      mostRecentSelection.includes(token.item.id) ||
+      appState.mostRecentSelection.includes(token.item.id) ||
       getIncluded(token.item.id, appState.includedItems)) &&
     (playerRole === "GM" || !token.hideStats) &&
     !(appState.operation === "damage" && token.maxHealth <= 0) &&
@@ -127,7 +125,10 @@ export default function BulkEditor(): JSX.Element {
           validTokenIds.includes(id),
         );
         if (selectedTokenIds.length > 0)
-          setMostRecentSelection(selectedTokenIds);
+          dispatch({
+            type: "set-most-recent-selection",
+            mostRecentSelection: selectedTokenIds,
+          });
       }
     };
     const updatePlayerRole = (role: "PLAYER" | "GM") => {
