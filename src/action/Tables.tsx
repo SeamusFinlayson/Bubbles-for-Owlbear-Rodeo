@@ -57,7 +57,7 @@ import { restrictToFirstScrollableAncestor } from "@dnd-kit/modifiers";
 import { SmartMouseSensor } from "./SmartPointerSensor";
 import { SortableTableRow } from "./SortableTableRow";
 
-export function SetValuesTable({
+export function SceneTokensTable({
   appState,
   dispatch,
   tokens,
@@ -111,9 +111,18 @@ export function SetValuesTable({
               {appState.operation === "none" && playerRole === "GM" && (
                 <TableHead>Access</TableHead>
               )}
-              <TableHead title="Hit Points / Maximum Hit Points, Temporary Hit Points">
-                Stats
-              </TableHead>
+              {appState.operation !== "damage" && (
+                <TableHead title="Hit Points / Maximum Hit Points, Temporary Hit Points">
+                  Stats
+                </TableHead>
+              )}
+              {appState.operation === "damage" && (
+                <>
+                  <TableHead>Multiplier</TableHead>
+                  <TableHead>Damage</TableHead>
+                  <TableHead>New Hit Points</TableHead>
+                </>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -123,8 +132,73 @@ export function SetValuesTable({
                 appState.includedItems,
               );
 
+              const option = getDamageScaleOption(
+                token.item.id,
+                appState.damageScaleOptions,
+              );
+              const scaledDamage = calculateScaledHealthDiff(
+                included ? option : 0,
+                appState.value ? appState.value : 0,
+              );
+              const [newHealth, newTempHealth] = calculateNewHealth(
+                token.health,
+                token.maxHealth,
+                token.tempHealth,
+                -1 * scaledDamage,
+              );
+
+              const nextDamageOption = () => {
+                dispatch({
+                  type: "set-damage-scale-options",
+                  damageScaleOptions: new Map(appState.damageScaleOptions).set(
+                    token.item.id,
+                    option < multipliers.length - 1 ? option + 1 : option,
+                  ),
+                });
+              };
+
+              const resetDamageOption = () => {
+                dispatch({
+                  type: "set-damage-scale-options",
+                  damageScaleOptions: new Map(appState.damageScaleOptions).set(
+                    token.item.id,
+                    DEFAULT_DAMAGE_SCALE,
+                  ),
+                });
+              };
+
+              const previousDamageOption = () => {
+                dispatch({
+                  type: "set-damage-scale-options",
+                  damageScaleOptions: new Map(appState.damageScaleOptions).set(
+                    token.item.id,
+                    option > 1 ? option - 1 : option,
+                  ),
+                });
+              };
+
+              const handleKeyDown = (
+                event: React.KeyboardEvent<HTMLTableRowElement>,
+              ) => {
+                switch (event.code) {
+                  case "ArrowLeft":
+                    previousDamageOption();
+                    break;
+                  case "ArrowRight":
+                    nextDamageOption();
+                    break;
+                  case "KeyR":
+                    resetDamageOption();
+                    break;
+                }
+              };
+
               return (
-                <SortableTableRow key={token.item.id} id={token.item.id}>
+                <SortableTableRow
+                  key={token.item.id}
+                  id={token.item.id}
+                  onKeyDown={handleKeyDown}
+                >
                   {appState.operation !== "none" && (
                     <CheckboxTableCell
                       included={included}
@@ -147,61 +221,121 @@ export function SetValuesTable({
                   {appState.operation === "none" && playerRole === "GM" && (
                     <AccessButton token={token} setTokens={setTokens} />
                   )}
-                  <TableCell>
-                    <div className="grid min-w-[140px] grid-cols-2 justify-items-stretch gap-2 sm:min-w-[250px] sm:grid-cols-4">
-                      <div className="col-span-2 flex items-center justify-between gap-1">
+                  {appState.operation !== "damage" && (
+                    <TableCell>
+                      <div className="grid min-w-[140px] grid-cols-2 justify-items-stretch gap-2 sm:min-w-[250px] sm:grid-cols-4">
+                        <div className="col-span-2 flex items-center justify-between gap-1">
+                          <StatInput
+                            parentValue={token.health}
+                            name={"health"}
+                            updateHandler={(target) =>
+                              handleStatUpdate(
+                                token.item.id,
+                                target,
+                                token.health,
+                                setTokens,
+                              )
+                            }
+                          />
+                          <div>{"/"}</div>
+                          <StatInput
+                            parentValue={token.maxHealth}
+                            name={"maxHealth"}
+                            updateHandler={(target) =>
+                              handleStatUpdate(
+                                token.item.id,
+                                target,
+                                token.maxHealth,
+                                setTokens,
+                              )
+                            }
+                          />
+                        </div>
                         <StatInput
-                          parentValue={token.health}
-                          name={"health"}
+                          parentValue={token.tempHealth}
+                          name={"tempHealth"}
                           updateHandler={(target) =>
                             handleStatUpdate(
                               token.item.id,
                               target,
-                              token.health,
+                              token.tempHealth,
                               setTokens,
                             )
                           }
-                        ></StatInput>
-                        <div>{"/"}</div>
+                        />
                         <StatInput
-                          parentValue={token.maxHealth}
-                          name={"maxHealth"}
+                          parentValue={token.armorClass}
+                          name={"armorClass"}
                           updateHandler={(target) =>
                             handleStatUpdate(
                               token.item.id,
                               target,
-                              token.maxHealth,
+                              token.armorClass,
                               setTokens,
                             )
                           }
-                        ></StatInput>
+                        />
                       </div>
-                      <StatInput
-                        parentValue={token.tempHealth}
-                        name={"tempHealth"}
-                        updateHandler={(target) =>
-                          handleStatUpdate(
-                            token.item.id,
-                            target,
-                            token.tempHealth,
-                            setTokens,
-                          )
-                        }
-                      ></StatInput>
-                      <StatInput
-                        parentValue={token.armorClass}
-                        name={"armorClass"}
-                        updateHandler={(target) =>
-                          handleStatUpdate(
-                            token.item.id,
-                            target,
-                            token.armorClass,
-                            setTokens,
-                          )
-                        }
-                      ></StatInput>
-                    </div>
-                  </TableCell>
+                    </TableCell>
+                  )}
+                  {appState.operation === "damage" && (
+                    <>
+                      <TableCell>
+                        <div className="flex max-w-32 gap-2">
+                          <Button
+                            className="size-8 min-w-8 rounded-full"
+                            tabIndex={-1}
+                            size={"icon"}
+                            variant={"outline"}
+                            onClick={(e) => {
+                              previousDamageOption();
+                              e.stopPropagation();
+                            }}
+                          >
+                            <ArrowLeftIcon className="size-4" />
+                          </Button>
+                          <Button
+                            className="flex h-8 w-10 items-center justify-center text-lg font-medium"
+                            tabIndex={-1}
+                            variant={"ghost"}
+                            onClick={(e) => {
+                              resetDamageOption();
+                              e.stopPropagation();
+                            }}
+                          >
+                            {multipliers[option]}
+                          </Button>
+                          <Button
+                            className="size-8 min-w-8 rounded-full"
+                            tabIndex={-1}
+                            size={"icon"}
+                            variant={"outline"}
+                            onClick={(e) => {
+                              nextDamageOption();
+                              e.stopPropagation();
+                            }}
+                          >
+                            <ArrowRightIcon className="size-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell
+                        className={cn({
+                          "text-mirage-500 dark:text-mirage-400": !included,
+                        })}
+                      >
+                        {scaledDamage}
+                      </TableCell>
+                      <TableCell
+                        className={cn("md:min-w-16 lg:min-w-20", {
+                          "text-mirage-500 dark:text-mirage-400": !included,
+                        })}
+                      >
+                        {newHealth.toString() +
+                          (newTempHealth > 0 ? ` (${newTempHealth})` : "")}
+                      </TableCell>
+                    </>
+                  )}
                 </SortableTableRow>
               );
             })}
@@ -249,186 +383,6 @@ function AccessButton({
         </TooltipContent>
       </Tooltip>
     </TableCell>
-  );
-}
-
-export function DamageTable({
-  appState,
-  dispatch,
-  tokens,
-  playerSelection,
-}: {
-  appState: BulkEditorState;
-  dispatch: React.Dispatch<Action>;
-  tokens: Token[];
-  playerSelection: string[];
-}): JSX.Element {
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <CheckboxTableHead
-            included={allChecked(tokens, appState.includedItems)}
-            onCheckedChange={(checked) =>
-              dispatch({
-                type: "set-included-items",
-                includedItems: new Map(
-                  tokens.map((token) => [token.item.id, checked]),
-                ),
-              })
-            }
-          />
-          <TableHead>Icon</TableHead>
-          <TableHead>Multiplier</TableHead>
-          <TableHead>Damage</TableHead>
-          <TableHead>New Hit Points</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {tokens.map((token) => {
-          const included = getIncluded(token.item.id, appState.includedItems);
-          const option = getDamageScaleOption(
-            token.item.id,
-            appState.damageScaleOptions,
-          );
-          const scaledDamage = calculateScaledHealthDiff(
-            included ? option : 0,
-            appState.value ? appState.value : 0,
-          );
-          const [newHealth, newTempHealth] = calculateNewHealth(
-            token.health,
-            token.maxHealth,
-            token.tempHealth,
-            -1 * scaledDamage,
-          );
-
-          const nextDamageOption = () => {
-            dispatch({
-              type: "set-damage-scale-options",
-              damageScaleOptions: new Map(appState.damageScaleOptions).set(
-                token.item.id,
-                option < multipliers.length - 1 ? option + 1 : option,
-              ),
-            });
-          };
-
-          const resetDamageOption = () => {
-            dispatch({
-              type: "set-damage-scale-options",
-              damageScaleOptions: new Map(appState.damageScaleOptions).set(
-                token.item.id,
-                DEFAULT_DAMAGE_SCALE,
-              ),
-            });
-          };
-
-          const previousDamageOption = () => {
-            dispatch({
-              type: "set-damage-scale-options",
-              damageScaleOptions: new Map(appState.damageScaleOptions).set(
-                token.item.id,
-                option > 1 ? option - 1 : option,
-              ),
-            });
-          };
-
-          const handleKeyDown = (
-            event: React.KeyboardEvent<HTMLTableRowElement>,
-          ) => {
-            switch (event.code) {
-              case "ArrowLeft":
-                previousDamageOption();
-                break;
-              case "ArrowRight":
-                nextDamageOption();
-                break;
-              case "KeyR":
-                resetDamageOption();
-                break;
-            }
-          };
-
-          return (
-            <TableRow
-              key={token.item.id}
-              onKeyDown={(event) => handleKeyDown(event)}
-            >
-              <CheckboxTableCell
-                included={included}
-                onCheckedChange={(checked) =>
-                  dispatch({
-                    type: "set-included-items",
-                    includedItems: appState.includedItems.set(
-                      token.item.id,
-                      checked,
-                    ),
-                  })
-                }
-              />
-              <TokenTableCell
-                token={token}
-                faded={!included}
-                playerSelection={playerSelection}
-              />
-              <TableCell>
-                <div className="flex max-w-32 gap-2">
-                  <Button
-                    className="size-8 min-w-8 rounded-full"
-                    tabIndex={-1}
-                    size={"icon"}
-                    variant={"outline"}
-                    onClick={(e) => {
-                      previousDamageOption();
-                      e.stopPropagation();
-                    }}
-                  >
-                    <ArrowLeftIcon className="size-4" />
-                  </Button>
-                  <Button
-                    className="flex h-8 w-10 items-center justify-center text-lg font-medium"
-                    tabIndex={-1}
-                    variant={"ghost"}
-                    onClick={(e) => {
-                      resetDamageOption();
-                      e.stopPropagation();
-                    }}
-                  >
-                    {multipliers[option]}
-                  </Button>
-                  <Button
-                    className="size-8 min-w-8 rounded-full"
-                    tabIndex={-1}
-                    size={"icon"}
-                    variant={"outline"}
-                    onClick={(e) => {
-                      nextDamageOption();
-                      e.stopPropagation();
-                    }}
-                  >
-                    <ArrowRightIcon className="size-4" />
-                  </Button>
-                </div>
-              </TableCell>
-              <TableCell
-                className={cn({
-                  "text-mirage-500 dark:text-mirage-400": !included,
-                })}
-              >
-                {scaledDamage}
-              </TableCell>
-              <TableCell
-                className={cn("md:min-w-16 lg:min-w-20", {
-                  "text-mirage-500 dark:text-mirage-400": !included,
-                })}
-              >
-                {newHealth.toString() +
-                  (newTempHealth > 0 ? ` (${newTempHealth})` : "")}
-              </TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
   );
 }
 

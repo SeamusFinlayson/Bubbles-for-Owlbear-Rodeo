@@ -1,10 +1,10 @@
 import Token from "../metadataHelpers/TokenType";
 import "../index.css";
 import { useEffect, useReducer, useState } from "react";
-import { Action, BulkEditorState, Operation } from "./types";
+import { Action, BulkEditorState } from "./types";
 import Footer from "./Footer";
 import Header from "./Header";
-import { DamageTable, SetValuesTable } from "./Tables";
+import { SceneTokensTable } from "./Tables";
 import {
   getIncluded,
   getRollsFromScene,
@@ -32,6 +32,7 @@ export default function BulkEditor(): JSX.Element {
       statOverwrites: unsetStatOverwrites(),
       damageScaleOptions: new Map<string, number>(),
       includedItems: new Map<string, boolean>(),
+      mostRecentSelection: [],
     };
   });
 
@@ -43,12 +44,9 @@ export default function BulkEditor(): JSX.Element {
   const [sceneReady, setSceneReady] = useState(false);
 
   // Tokens filter state
-  const [mostRecentSelection, setMostRecentSelection] =
-    useState<string[]>(playerSelection);
-
   const selectionFilter = (token: Token) =>
     (appState.showItems === "ALL" ||
-      mostRecentSelection.includes(token.item.id) ||
+      appState.mostRecentSelection.includes(token.item.id) ||
       getIncluded(token.item.id, appState.includedItems)) &&
     (playerRole === "GM" || !token.hideStats) &&
     !(appState.operation === "damage" && token.maxHealth <= 0) &&
@@ -127,7 +125,10 @@ export default function BulkEditor(): JSX.Element {
           validTokenIds.includes(id),
         );
         if (selectedTokenIds.length > 0)
-          setMostRecentSelection(selectedTokenIds);
+          dispatch({
+            type: "set-most-recent-selection",
+            mostRecentSelection: selectedTokenIds,
+          });
       }
     };
     const updatePlayerRole = (role: "PLAYER" | "GM") => {
@@ -167,7 +168,7 @@ export default function BulkEditor(): JSX.Element {
     [],
   );
 
-  const getTable = (operation: Operation) => {
+  const getTable = () => {
     if (playerRole === "PLAYER")
       return (
         <div className="flex h-full items-start justify-center p-2 text-mirage-400 dark:text-mirage-600">
@@ -180,29 +181,18 @@ export default function BulkEditor(): JSX.Element {
           The tokens you most recently selected on the map will be visible here.
         </div>
       );
-    switch (operation) {
-      case "damage":
-        return (
-          <DamageTable
-            tokens={selectedTokens}
-            appState={appState}
-            dispatch={dispatch}
-            playerSelection={playerSelection}
-          ></DamageTable>
-        );
-      default:
-        return (
-          <SetValuesTable
-            appState={appState}
-            dispatch={dispatch}
-            tokens={selectedTokens}
-            setTokens={setTokens}
-            playerRole={playerRole}
-            playerSelection={playerSelection}
-            handleDragEnd={handleDragEnd}
-          ></SetValuesTable>
-        );
-    }
+
+    return (
+      <SceneTokensTable
+        appState={appState}
+        dispatch={dispatch}
+        tokens={selectedTokens}
+        setTokens={setTokens}
+        playerRole={playerRole}
+        playerSelection={playerSelection}
+        handleDragEnd={handleDragEnd}
+      ></SceneTokensTable>
+    );
   };
 
   return (
@@ -216,7 +206,7 @@ export default function BulkEditor(): JSX.Element {
         ></Header>
         <ScrollArea className="h-full sm:px-4">
           <div className="flex flex-col items-center justify-start gap-2 pb-2">
-            {getTable(appState.operation)}
+            {getTable()}
             {playerRole === "GM" && (
               <ChangeShowItemsButton appState={appState} dispatch={dispatch} />
             )}
