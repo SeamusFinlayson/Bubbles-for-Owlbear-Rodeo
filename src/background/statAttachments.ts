@@ -208,6 +208,7 @@ function getChangedItems(imagesFromCallback: Image[]) {
           imagesFromCallback[i].grid.offset.x &&
         itemsLast[i + s].grid.offset.y ===
           imagesFromCallback[i].grid.offset.y &&
+        itemsLast[i + s].grid.dpi === imagesFromCallback[i].grid.dpi &&
         itemsLast[i + s].visible === imagesFromCallback[i].visible &&
         JSON.stringify(itemsLast[i + s].metadata[getPluginId("metadata")]) ===
           JSON.stringify(
