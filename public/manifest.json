@@ -1,0 +1,17 @@
+{
+  "name": "Stat Bubbles for D&D",
+  "version": "1.9.13",
+  "manifest_version": 1,
+  "author": "Seamus Finlayson",
+  "homepage_url": "https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo",
+  "icon": "https://stat-bubbles.site1783738882.mywhc.ca/logo.png",
+  "background_url": "https://stat-bubbles.site1783738882.mywhc.ca/src/background/background.html",
+  "description": "Health Bars and Armor Class for your D&D adventures!",
+  "action": {
+    "title": "Stat Bubbles for D&D",
+    "icon": "https://stat-bubbles.site1783738882.mywhc.ca/status.svg",
+    "popover": "https://stat-bubbles.site1783738882.mywhc.ca/src/action/action.html",
+    "height": 522,
+    "width": 450
+  }
+}
